@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom';
 import { Button, Section } from './primitives';
 import Icon from './Icon';
 import { brand as staticBrand } from '../data/site';
@@ -17,7 +16,7 @@ const columns = [
   {
     title: 'Resources',
     links: [
-      { label: 'Blog', href: '/blog', isRoute: true },
+      { label: 'Blog', href: '#blog' },
       { label: 'Video resources', href: '#resources' },
       { label: 'Pricing & insurance', href: '#pricing' },
       { label: 'Questions', href: '#faq' },
@@ -108,15 +107,9 @@ export default function Footer({ onBook }) {
                 <ul className="mt-5 flex flex-col gap-3">
                   {col.links.map((l) => (
                     <li key={l.label}>
-                      {l.isRoute ? (
-                        <Link to={l.href} className="text-[14.5px] text-ink-3 transition-colors duration-300 hover:text-ink">
-                          {l.label}
-                        </Link>
-                      ) : (
-                        <a href={l.href} className="text-[14.5px] text-ink-3 transition-colors duration-300 hover:text-ink">
-                          {l.label}
-                        </a>
-                      )}
+                      <a href={l.href} className="text-[14.5px] text-ink-3 transition-colors duration-300 hover:text-ink">
+                        {l.label}
+                      </a>
                     </li>
                   ))}
                 </ul>

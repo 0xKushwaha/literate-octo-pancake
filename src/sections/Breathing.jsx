@@ -167,7 +167,7 @@ export default function Breathing() {
   useEffect(() => {
     listActiveExercises()
       .then(setExercises)
-      .catch(() => setExercises(FALLBACK))
+      .catch(() => setExercises([]))
       .finally(() => setLoading(false));
   }, []);
 
