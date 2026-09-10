@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# No crawlable surface behind the booking flow; it is all client state.
+Sitemap: https://lumentherapy.com/sitemap.xml

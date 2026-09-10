@@ -1,0 +1,520 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* Fonts are bundled, not fetched from a CDN. On a therapy site the visit
+   itself is sensitive: a Google Fonts request would hand a third party the
+   visitor's IP and referrer on every page load, and it forces the CSP to
+   allow an external stylesheet origin.
+
+   Declared by hand against the latin files only — the packages' own CSS ships
+   Cyrillic/Greek/Vietnamese subsets this site will never render. */
+@font-face {
+  font-family: "Inter Tight Variable";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("@fontsource-variable/inter-tight/files/inter-tight-latin-wght-normal.woff2") format("woff2-variations");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Instrument Serif";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("@fontsource/instrument-serif/files/instrument-serif-latin-400-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Instrument Serif";
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("@fontsource/instrument-serif/files/instrument-serif-latin-400-italic.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "JetBrains Mono Variable";
+  font-style: normal;
+  font-weight: 100 800;
+  font-display: swap;
+  src: url("@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2") format("woff2-variations");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@theme {
+  --font-sans: "Inter Tight Variable", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: "Instrument Serif", ui-serif, Georgia, serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, SFMono-Regular, monospace;
+
+  /* grounds */
+  --color-bg: #FFF6F4;
+  --color-bg-2: #FEEFEC;
+  --color-surface: #ffffff;
+  --color-surface-2: #FFFAF8;
+  --color-surface-3: #FEF3F0;
+
+  /* hairlines */
+  --color-line: #EDE5E2;
+  --color-line-2: #DDD5D2;
+
+  /* text, strongest first */
+  --color-ink: #0a1020;
+  --color-ink-2: #39435a;
+  --color-ink-3: #4f5970;
+  --color-ink-4: #646d80;
+
+  /* aurora accents — darker steps are for text, lighter for surfaces & 3D */
+  --color-aqua-700: #0d6f68;
+  --color-aqua-600: #0d9488;
+  --color-aqua-500: #1CC5B3;
+  --color-aqua-400: #36E4CF;
+  --color-aqua-300: #7eead9;
+  --color-aqua-200: #c2f5ec;
+  --color-aqua-100: #e6fbf7;
+
+  --color-iris-700: #3f38c4;
+  --color-iris-600: #4f46e5;
+  --color-iris-500: #7B7CFF;
+  --color-iris-400: #A5ADFF;
+  --color-iris-100: #eceffe;
+
+  --color-violet-700: #6b21d4;
+  --color-violet-600: #7c3aed;
+  --color-violet-500: #A06EFF;
+  --color-violet-400: #C4A8FF;
+  --color-violet-100: #f2ecfe;
+
+  --color-coral-700: #c23c1c;
+  --color-coral-600: #e2542f;
+  --color-coral-500: #f2734f;
+  --color-coral-100: #fdeee8;
+
+  --radius-4xl: 2rem;
+  --radius-5xl: 2.75rem;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-quint: cubic-bezier(0.83, 0, 0.17, 1);
+
+  /* elevation — depth comes from shadow here, not from translucent fills */
+  --shadow-card: 0 1px 3px rgba(10, 16, 32, 0.03), 0 12px 32px -16px rgba(10, 16, 32, 0.08);
+  --shadow-lift: 0 2px 6px rgba(10, 16, 32, 0.04), 0 24px 56px -20px rgba(10, 16, 32, 0.15);
+  --shadow-float: 0 10px 24px rgba(10, 16, 32, 0.06), 0 40px 80px -30px rgba(10, 16, 32, 0.22);
+}
+
+/* ============================================================
+   shadcn/ui token bridge
+
+   shadcn components are written against --background / --foreground /
+   --border / --ring etc. Rather than let that become a second palette,
+   every one of them points back at the Lumen tokens above, so colour has
+   exactly one source of truth. `@theme inline` keeps the reference live
+   instead of copying the value at build time.
+   ============================================================ */
+@theme inline {
+  --color-background: var(--color-bg);
+  --color-foreground: var(--color-ink);
+
+  --color-card: var(--color-surface);
+  --color-card-foreground: var(--color-ink);
+  --color-popover: var(--color-surface);
+  --color-popover-foreground: var(--color-ink);
+
+  --color-primary: var(--color-ink);
+  --color-primary-foreground: #ffffff;
+  --color-secondary: var(--color-surface-3);
+  --color-secondary-foreground: var(--color-ink);
+
+  --color-muted: var(--color-surface-3);
+  --color-muted-foreground: var(--color-ink-3);
+  --color-accent: var(--color-aqua-100);
+  --color-accent-foreground: var(--color-aqua-700);
+
+  --color-destructive: var(--color-coral-700);
+  --color-destructive-foreground: #ffffff;
+
+  --color-border: var(--color-line);
+  --color-input: var(--color-line-2);
+  --color-ring: var(--color-aqua-500);
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: auto;
+  }
+
+  html.lenis,
+  html.lenis body {
+    height: auto;
+  }
+  .lenis.lenis-smooth {
+    scroll-behavior: auto !important;
+  }
+  .lenis.lenis-stopped {
+    overflow: hidden;
+  }
+
+  body {
+    margin: 0;
+    background: var(--color-bg);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-synthesis-weight: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: clip;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--color-aqua-400) 38%, transparent);
+    color: var(--color-ink);
+  }
+
+  h1, h2, h3, h4 {
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  p { text-wrap: pretty; }
+
+  button, input, select, textarea {
+    font: inherit;
+    color: inherit;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-aqua-600);
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: var(--color-bg); }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-line-2);
+    border-radius: 99px;
+    border: 2px solid var(--color-bg);
+  }
+  ::-webkit-scrollbar-thumb:hover { background: var(--color-aqua-500); }
+}
+
+/* ============================================================
+   utilities
+   ============================================================ */
+@utility glass {
+  background: color-mix(in oklab, var(--color-surface) 78%, transparent);
+  border: 1px solid color-mix(in oklab, var(--color-ink) 6%, transparent);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+}
+
+@utility text-aurora {
+  background: linear-gradient(
+    100deg,
+    var(--color-ink) 0%,
+    var(--color-aqua-600) 32%,
+    var(--color-violet-600) 64%,
+    var(--color-ink) 100%
+  );
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: aurora-pan 9s linear infinite;
+}
+
+@utility eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--color-ink-4);
+}
+
+@utility glow-border {
+  position: relative;
+}
+
+@utility text-shimmer {
+  background: linear-gradient(
+    110deg,
+    var(--color-ink) 0%,
+    var(--color-ink) 35%,
+    var(--color-aqua-500) 50%,
+    var(--color-ink) 65%,
+    var(--color-ink) 100%
+  );
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer-pan 5s ease-in-out infinite;
+}
+
+/* ============================================================
+   keyframes
+   ============================================================ */
+@keyframes aurora-pan {
+  to { background-position: 220% 0; }
+}
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0) }
+  50% { transform: translateY(-14px) }
+}
+@keyframes pulse-ring {
+  0% { transform: scale(0.85); opacity: 0.65 }
+  70% { transform: scale(1.7); opacity: 0 }
+  100% { transform: scale(1.7); opacity: 0 }
+}
+@keyframes marquee-x {
+  from { transform: translate3d(0, 0, 0) }
+  to { transform: translate3d(-50%, 0, 0) }
+}
+@keyframes grain-shift {
+  0%, 100% { transform: translate(0, 0) }
+  10% { transform: translate(-5%, -10%) }
+  30% { transform: translate(3%, -15%) }
+  50% { transform: translate(-8%, 5%) }
+  70% { transform: translate(6%, 8%) }
+  90% { transform: translate(-3%, 6%) }
+}
+
+@keyframes shimmer-pan {
+  0%, 100% { background-position: 200% 0; }
+  50% { background-position: -100% 0; }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+@keyframes float-gentle {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  33% { transform: translateY(-8px) rotate(1deg); }
+  66% { transform: translateY(-4px) rotate(-0.5deg); }
+}
+
+@keyframes scale-in {
+  from { transform: scale(0.92); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.animate-float-slow { animation: float-slow 7s var(--ease-in-out-quint) infinite; }
+.animate-marquee { animation: marquee-x 42s linear infinite; }
+.animate-glow-pulse { animation: glow-pulse 3s ease-in-out infinite; }
+.animate-float-gentle { animation: float-gentle 8s ease-in-out infinite; }
+
+/* Custom cursor. Lives here rather than in an inline <style> so the CSP can
+   keep style-src locked to 'self'. Applied only when the pointer is fine —
+   the component does not mount otherwise. */
+@media (pointer: fine) {
+  body.lumen-cursor,
+  body.lumen-cursor a,
+  body.lumen-cursor button,
+  body.lumen-cursor [role="button"] {
+    cursor: none;
+  }
+}
+
+.lumen-ring {
+  transition:
+    opacity 0.3s,
+    border-color 0.35s,
+    background-color 0.35s;
+}
+.lumen-ring.is-hover {
+  border-color: var(--color-aqua-600);
+  background: color-mix(in oklab, var(--color-aqua-400) 15%, transparent);
+}
+
+/* paper grain — multiplied so it darkens rather than fogs */
+.grain::after {
+  content: "";
+  position: fixed;
+  inset: -150%;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0.04;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: grain-shift 6s steps(6) infinite;
+}
+
+/* blueprint hairlines behind the hero */
+.grid-lines {
+  background-image:
+    linear-gradient(to right, color-mix(in oklab, var(--color-ink) 4%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklab, var(--color-ink) 4%, transparent) 1px, transparent 1px);
+  background-size: 80px 80px;
+  mask-image: radial-gradient(ellipse 100% 70% at 50% 35%, #000 15%, transparent 72%);
+}
+
+/* ============================================================
+   print — someone confirming an appointment may well print it
+   ============================================================ */
+@media print {
+  /* Ink-saving, and none of the chrome is meaningful on paper. */
+  header,
+  footer,
+  canvas,
+  .grain::after,
+  .grid-lines,
+  .lumen-ring,
+  [data-slot="dialog-overlay"],
+  [data-print-hide] {
+    display: none !important;
+  }
+
+  body {
+    background: #fff;
+  }
+
+  /* The dialog is fixed and scroll-locked on screen; on paper it should just
+     be a document that flows. */
+  [data-slot="dialog-content"] {
+    position: static !important;
+    max-height: none !important;
+    max-width: none !important;
+    box-shadow: none !important;
+    border: 0 !important;
+    overflow: visible !important;
+  }
+  [data-slot="dialog-content"] * {
+    overflow: visible !important;
+  }
+
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.75em;
+    color: #555;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ---------------------------------------------------------------- Blog prose */
+/* Used in BlogPostPage to render Tiptap-generated HTML */
+
+.prose-lumen {
+  color: var(--color-ink-2);
+  font-size: 16.5px;
+  line-height: 1.75;
+  max-width: 68ch;
+}
+
+.prose-lumen h2 {
+  font-family: var(--font-display, 'Instrument Serif', Georgia, serif);
+  font-size: clamp(1.4rem, 2.5vw, 1.9rem);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: var(--color-ink);
+  margin-top: 2.8rem;
+  margin-bottom: 0.9rem;
+}
+
+.prose-lumen h3 {
+  font-family: var(--font-display, 'Instrument Serif', Georgia, serif);
+  font-size: clamp(1.15rem, 2vw, 1.45rem);
+  font-weight: 400;
+  letter-spacing: -0.015em;
+  color: var(--color-ink);
+  margin-top: 2rem;
+  margin-bottom: 0.6rem;
+}
+
+.prose-lumen p {
+  margin-bottom: 1.4rem;
+}
+
+.prose-lumen strong {
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.prose-lumen em {
+  font-style: italic;
+}
+
+.prose-lumen a {
+  color: var(--color-aqua-700, #0d6f68);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  transition: color 0.2s;
+}
+.prose-lumen a:hover {
+  color: var(--color-aqua-600, #0a8f86);
+}
+
+.prose-lumen ul {
+  list-style: disc;
+  padding-left: 1.6rem;
+  margin-bottom: 1.4rem;
+}
+.prose-lumen ol {
+  list-style: decimal;
+  padding-left: 1.6rem;
+  margin-bottom: 1.4rem;
+}
+.prose-lumen li {
+  margin-bottom: 0.4rem;
+}
+
+.prose-lumen blockquote {
+  border-left: 3px solid var(--color-aqua-400, #36E4CF);
+  padding-left: 1.2rem;
+  margin-left: 0;
+  color: var(--color-ink-3);
+  font-style: italic;
+  margin-bottom: 1.4rem;
+}
+
+.prose-lumen hr {
+  border: none;
+  border-top: 1px solid var(--color-line);
+  margin: 2.5rem 0;
+}
+
+.prose-lumen code {
+  font-family: 'JetBrains Mono Variable', monospace;
+  font-size: 0.88em;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-line);
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+}
+
+.prose-lumen pre {
+  background: var(--color-ink);
+  color: var(--color-bg);
+  border-radius: 12px;
+  padding: 1.2rem 1.4rem;
+  overflow-x: auto;
+  margin-bottom: 1.4rem;
+  font-size: 0.88em;
+}
