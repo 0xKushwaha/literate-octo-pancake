@@ -58,7 +58,7 @@ function CrashScreen() {
           </button>
           <a
             href={telHref(brand.phone)}
-            className="inline-flex h-12 items-center rounded-full border border-line-2 bg-surface px-6 text-[15px] text-ink transition-colors hover:border-rose-400"
+            className="inline-flex h-12 items-center rounded-full border border-line-2 bg-surface px-6 text-[15px] text-ink transition-colors hover:border-brand-500"
           >
             {ui.call_prefix} {brand.phone}
           </a>

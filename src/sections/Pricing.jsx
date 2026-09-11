@@ -29,24 +29,18 @@ export default function Pricing({ onBook, withHeading = true }) {
             <div
               className={`relative flex h-full flex-col rounded-4xl p-7 sm:p-8 ${
                 p.featured
-                  ? 'border border-rose-300 bg-surface shadow-[var(--shadow-float)] lg:-translate-y-3'
+                  ? 'border-2 border-brand-500 bg-brand-50 shadow-[var(--shadow-float)] lg:-translate-y-3'
                   : 'border border-line bg-surface shadow-[var(--shadow-card)]'
               }`}
             >
+              {/* The featured plan used to be marked with a radial wash across
+                  the top of the card. It is a flat tint and a solid two-pixel
+                  border now — one colour per surface, and the difference reads
+                  from further away than the wash ever did. */}
               {p.featured && (
-                <>
-                  <div
-                    aria-hidden
-                    className="pointer-events-none absolute inset-0 rounded-[inherit] bg-[radial-gradient(130%_80%_at_50%_0%,rgba(255,176,181,0.18),transparent_55%)]"
-                  />
-                  <div
-                    aria-hidden
-                    className="pointer-events-none absolute inset-x-8 -top-px h-px bg-gradient-to-r from-transparent via-peach-100 to-transparent"
-                  />
-                  <div className="absolute -top-3 left-8">
-                    <Pill tone="rose">{content.featured_badge}</Pill>
-                  </div>
-                </>
+                <div className="absolute -top-3 left-8">
+                  <Pill tone="amber">{content.featured_badge}</Pill>
+                </div>
               )}
 
               <h3 className="relative font-display text-[24px] leading-tight tracking-tight text-ink">
@@ -55,7 +49,7 @@ export default function Pricing({ onBook, withHeading = true }) {
               <p className="relative mt-2 text-[14.5px] text-ink-3">{p.blurb}</p>
 
               <div className="relative mt-8 flex items-baseline gap-2">
-                <span className="font-display text-[3rem] font-medium leading-none tracking-tight text-ink">
+                <span className={`font-display text-[3rem] font-medium leading-none tracking-tight ${p.featured ? 'text-accent-strong' : 'text-ink'}`}>
                   ${p.price}
                 </span>
               </div>
@@ -69,7 +63,7 @@ export default function Pricing({ onBook, withHeading = true }) {
                     <Icon
                       name="check"
                       size={14}
-                      className={`mt-1 shrink-0 ${p.featured ? 'text-ink' : 'text-ink-4'}`}
+                      className={`mt-1 shrink-0 ${p.featured ? 'text-brand-500' : 'text-ink-4'}`}
                     />
                     {f}
                   </li>

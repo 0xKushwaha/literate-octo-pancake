@@ -1,6 +1,14 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* The motion modules hold no class names at all — they are scroll maths and
+   capability probes. Tailwind's scanner does not know that: it treats every
+   bare word it finds as a candidate utility, so `addEventListener('resize')`
+   silently shipped a `.resize` rule nothing uses. That only gets worse as
+   this folder grows, because the vocabulary in there is scale, rotate,
+   opacity, transform and grid. Excluded rather than policed by hand. */
+@source not "./motion";
+
 /* Fonts are bundled, not fetched from a CDN. On a therapy site the visit
    itself is sensitive: a Google Fonts request would hand a third party the
    visitor's IP and referrer on every page load, and it forces the CSP to
@@ -44,65 +52,75 @@
   --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
 
   /* ============================================================
-     PALETTE — "Malibu Escape" pastels + Amber, from colur/
+     PALETTE — deep teal, amber, warm paper
      ============================================================
-     The complete set of hues in this project. Nothing outside this list:
+     Two colours carry the brand, and they are both editable in the admin:
 
-       #FFE5E7  #FFD3D6  #FFC6CA  #FFB0B5   rose, lightest to deepest
-       #F9E6E4                              blush
-       #F9DCC0                              peach
-       #FFBF00                              amber
+       --accent     #0E6E7E   deep teal   (brand.brand_color)
+       --highlight  #FFBF00   amber       (brand.highlight_color)
 
-     Plus black and white, which is what the reference swatches themselves
-     use for type. Every "darker" value below is black at an alpha, not a new
-     hue, so the palette stays closed.
+     Everything else is one of those two mixed with white, or ink, or paper.
+     Nothing here is a gradient: every surface in this site is one flat
+     colour, and depth comes from shadow and hairlines instead.
 
-     The constraint worth knowing: every palette colour is light. The darkest,
-     #FFBF00, sits at about 1.9:1 against white, so none of them can carry
-     text. Accent therefore lives in FILLS, with black type on top, and never
-     in the type itself. That is also how both reference images are built.
+     Why teal rather than the old pastel rose: the rose was too light to
+     carry white text, which left the site with black buttons, black links
+     and colour only in the washes — pleasant, but nothing to remember it
+     by. #0E6E7E clears 5.9:1 against white and 5.6:1 as text on paper, so
+     the brand colour can be the button, the link, the focus ring and the
+     large display type. Amber is then the one loud colour, kept for the
+     things that must be noticed: the crisis banner, the closing call to
+     action, the exhale, a highlight mark.
      ============================================================ */
 
-  /* grounds */
-  --color-bg: #FFFDFC;
-  --color-bg-2: color-mix(in oklab, var(--accent) 14%, white);
-  --color-bg-3: color-mix(in oklab, var(--accent) 28%, white);
+  /* grounds — warm paper, so the teal reads calm rather than clinical */
+  --color-bg: #FAF9F6;
+  --color-bg-2: color-mix(in oklab, var(--accent) 10%, white);
+  --color-bg-3: color-mix(in oklab, var(--accent) 20%, white);
   --color-surface: #ffffff;
-  --color-surface-2: color-mix(in oklab, var(--accent) 8%, white);
-  --color-surface-3: color-mix(in oklab, var(--accent) 20%, white);
+  --color-surface-2: color-mix(in oklab, var(--accent) 6%, white);
+  --color-surface-3: color-mix(in oklab, var(--accent) 14%, white);
 
-  /* hairlines — black at alpha, so they read on every palette ground */
-  --color-line: rgba(0, 0, 0, 0.10);
-  --color-line-2: rgba(0, 0, 0, 0.20);
+  /* the dark band: the closing CTA and the breathing player. 8.3:1 under
+     white text, so body copy on it is comfortable, not just legal. */
+  --color-deep: color-mix(in oklab, var(--accent) 75%, #06171A);
+  --color-deep-2: color-mix(in oklab, var(--accent) 88%, #06171A);
 
-  /* Text, strongest first.
-     0.62 is the floor, set by the worst ground in the palette: on rose-400
-     (#FFB0B5) it lands at 4.9:1, just past WCAG AA for body text. 0.58 was
-     4.48:1 there — close enough to look fine and still a fail. */
-  --color-ink: #000000;
-  --color-ink-2: rgba(0, 0, 0, 0.78);
-  --color-ink-3: rgba(0, 0, 0, 0.68);
-  --color-ink-4: rgba(0, 0, 0, 0.62);
+  /* hairlines — ink at an alpha, so they read on every ground in the set */
+  --color-line: rgba(11, 31, 36, 0.10);
+  --color-line-2: rgba(11, 31, 36, 0.20);
 
-  /* accent — ONE colour, chosen in the admin (brand.accent_color). The
-     rose-* names are kept for the components; each is the accent mixed with
-     white so the whole family follows a single edit. */
-  --color-rose-100: color-mix(in oklab, var(--accent) 28%, white);
-  --color-rose-200: color-mix(in oklab, var(--accent) 45%, white);
-  --color-rose-300: color-mix(in oklab, var(--accent) 65%, white);
-  --color-rose-400: var(--accent);
-  --color-accent-strong: color-mix(in oklab, var(--accent) 70%, black);
+  /* Text, strongest first. Ink is a very dark teal rather than black: on warm
+     paper pure black reads as a hole, and this still clears 16:1. */
+  --color-ink: #0B1F24;
+  --color-ink-2: rgba(11, 31, 36, 0.80);
+  --color-ink-3: rgba(11, 31, 36, 0.68);
+  --color-ink-4: rgba(11, 31, 36, 0.58);
 
-  /* blush — the quiet ground tint */
-  --color-blush-100: color-mix(in oklab, var(--accent) 14%, white);
+  /* brand family — one hue, mixed with white. Every step is a fill for ink
+     type; brand-500 and brand-600 are the two that can carry white type. */
+  --color-brand-50: color-mix(in oklab, var(--accent) 8%, white);
+  --color-brand-100: color-mix(in oklab, var(--accent) 18%, white);
+  --color-brand-200: color-mix(in oklab, var(--accent) 30%, white);
+  --color-brand-300: color-mix(in oklab, var(--accent) 48%, white);
+  --color-brand-400: color-mix(in oklab, var(--accent) 68%, white);
+  --color-brand-500: var(--accent);
+  --color-brand-600: color-mix(in oklab, var(--accent) 86%, #06171A);
 
-  /* peach — the one warm break from pink */
-  --color-peach-100: color-mix(in oklab, var(--accent) 22%, #fff8f0);
+  /* the strong text tint of the accent — display words, links on paper.
+     Mixed a little into ink so a light accent chosen in the admin can never
+     leave the hero headline unreadable. */
+  --color-accent-strong: color-mix(in oklab, var(--accent) 88%, #06171A);
+
+  /* sand — the one warm note, from the peach in the reference palette. Used
+     where teal would feel cold: quotes, the "hold" phase, soft badges. */
+  --color-sand-50: #FBF2E4;
+  --color-sand-100: #F6E3C9;
 
   /* amber — the single saturated colour. Attention, and nothing else:
-     primary actions, the crisis banner, error states. Always with black
-     type on it, never as type itself. */
-  --color-amber-500: #FFBF00;
+     primary actions on the dark band, the crisis banner, the exhale.
+     Always with ink type on it (10.3:1), never as type itself. */
+  --color-amber-500: var(--highlight);
 
   --radius-4xl: 2rem;
   --radius-5xl: 2.75rem;
@@ -110,10 +128,18 @@
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out-quint: cubic-bezier(0.83, 0, 0.17, 1);
 
-  /* elevation — depth comes from shadow here, not from translucent fills */
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.04), 0 12px 32px -16px rgba(0, 0, 0, 0.10);
-  --shadow-lift: 0 2px 6px rgba(0, 0, 0, 0.05), 0 24px 56px -20px rgba(0, 0, 0, 0.16);
-  --shadow-float: 0 10px 24px rgba(0, 0, 0, 0.07), 0 40px 80px -30px rgba(0, 0, 0, 0.22);
+  /* The two curves above are the UI ones, and they stay the UI ones: a button
+     answering a press wants to arrive quickly. These two are for the slower,
+     scroll-linked movement, where the point is that nothing snaps. Organic
+     leaves late and settles long; drift never fully stops. */
+  --ease-organic: cubic-bezier(0.33, 0, 0.16, 1);
+  --ease-drift: cubic-bezier(0.45, 0, 0.15, 1);
+
+  /* elevation — depth comes from shadow here, not from translucent fills.
+     Tinted with the ink hue so shadows sit in the same world as the paper. */
+  --shadow-card: 0 1px 3px rgba(11, 31, 36, 0.04), 0 12px 32px -16px rgba(11, 31, 36, 0.12);
+  --shadow-lift: 0 2px 6px rgba(11, 31, 36, 0.06), 0 24px 56px -20px rgba(11, 31, 36, 0.18);
+  --shadow-float: 0 10px 24px rgba(11, 31, 36, 0.08), 0 40px 80px -30px rgba(11, 31, 36, 0.24);
 }
 
 /* ============================================================
@@ -141,7 +167,7 @@
 
   --color-muted: var(--color-surface-3);
   --color-muted-foreground: var(--color-ink-3);
-  --color-accent: var(--color-rose-100);
+  --color-accent: var(--color-brand-100);
   --color-accent-foreground: var(--color-ink);
 
   /* No red in the palette. Destructive reads as amber-with-black, the same
@@ -151,15 +177,27 @@
 
   --color-border: var(--color-line);
   --color-input: var(--color-line-2);
-  --color-ring: var(--color-ink);
+  --color-ring: var(--accent);
 }
 
 @layer base {
   /* Runtime brand colours. The admin's brand.accent_color / brand.button_color
      are written onto <html> by src/lib/theme.js; these are the fallbacks. */
   :root {
-    --accent: #FFB0B5;
-    --button: #000000;
+    --accent: #0E6E7E;
+    --highlight: #FFBF00;
+    /* Buttons are the brand colour. Kept as its own variable so a single
+       override can change them without touching the washes. */
+    --button: var(--accent);
+
+    /* Motion durations in one place, so the slow things stay in step with each
+       other. Quick and base match what the components already hard-code;
+       breath is one full inhale, the pace the whole site moves at when it is
+       not reacting to anything. */
+    --dur-quick: 180ms;
+    --dur-base: 360ms;
+    --dur-slow: 720ms;
+    --dur-breath: 4200ms;
   }
 
   *,
@@ -213,7 +251,7 @@
   }
 
   :focus-visible {
-    outline: 2px solid var(--color-ink);
+    outline: 2px solid var(--accent);
     outline-offset: 3px;
     border-radius: 6px;
   }
@@ -226,7 +264,7 @@
     border-radius: 99px;
     border: 2px solid var(--color-bg);
   }
-  ::-webkit-scrollbar-thumb:hover { background: var(--color-rose-400); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 }
 
 /* ============================================================
@@ -241,6 +279,19 @@
 
 @utility text-aurora {
   color: var(--color-accent-strong);
+}
+
+@utility mark {
+  /* A flat amber bar sitting behind the last third of a word. Drawn with an
+     inset shadow rather than a background image so it is one solid colour,
+     stays behind the glyphs, and wraps with the text. */
+  box-shadow: inset 0 -0.3em 0 0 color-mix(in oklab, var(--highlight) 60%, transparent);
+}
+
+@utility card-deep {
+  background: var(--color-deep-2);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #ffffff;
 }
 
 @utility eyebrow {
@@ -276,6 +327,44 @@
   50% { transform: translate3d(0, -10px, 0); }
 }
 .float-y { animation: float-y 7.5s ease-in-out infinite; }
+
+/* ============================================================
+   breathing player
+   ============================================================
+   The orb itself is scaled inline, because its duration comes from the
+   exercise (4s in, 8s out — no keyframe can know that). These are the
+   ambient parts around it: two rings that drift outward on a loop, and a
+   slow halo, both flat colours at low alpha.
+   ============================================================ */
+@keyframes breathe-echo {
+  0%   { transform: scale(0.72); opacity: 0.55; }
+  70%  { transform: scale(1.35); opacity: 0; }
+  100% { transform: scale(1.35); opacity: 0; }
+}
+.breathe-echo { animation: breathe-echo 6s var(--ease-out-expo) infinite; }
+
+@keyframes breathe-halo {
+  0%, 100% { opacity: 0.18; }
+  50%      { opacity: 0.38; }
+}
+.breathe-halo { animation: breathe-halo 9s ease-in-out infinite; }
+
+/* the seconds counter: each number arrives, it does not slide */
+@keyframes tick-in {
+  from { opacity: 0; transform: translateY(0.18em); }
+  to   { opacity: 1; transform: none; }
+}
+.tick-in { animation: tick-in 0.35s var(--ease-out-expo) both; }
+
+/* The phase arc. One stroke, swept from full to empty over exactly the length
+   of the phase, so the ring is a clock you can read without counting. The
+   element is keyed by phase index in React, which restarts the animation; the
+   duration is set inline because it comes from the exercise, not from CSS. */
+@keyframes arc-sweep {
+  from { stroke-dashoffset: var(--arc-len); }
+  to   { stroke-dashoffset: 0; }
+}
+.arc-sweep { animation-name: arc-sweep; animation-timing-function: linear; animation-fill-mode: both; }
 
 /* ============================================================
    scroll reveals — one IntersectionObserver per element, CSS does the rest
@@ -336,13 +425,22 @@
   to { opacity: 1; transform: none; filter: blur(0); }
 }
 
-/* soft page backdrop — two blurred blobs, painted once, no script */
+/* The tinted band behind every page header. It used to be two blurred
+   radial blooms; it is one flat colour now — the brief was no gradients
+   anywhere, and a single tint also stops the headline sitting on three
+   different backgrounds at three different window widths. */
 .backdrop-soft {
-  background:
-    radial-gradient(60% 45% at 85% 5%, color-mix(in oklab, var(--accent) 40%, transparent), transparent 70%),
-    radial-gradient(45% 40% at 5% 25%, color-mix(in oklab, var(--accent) 18%, transparent), transparent 70%),
-    var(--color-bg);
+  background: var(--color-bg-2);
 }
+
+/* The dark band: closing CTA, breathing player. Everything inside it is
+   white or amber, so it gets its own text colour rather than relying on
+   every child to remember. */
+.on-deep {
+  background: var(--color-deep);
+  color: #ffffff;
+}
+.on-deep :where(h1, h2, h3, h4) { color: #ffffff; }
 
 
 
@@ -446,7 +544,7 @@
   transition: color 0.2s;
 }
 .prose-lumen a:hover {
-  text-decoration-color: var(--color-rose-400);
+  text-decoration-color: var(--color-brand-500);
 }
 
 .prose-lumen ul {

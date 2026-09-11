@@ -1,7 +1,16 @@
-import { useEffect, useState } from 'react';
 import { Button } from './primitives';
 import Icon from './Icon';
 import { telHref, useBrand, useSiteContent } from '../lib/queries/siteContent';
+import { useScrollValue } from '../motion/ScrollStory';
+
+/**
+ * Up once the hero is behind us, down again near the footer, where the closing
+ * band has a call to action of its own and a floating bar would cover it.
+ * Same two thresholds this component has always used; they read from the
+ * shared scroll driver now rather than from a listener of its own.
+ */
+const FOOTER_GUTTER = 260;
+const barVisible = (m) => m.y > m.vh * 0.9 && m.vh + m.y <= m.docH - FOOTER_GUTTER;
 
 /**
  * Booking is the point of the site; on a phone the nav CTA is hidden behind a
@@ -10,25 +19,7 @@ import { telHref, useBrand, useSiteContent } from '../lib/queries/siteContent';
 export default function MobileBookBar({ onBook }) {
   const brand = useBrand();
   const booking = useSiteContent('booking');
-  const [show, setShow] = useState(false);
-
-  useEffect(() => {
-    let ticking = false;
-    const onScroll = () => {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(() => { ticking = false; compute(); });
-    };
-    const compute = () => {
-      const past = window.scrollY > window.innerHeight * 0.9;
-      const atBottom =
-        window.innerHeight + window.scrollY > document.documentElement.scrollHeight - 260;
-      setShow(past && !atBottom);
-    };
-    compute();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
+  const show = useScrollValue(barVisible);
 
   return (
     <div

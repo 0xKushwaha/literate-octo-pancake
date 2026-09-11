@@ -56,8 +56,8 @@ export default function Footer({ onBook }) {
         <div className="grid gap-14 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,2fr)]">
           <div>
             <Link to="/" className="flex items-center gap-2.5">
-              <span className="grid size-8 place-items-center rounded-full bg-rose-300">
-                <span className="size-3 rounded-full bg-ink" />
+              <span className="grid size-8 place-items-center rounded-full bg-brand-500">
+                <span className="size-3 rounded-full bg-amber-500" />
               </span>
               <span className="font-display text-[25px] font-semibold leading-none tracking-tight">
                 {brand.name}

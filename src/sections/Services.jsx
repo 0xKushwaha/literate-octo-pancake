@@ -38,10 +38,10 @@ export default function Services({ onBook, limit, teaser = false, withHeading = 
                 className="group flex h-full w-full flex-col rounded-3xl border border-line bg-surface p-6 text-left shadow-[var(--shadow-card)] transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-1 hover:border-line-2 hover:shadow-[var(--shadow-lift)] sm:p-7"
               >
                 <div className="flex items-start justify-between gap-4">
-                  <span className="grid size-11 place-items-center rounded-2xl bg-rose-100 text-ink">
+                  <span className="grid size-11 place-items-center rounded-2xl bg-brand-100 text-accent-strong">
                     <Icon name={s.icon} size={20} />
                   </span>
-                  <span className="grid size-8 place-items-center rounded-full border border-line text-ink-4 transition-colors duration-300 group-hover:border-ink group-hover:bg-ink group-hover:text-white">
+                  <span className="grid size-8 place-items-center rounded-full border border-line text-ink-4 transition-colors duration-300 group-hover:border-brand-500 group-hover:bg-brand-500 group-hover:text-white">
                     <Icon name="arrowUpRight" size={14} />
                   </span>
                 </div>
@@ -55,14 +55,23 @@ export default function Services({ onBook, limit, teaser = false, withHeading = 
                   ))}
                 </div>
 
+                {/* The homepage teaser shows the length of a session and not
+                    its price. Someone still deciding whether therapy is for
+                    them does not need a number in the third block of their
+                    first visit; /services and /pricing both carry it, and the
+                    card still opens the booking form either way. */}
                 <div className="mt-5 flex items-center justify-between border-t border-line pt-4">
                   <span className="flex items-center gap-1.5 text-[12.5px] text-ink-4">
                     <Icon name="clock" size={13} />
                     {s.duration}
                   </span>
-                  <span className="text-[14.5px] text-ink-2">
-                    <span className="text-ink-4">{content.price_prefix} </span>${s.price}
-                  </span>
+                  {teaser ? (
+                    <span className="text-[13px] font-medium text-accent-strong">{content.card_cta}</span>
+                  ) : (
+                    <span className="text-[14.5px] text-ink-2">
+                      <span className="text-ink-4">{content.price_prefix} </span>${s.price}
+                    </span>
+                  )}
                 </div>
               </button>
             </StaggerItem>

@@ -20,7 +20,7 @@ export default function Approach({ teaser = false, withHeading = true }) {
           {steps.map((item, i) => (
             <StaggerItem key={`${item.step}-${i}`} as="li" className="relative flex flex-col rounded-3xl border border-line bg-surface p-6 shadow-[var(--shadow-card)]">
               <div className="flex items-center justify-between">
-                <span className="grid size-11 place-items-center rounded-2xl bg-rose-100 text-ink">
+                <span className="grid size-11 place-items-center rounded-2xl bg-brand-100 text-ink">
                   <Icon name={STEP_ICONS[i % STEP_ICONS.length]} size={20} />
                 </span>
                 <span className="text-[12px] font-semibold tracking-[0.14em] text-ink-4">{item.step}</span>
@@ -71,7 +71,7 @@ export function Why() {
                 key={`${c.title}-${i}`}
                 className={`rounded-3xl border border-line bg-surface p-6 ${lastTwo ? 'lg:col-span-3' : 'lg:col-span-2'}`}
               >
-                <span className="grid size-10 place-items-center rounded-full bg-rose-100 text-ink">
+                <span className="grid size-10 place-items-center rounded-full bg-brand-100 text-ink">
                   <Icon name={c.icon} size={18} />
                 </span>
                 <h3 className="mt-5 font-sans text-[16px] font-semibold tracking-tight text-ink">{c.title}</h3>

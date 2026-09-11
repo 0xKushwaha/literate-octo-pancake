@@ -46,7 +46,7 @@ function formatDuration(sec) {
 
 function BlogBand() {
   return (
-    <div className="relative flex h-28 items-center justify-center overflow-hidden bg-rose-100">
+    <div className="relative flex h-28 items-center justify-center overflow-hidden bg-brand-100">
       <span className="absolute -right-8 -top-10 size-32 rounded-full bg-surface/45" />
       <span className="absolute -bottom-12 -left-6 size-28 rounded-full bg-surface/30" />
       <Icon name="message" size={38} className="relative text-ink/30" />
@@ -56,7 +56,7 @@ function BlogBand() {
 
 function VideoBand({ thumb }) {
   return (
-    <div className="relative flex h-28 items-center justify-center overflow-hidden bg-peach-100">
+    <div className="relative flex h-28 items-center justify-center overflow-hidden bg-sand-100">
       {thumb && (
         <img
           src={thumb}
@@ -83,7 +83,7 @@ function FloatCard({ card, index }) {
       <div className="float-y h-full" style={{ animationDelay: `${(index * 1.1) % 3.3}s` }}>
         <Link
           to={card.to}
-          className="group flex h-full flex-col overflow-hidden rounded-[1.75rem] border border-line bg-surface shadow-[var(--shadow-card)] transition-[transform,box-shadow] duration-300 hover:-translate-y-1.5 hover:shadow-[var(--shadow-float)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
+          className="group flex h-full flex-col overflow-hidden rounded-[1.75rem] border border-line bg-surface shadow-[var(--shadow-card)] transition-[transform,box-shadow] duration-300 hover:-translate-y-1.5 hover:shadow-[var(--shadow-float)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
         >
           {card.band}
           <div className="flex flex-1 flex-col p-6">
