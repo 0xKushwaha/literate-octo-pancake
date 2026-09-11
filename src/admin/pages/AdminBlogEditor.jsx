@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { getArticleById, upsertArticle } from '../../lib/queries/articles';
+import { getArticleById, saveArticle } from '../../lib/queries/articles';
 import { supabase, isDemo } from '../../lib/supabase';
 import RichTextEditor from '../components/RichTextEditor';
 import { publishedAtFor } from '../articlePublishDate';
 import { useSaveShortcut, useUnsavedChanges } from '../hooks';
 import { Button, FormSkeleton } from '../components/ui';
 
-const EMPTY = { title: '', slug: '', excerpt: '', category: '', content: '', is_published: false };
+const EMPTY = { title: '', slug: '', excerpt: '', category: '', content: '', is_published: false, is_featured: false };
 
 const CATEGORIES = ['Anxiety', 'Depression', 'Relationships', 'Mindfulness', 'Trauma', 'Sleep', 'Psychiatry', 'Self-care'];
 
@@ -56,6 +56,7 @@ export default function AdminBlogEditor() {
           category: a.category ?? '',
           content: a.content ?? '',
           is_published: a.is_published ?? false,
+          is_featured: a.is_featured ?? false,
         };
         setBaseline(JSON.stringify(loaded));
         setForm(loaded);
@@ -103,8 +104,12 @@ export default function AdminBlogEditor() {
         author_id: userId,
         is_published: nextPublished,
         published_at: nextPublishedAt,
+        is_featured: form.is_featured,
       };
-      await upsertArticle(payload);
+      const { featuredSaved } = await saveArticle(payload);
+      if (!featuredSaved && form.is_featured) {
+        toast('Saved, but "Show on homepage" needs migration 007 run in Supabase. Until then the homepage shows the newest posts.', { icon: '⚠️', duration: 8000 });
+      }
       setPublishedAt(nextPublishedAt);
       // Stand the guard down before navigating, or it prompts on the redirect
       // back to the list — which reads as the save having failed.
@@ -217,6 +222,21 @@ export default function AdminBlogEditor() {
             {form.is_published && (
               <p className="text-xs text-green-600">● Currently published</p>
             )}
+
+            <label className="flex cursor-pointer items-start gap-2 border-t border-gray-100 pt-3">
+              <input
+                type="checkbox"
+                checked={form.is_featured}
+                onChange={(e) => set('is_featured', e.target.checked)}
+                className="mt-0.5 size-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+              />
+              <span>
+                <span className="block text-xs font-medium text-gray-700">Show on homepage</span>
+                <span className="block text-[11px] text-gray-400">
+                  Offers this article to the cards on the homepage. With none ticked, the newest posts show there.
+                </span>
+              </span>
+            </label>
           </div>
 
           <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm space-y-4">

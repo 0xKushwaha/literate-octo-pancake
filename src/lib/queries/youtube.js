@@ -15,6 +15,19 @@ export async function listFeaturedVideos(limit = 6) {
   return data ?? [];
 }
 
+/**
+ * The videos offered to the homepage cards: the ones ticked "Featured" in the
+ * admin, in sort order. Falls back to the newest active videos when nothing is
+ * ticked, for the same reason the articles do.
+ */
+export async function getHomepageVideos(limit = 2) {
+  if (limit < 1) return [];
+  const featured = await listFeaturedVideos(limit);
+  if (featured.length) return featured;
+  const active = await listActiveVideos();
+  return (active ?? []).slice(0, limit);
+}
+
 export async function listActiveVideos({ category = null } = {}) {
   if (isDemo) return demoVideos.listActive({ category });
 

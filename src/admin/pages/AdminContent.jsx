@@ -329,6 +329,15 @@ function ContentRow({ item, onSave, onReset, expandAll = false }) {
         />
       ) : item.type === 'richtext' ? (
         <textarea value={value} onChange={(e) => setValue(e.target.value)} rows={3} className={`${inputClass} resize-y`} />
+      ) : item.type === 'number' ? (
+        <input
+          type="number"
+          min="0"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter' && dirty) { e.preventDefault(); save(); } }}
+          className={`${inputClass} w-28`}
+        />
       ) : (
         <input
           type="text"

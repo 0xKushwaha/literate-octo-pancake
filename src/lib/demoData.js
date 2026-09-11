@@ -121,6 +121,11 @@ export const demoArticles = {
     return { articles, total };
   },
   getLatest: (limit = 3) => _articles.filter((a) => a.is_published).sort((a, b) => new Date(b.published_at) - new Date(a.published_at)).slice(0, limit),
+  getHomepage: (limit = 3) => {
+    const picked = _articles.filter((a) => a.is_published && a.is_featured);
+    const rows = picked.length ? picked : _articles.filter((a) => a.is_published);
+    return rows.sort((a, b) => new Date(b.published_at) - new Date(a.published_at)).slice(0, limit);
+  },
   getBySlug: (slug) => _articles.find((a) => a.slug === slug && a.is_published) ?? null,
   getById: (id) => _articles.find((a) => a.id === id) ?? null,
   getRelated: (category, excludeSlug) => _articles.filter((a) => a.is_published && a.category === category && a.slug !== excludeSlug).slice(0, 3),
