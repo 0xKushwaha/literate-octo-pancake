@@ -29,15 +29,37 @@ function Shell() {
   const [palette, setPalette] = useState(false);
   useBrandTheme();
 
+  /**
+   * Scroll handling for route changes.
+   *
+   * The hash case is retried rather than done once: on a cold load of
+   * /services#trauma the target exists by the time this effect runs, but the
+   * browser is still finishing its own load-time scroll restoration and puts
+   * the page back at the top straight afterwards. Two follow-up attempts
+   * (next frame, and a beat later) land it where it belongs without a visible
+   * jump, and they stop as soon as the element is in place.
+   */
   useEffect(() => {
-    if (hash) {
-      const el = document.getElementById(hash.slice(1));
-      if (el) {
-        el.scrollIntoView({ behavior: 'auto', block: 'start' });
-        return;
-      }
+    const id = hash ? hash.slice(1) : '';
+    if (!id) {
+      window.scrollTo({ top: 0, behavior: 'auto' });
+      return;
     }
-    window.scrollTo({ top: 0, behavior: 'auto' });
+
+    let cancelled = false;
+    const settled = () => {
+      const el = document.getElementById(id);
+      if (!el) return false;
+      const top = el.getBoundingClientRect().top;
+      if (Math.abs(top) < 120) return true;
+      el.scrollIntoView({ behavior: 'auto', block: 'start' });
+      return false;
+    };
+
+    settled();
+    const raf = requestAnimationFrame(() => { if (!cancelled) settled(); });
+    const t = setTimeout(() => { if (!cancelled) settled(); }, 260);
+    return () => { cancelled = true; cancelAnimationFrame(raf); clearTimeout(t); };
   }, [pathname, hash]);
 
   useEffect(() => {
