@@ -209,19 +209,11 @@ export default function Breathing() {
           lead="Guided breathing exercises from our clinical team. Each session takes under five minutes."
         />
 
-        {loading ? (
-          <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {[0, 1, 2].map((i) => (
-              <div key={i} className="h-56 rounded-3xl bg-surface-2 animate-pulse" />
-            ))}
-          </div>
-        ) : (
-          <Stagger className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {exercises.map((ex) => (
-              <ExerciseCard key={ex.id ?? ex.slug} exercise={ex} onStart={setActive} />
-            ))}
-          </Stagger>
-        )}
+        <Stagger className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {exercises.map((ex) => (
+            <ExerciseCard key={ex.id ?? ex.slug} exercise={ex} onStart={setActive} />
+          ))}
+        </Stagger>
       </Section>
 
       <Dialog open={!!active} onOpenChange={(open) => { if (!open) setActive(null); }}>

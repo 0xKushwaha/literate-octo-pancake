@@ -84,8 +84,6 @@ export default function Therapists({ onBook }) {
               <div
                 aria-hidden
                 className="pointer-events-none absolute -right-16 -top-16 size-44 rounded-full opacity-0 blur-3xl transition-opacity duration-700 group-hover:opacity-100"
-                // Palette colour rather than a free hsl, so the hover bloom on each
-                // card matches that therapist's portrait exactly.
                 style={{ background: `color-mix(in oklab, ${paletteFor(t.hue[0])} 55%, transparent)` }}
               />
 
