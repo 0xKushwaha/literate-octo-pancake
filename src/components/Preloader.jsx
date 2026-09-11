@@ -63,15 +63,15 @@ export default function Preloader({ onDone }) {
               transition={{ duration: 1, ease: EASE }}
               className="relative grid place-items-center"
             >
-              <span className="absolute size-24 rounded-full border border-aqua-300 [animation:pulse-ring_2.6s_ease-out_infinite]" />
-              <span className="absolute size-24 rounded-full border border-violet-400 [animation:pulse-ring_2.6s_ease-out_infinite_0.8s]" />
+              <span className="absolute size-24 rounded-full border border-rose-300 [animation:pulse-ring_2.6s_ease-out_infinite]" />
+              <span className="absolute size-24 rounded-full border border-rose-300 [animation:pulse-ring_2.6s_ease-out_infinite_0.8s]" />
               <span className="font-display text-3xl tracking-tight text-aurora">{brand.name}</span>
             </motion.div>
 
             <div className="flex w-56 flex-col gap-3">
               <div className="h-px w-full overflow-hidden bg-ink/[0.06]">
                 <motion.div
-                  className="h-full bg-gradient-to-r from-aqua-400 to-violet-400"
+                  className="h-full bg-gradient-to-r from-rose-300 to-amber-500"
                   style={{ width: `${progress}%` }}
                 />
               </div>

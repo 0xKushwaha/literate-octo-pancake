@@ -146,7 +146,7 @@ export default function CommandPalette({ onBook }) {
                   window.location.href = 'tel:988';
                 }, 120);
               }}
-              className="data-[selected=true]:bg-coral-100 data-[selected=true]:text-coral-700"
+              className="data-[selected=true]:bg-amber-500 data-[selected=true]:text-ink"
             >
               <Icon name="pulse" size={16} />
               <span>Crisis line — call or text 988</span>

@@ -81,7 +81,7 @@ export default function Rings({ scrollRef }) {
       <Ring
         radius={2.05}
         tube={0.008}
-        color="#1CC5B3"
+        color="#FFB0B5"
         speed={0.09}
         arc={0.42}
         intensity={1.2}
@@ -91,7 +91,7 @@ export default function Rings({ scrollRef }) {
       <Ring
         radius={2.6}
         tube={0.007}
-        color="#A06EFF"
+        color="#FFBF00"
         speed={-0.06}
         arc={0.3}
         intensity={1.0}
@@ -101,7 +101,7 @@ export default function Rings({ scrollRef }) {
       <Ring
         radius={3.35}
         tube={0.006}
-        color="#7B7CFF"
+        color="#F9DCC0"
         speed={0.04}
         arc={0.22}
         intensity={0.75}

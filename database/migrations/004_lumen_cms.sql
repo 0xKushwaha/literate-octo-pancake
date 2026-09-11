@@ -29,15 +29,19 @@ CREATE INDEX IF NOT EXISTS idx_site_content_section ON site_content(section);
 ALTER TABLE site_content ENABLE ROW LEVEL SECURITY;
 
 -- Anyone (including anonymous) can read content
+DROP POLICY IF EXISTS site_content_select_public ON site_content;
 CREATE POLICY site_content_select_public ON site_content
     FOR SELECT USING (TRUE);
 
+DROP POLICY IF EXISTS site_content_insert_admin ON site_content;
 CREATE POLICY site_content_insert_admin ON site_content
     FOR INSERT WITH CHECK (is_admin());
 
+DROP POLICY IF EXISTS site_content_update_admin ON site_content;
 CREATE POLICY site_content_update_admin ON site_content
     FOR UPDATE USING (is_admin());
 
+DROP POLICY IF EXISTS site_content_delete_admin ON site_content;
 CREATE POLICY site_content_delete_admin ON site_content
     FOR DELETE USING (is_admin());
 
@@ -74,12 +78,15 @@ CREATE INDEX IF NOT EXISTS idx_breathing_active ON breathing_exercises(sort_orde
 
 ALTER TABLE breathing_exercises ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS breathing_select_public ON breathing_exercises;
 CREATE POLICY breathing_select_public ON breathing_exercises
     FOR SELECT USING (is_active = TRUE OR is_admin());
 
+DROP POLICY IF EXISTS breathing_admin ON breathing_exercises;
 CREATE POLICY breathing_admin ON breathing_exercises
     FOR ALL USING (is_admin());
 
+DROP TRIGGER IF EXISTS update_breathing_exercises_updated_at ON breathing_exercises;
 CREATE TRIGGER update_breathing_exercises_updated_at
     BEFORE UPDATE ON breathing_exercises
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
@@ -117,12 +124,15 @@ CREATE INDEX IF NOT EXISTS idx_youtube_featured ON youtube_resources(sort_order)
 
 ALTER TABLE youtube_resources ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS youtube_select_public ON youtube_resources;
 CREATE POLICY youtube_select_public ON youtube_resources
     FOR SELECT USING (is_active = TRUE OR is_admin());
 
+DROP POLICY IF EXISTS youtube_admin ON youtube_resources;
 CREATE POLICY youtube_admin ON youtube_resources
     FOR ALL USING (is_admin());
 
+DROP TRIGGER IF EXISTS update_youtube_resources_updated_at ON youtube_resources;
 CREATE TRIGGER update_youtube_resources_updated_at
     BEFORE UPDATE ON youtube_resources
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
@@ -165,13 +175,16 @@ CREATE INDEX IF NOT EXISTS idx_booking_email ON booking_submissions(email);
 ALTER TABLE booking_submissions ENABLE ROW LEVEL SECURITY;
 
 -- Anonymous users can INSERT (the booking form has no auth)
+DROP POLICY IF EXISTS booking_insert_public ON booking_submissions;
 CREATE POLICY booking_insert_public ON booking_submissions
     FOR INSERT WITH CHECK (TRUE);
 
 -- Only admins can read or update submissions
+DROP POLICY IF EXISTS booking_select_admin ON booking_submissions;
 CREATE POLICY booking_select_admin ON booking_submissions
     FOR SELECT USING (is_admin());
 
+DROP POLICY IF EXISTS booking_update_admin ON booking_submissions;
 CREATE POLICY booking_update_admin ON booking_submissions
     FOR UPDATE USING (is_admin());
 

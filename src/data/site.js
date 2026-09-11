@@ -95,7 +95,7 @@ export const therapists = [
     formats: ['Video', 'In person'],
     services: ['trauma', 'individual'],
     bio: 'Ada works slowly and deliberately with trauma. Her first question is never “what happened” — it is “what would make this room feel safe enough.”',
-    hue: [172, 268],
+    hue: [357, 45],
     nextAvailable: 2,
   },
   {
@@ -109,7 +109,7 @@ export const therapists = [
     formats: ['Video', 'In person'],
     services: ['couples', 'individual'],
     bio: 'Marcus is unusually good at hearing the argument underneath the argument. Expect structure, warmth, and the occasional very direct question.',
-    hue: [258, 190],
+    hue: [32, 357],
     nextAvailable: 1,
   },
   {
@@ -123,7 +123,7 @@ export const therapists = [
     formats: ['Video', 'Phone'],
     services: ['anxiety', 'individual'],
     bio: 'Priya builds practical, un-precious plans for people whose brains will not stop. She has a low tolerance for therapy that never leaves the room.',
-    hue: [190, 155],
+    hue: [356, 40],
     nextAvailable: 1,
   },
   {
@@ -137,7 +137,7 @@ export const therapists = [
     formats: ['Video', 'In person'],
     services: ['teen', 'individual'],
     bio: 'Noor has spent six years being the adult teenagers actually talk to. Parents get looped in on purpose, never by surprise.',
-    hue: [22, 280],
+    hue: [45, 356],
     nextAvailable: 3,
   },
   {
@@ -151,7 +151,7 @@ export const therapists = [
     formats: ['Video'],
     services: ['psychiatry'],
     bio: 'James treats medication as one tool among several and will tell you plainly when he thinks you do not need it.',
-    hue: [268, 205],
+    hue: [357, 32],
     nextAvailable: 4,
   },
   {
@@ -165,7 +165,7 @@ export const therapists = [
     formats: ['Video', 'In person', 'Phone'],
     services: ['individual'],
     bio: 'Sofia works with people in the middle of a change they did not choose. Her sessions tend to be quiet, and then suddenly not.',
-    hue: [205, 172],
+    hue: [40, 357],
     nextAvailable: 2,
   },
 ];

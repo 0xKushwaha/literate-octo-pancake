@@ -66,7 +66,7 @@ export default function Nav({ onBook }) {
         >
           <a href="#top" className="group flex items-center gap-2.5" aria-label={`${brand.name} home`}>
             <span className="relative grid size-7 place-items-center">
-              <span className="absolute inset-0 rounded-full bg-gradient-to-br from-aqua-400 to-violet-400 opacity-90 blur-[6px] transition-opacity group-hover:opacity-100" />
+              <span className="absolute inset-0 rounded-full bg-gradient-to-br from-rose-300 to-amber-500 opacity-90 blur-[6px] transition-opacity group-hover:opacity-100" />
               <span className="relative size-2.5 rounded-full bg-ink" />
             </span>
             <span className="font-display text-[24px] leading-none tracking-tight">{brand.name}</span>

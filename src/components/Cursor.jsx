@@ -21,11 +21,12 @@ export default function Cursor() {
     const pos = { ...target };
     let hovering = false;
     let down = false;
-    let raf;
+    let raf = 0;
 
     const onMove = (e) => {
       target.x = e.clientX;
       target.y = e.clientY;
+      wake();
       if (dot.current) {
         dot.current.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%)`;
       }
@@ -34,23 +35,37 @@ export default function Cursor() {
       if (next !== hovering) {
         hovering = next;
         ring.current?.classList.toggle('is-hover', hovering);
+        wake();
       }
     };
 
+    // The ring eases toward the pointer, so it only needs frames while it is
+    // still catching up. Looping unconditionally meant a rAF callback plus a
+    // style write every 16ms for the whole life of the page, including while
+    // the mouse sat perfectly still — which competes for frame budget with the
+    // scrolling it is drawn on top of.
+    const wake = () => { if (!raf) raf = requestAnimationFrame(loop); };
+
     const loop = () => {
-      pos.x += (target.x - pos.x) * 0.16;
-      pos.y += (target.y - pos.y) * 0.16;
+      raf = 0;
+      const dx = target.x - pos.x;
+      const dy = target.y - pos.y;
+      pos.x += dx * 0.16;
+      pos.y += dy * 0.16;
       if (ring.current) {
         ring.current.style.transform = `translate3d(${pos.x}px, ${pos.y}px, 0) translate(-50%, -50%) scale(${
           down ? 0.8 : hovering ? 1.9 : 1
         })`;
       }
-      raf = requestAnimationFrame(loop);
+      // Sub-pixel movement is not visible; stop rather than approach forever.
+      if (Math.abs(dx) > 0.1 || Math.abs(dy) > 0.1) wake();
     };
-    raf = requestAnimationFrame(loop);
+    wake();
 
-    const onDown = () => (down = true);
-    const onUp = () => (down = false);
+    // A press or a hover change alters the ring's scale, so each needs one more
+    // frame even when the pointer has not moved.
+    const onDown = () => { down = true; wake(); };
+    const onUp = () => { down = false; wake(); };
     const onLeave = () => {
       dot.current?.style.setProperty('opacity', '0');
       ring.current?.style.setProperty('opacity', '0');

@@ -19,17 +19,17 @@ function ArticleCard({ article }) {
     >
       <div className="flex items-center gap-2">
         {article.category && (
-          <Pill accent="aqua" size="sm">{article.category}</Pill>
+          <Pill accent="rose" size="sm">{article.category}</Pill>
         )}
         {date && <span className="text-[12px] text-ink-4">{date}</span>}
       </div>
-      <h2 className="mt-4 font-display text-xl leading-snug tracking-tight text-ink group-hover:text-aqua-700 transition-colors">
+      <h2 className="mt-4 font-display text-xl leading-snug tracking-tight text-ink group-hover:text-ink transition-colors">
         {article.title}
       </h2>
       {article.excerpt && (
         <p className="mt-3 line-clamp-3 text-[14px] leading-relaxed text-ink-3">{article.excerpt}</p>
       )}
-      <div className="mt-5 flex items-center gap-1.5 text-[13px] font-medium text-aqua-700">
+      <div className="mt-5 flex items-center gap-1.5 text-[13px] font-medium text-ink">
         Read more
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform group-hover:translate-x-0.5">
           <path d="M5 12h14M12 5l7 7-7 7"/>
@@ -71,7 +71,7 @@ export default function BlogIndexPage() {
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
           <Link to="/" className="flex items-center gap-2.5 group">
             <span className="relative grid size-6 place-items-center">
-              <span className="absolute inset-0 rounded-full bg-gradient-to-br from-aqua-400 to-violet-400 opacity-90 blur-[5px]" />
+              <span className="absolute inset-0 rounded-full bg-gradient-to-br from-rose-300 to-amber-500 opacity-90 blur-[5px]" />
               <span className="relative size-2 rounded-full bg-ink" />
             </span>
             <span className="font-display text-[22px] leading-none tracking-tight">{brand.name}</span>

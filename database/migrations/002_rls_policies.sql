@@ -41,7 +41,21 @@ SECURITY DEFINER
 SET search_path = public, pg_temp
 AS $$
 BEGIN
-    IF NEW.role IS DISTINCT FROM OLD.role AND NOT is_admin() THEN
+    -- auth.uid() IS NOT NULL is what makes this a rule about END USERS.
+    --
+    -- Without that clause the trigger also blocks the SQL editor and the
+    -- service-role key, where auth.uid() is NULL — and since promoting the
+    -- first admin has to happen from one of those, it blocked the only path
+    -- to ever having an admin at all. Every request carrying a user JWT is
+    -- still checked, which is the case this exists for.
+    --
+    -- A signed-out caller cannot reach this anyway: anon holds no grants on
+    -- profiles, and profiles_update_own compares id = auth.uid(), which is
+    -- NULL and therefore matches no row.
+    IF NEW.role IS DISTINCT FROM OLD.role
+       AND auth.uid() IS NOT NULL
+       AND NOT is_admin()
+    THEN
         RAISE EXCEPTION 'Only an administrator can change a profile role.'
             USING ERRCODE = '42501';
     END IF;

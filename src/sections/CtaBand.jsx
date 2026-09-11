@@ -20,8 +20,8 @@ export default function CtaBand({ onBook }) {
           style={{ y: glowY }}
           className="pointer-events-none absolute inset-x-0 top-1/2 h-[520px] -translate-y-1/2"
         >
-          <div className="absolute left-1/2 top-1/2 size-[560px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(54,228,207,0.35),transparent_62%)]" />
-          <div className="absolute left-[62%] top-[46%] size-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(160,110,255,0.30),transparent_62%)]" />
+          <div className="absolute left-1/2 top-1/2 size-[560px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(255,176,181,0.35),transparent_62%)]" />
+          <div className="absolute left-[62%] top-[46%] size-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(255,191,0,0.30),transparent_62%)]" />
         </motion.div>
         <div aria-hidden className="pointer-events-none absolute inset-0 grid-lines opacity-40" />
 
@@ -56,15 +56,15 @@ export default function CtaBand({ onBook }) {
 
           <p className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 font-mono text-[10.5px] uppercase tracking-[0.2em] text-ink-4">
             <span className="flex items-center gap-2">
-              <Icon name="check" size={12} className="text-aqua-700" />
+              <Icon name="check" size={12} className="text-ink" />
               Free 15-min intro call
             </span>
             <span className="flex items-center gap-2">
-              <Icon name="check" size={12} className="text-aqua-700" />
+              <Icon name="check" size={12} className="text-ink" />
               Cancel any time
             </span>
             <span className="flex items-center gap-2">
-              <Icon name="check" size={12} className="text-aqua-700" />
+              <Icon name="check" size={12} className="text-ink" />
               No card to browse
             </span>
           </p>

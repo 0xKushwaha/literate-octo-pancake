@@ -23,7 +23,7 @@ function RouteError() {
       </div>
       <button
         onClick={() => window.location.reload()}
-        className="inline-flex h-12 items-center rounded-full bg-ink px-6 text-[15px] font-medium text-white transition-colors hover:bg-[#161e33]"
+        className="inline-flex h-12 items-center rounded-full bg-ink px-6 text-[15px] font-medium text-white transition-colors hover:bg-ink-2"
       >
         Reload the page
       </button>

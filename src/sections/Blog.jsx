@@ -6,11 +6,11 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/compone
 import { sanitizeHtml } from '../lib/sanitizeHtml';
 
 const ACCENT_MAP = {
-  aqua: { pill: 'bg-aqua-100 text-aqua-700', hover: 'group-hover:text-aqua-700', bar: 'bg-aqua-400' },
-  iris: { pill: 'bg-iris-100 text-iris-700', hover: 'group-hover:text-iris-700', bar: 'bg-iris-400' },
-  violet: { pill: 'bg-violet-100 text-violet-700', hover: 'group-hover:text-violet-700', bar: 'bg-violet-400' },
+  rose: { pill: 'bg-rose-100 text-ink', hover: 'group-hover:text-ink', bar: 'bg-rose-300' },
+  blush: { pill: 'bg-blush-100 text-ink', hover: 'group-hover:text-ink', bar: 'bg-rose-300' },
+  peach: { pill: 'bg-blush-100 text-ink', hover: 'group-hover:text-ink', bar: 'bg-rose-300' },
 };
-const ACCENTS = ['aqua', 'iris', 'violet'];
+const ACCENTS = ['rose', 'blush', 'peach'];
 
 function ArticleCard({ article, index, onClick }) {
   const date = article.published_at
@@ -25,7 +25,7 @@ function ArticleCard({ article, index, onClick }) {
     <motion.div variants={staggerItem}>
       <button
         onClick={() => onClick(article)}
-        className="group relative flex h-full w-full flex-col overflow-hidden rounded-3xl border border-line bg-surface text-left shadow-[var(--shadow-card)] transition-all duration-500 hover:shadow-[var(--shadow-lift)] hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-aqua-400"
+        className="group relative flex h-full w-full flex-col overflow-hidden rounded-3xl border border-line bg-surface text-left shadow-[var(--shadow-card)] transition-all duration-500 hover:shadow-[var(--shadow-lift)] hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
       >
         {/* Top accent bar */}
         <div className={`h-1 w-full ${accent.bar} opacity-60 transition-opacity group-hover:opacity-100`} />
@@ -48,7 +48,7 @@ function ArticleCard({ article, index, onClick }) {
             </p>
           )}
 
-          <div className="mt-auto pt-5 flex items-center gap-1.5 text-[13px] font-medium text-aqua-700">
+          <div className="mt-auto pt-5 flex items-center gap-1.5 text-[13px] font-medium text-ink">
             Read article
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="transition-transform group-hover:translate-x-0.5">
               <path d="M5 12h14M12 5l7 7-7 7" />
@@ -73,7 +73,7 @@ function ArticleReader({ article, onClose }) {
       <div className="border-b border-gray-100 px-8 pb-6 pt-8 sm:px-12">
         <div className="flex items-center gap-3">
           {article.category && (
-            <span className="inline-flex items-center rounded-full bg-aqua-100 px-3 py-0.5 text-[11px] font-medium uppercase tracking-wide text-aqua-700">
+            <span className="inline-flex items-center rounded-full bg-rose-100 px-3 py-0.5 text-[11px] font-medium uppercase tracking-wide text-ink">
               {article.category}
             </span>
           )}
@@ -115,10 +115,23 @@ export default function Blog() {
   const [loadingArticle, setLoadingArticle] = useState(false);
 
   useEffect(() => {
+    let alive = true;
     getLatestArticles(6)
-      .then(setArticles)
-      .catch(() => {})
-      .finally(() => setLoading(false));
+      .then((rows) => { if (alive) setArticles(rows ?? []); })
+      .catch((err) => {
+        // Was `.catch(() => {})`. The section then hid itself, so a missing
+        // table and an empty one were indistinguishable — and neither left a
+        // trace anywhere to diagnose from.
+        if (alive) {
+          console.error(
+            '[lumen] could not load articles. If this is a fresh deploy, check that the ' +
+              'migrations have run and that `articles` has at least one published row.',
+            err,
+          );
+        }
+      })
+      .finally(() => { if (alive) setLoading(false); });
+    return () => { alive = false; };
   }, []);
 
   const openArticle = async (article) => {
@@ -140,6 +153,9 @@ export default function Blog() {
     }
   };
 
+  // An empty blog is a legitimate state on a new site, so the section still
+  // hides itself — but now it says why in the console rather than leaving you
+  // to wonder whether it ever rendered.
   if (!loading && articles.length === 0) return null;
 
   return (

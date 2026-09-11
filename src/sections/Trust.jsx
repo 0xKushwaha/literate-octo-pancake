@@ -12,7 +12,7 @@ export default function Trust() {
               key={`${c}-${i}`}
               className="flex shrink-0 items-center gap-4 font-mono text-[11px] uppercase tracking-[0.24em] text-ink-4"
             >
-              <span className="size-1 rounded-full bg-aqua-500" />
+              <span className="size-1 rounded-full bg-rose-400" />
               {c}
             </span>
           ))}
@@ -26,7 +26,7 @@ export default function Trust() {
               <div className="relative">
                 <div
                   aria-hidden
-                  className="absolute -left-4 top-0 hidden h-16 w-px bg-gradient-to-b from-aqua-400/60 via-violet-400/30 to-transparent lg:block"
+                  className="absolute -left-4 top-0 hidden h-16 w-px bg-gradient-to-b from-rose-300/60 via-rose-400/30 to-transparent lg:block"
                 />
                 <dd className="font-display text-[clamp(2.75rem,5vw,4.25rem)] leading-none tracking-tight text-ink">
                   <Counter value={s.value} decimals={s.decimals ?? 0} suffix={s.suffix} />

@@ -31,8 +31,8 @@ export default function Hero({ onBook }) {
         className="pointer-events-none absolute inset-0 -z-10"
         style={{
           background: `
-            radial-gradient(ellipse 80% 50% at 70% 40%, rgba(54,228,207,0.07) 0%, transparent 60%),
-            radial-gradient(ellipse 60% 40% at 30% 60%, rgba(160,110,255,0.06) 0%, transparent 55%),
+            radial-gradient(ellipse 80% 50% at 70% 40%, rgba(255,176,181,0.07) 0%, transparent 60%),
+            radial-gradient(ellipse 60% 40% at 30% 60%, rgba(255,191,0,0.06) 0%, transparent 55%),
             linear-gradient(170deg,
               color-mix(in oklab, var(--color-bg) 96%, transparent) 0%,
               color-mix(in oklab, var(--color-bg) 78%, transparent) 35%,
@@ -48,7 +48,7 @@ export default function Hero({ onBook }) {
         className="pointer-events-none absolute inset-0 -z-10 lg:hidden"
         style={{
           background:
-            'linear-gradient(180deg, rgba(255,246,244,0.96) 0%, rgba(255,246,244,0.88) 35%, rgba(255,246,244,0.35) 70%, rgba(255,246,244,0.65) 100%)',
+            'linear-gradient(180deg, rgba(249,230,228,0.96) 0%, rgba(249,230,228,0.88) 35%, rgba(249,230,228,0.35) 70%, rgba(249,230,228,0.65) 100%)',
         }}
       />
 
@@ -62,10 +62,10 @@ export default function Hero({ onBook }) {
           transition={{ duration: 1, delay: 0.35, ease: EASE }}
           className="flex flex-wrap items-center gap-3"
         >
-          <Pill tone="aqua">
+          <Pill tone="rose">
             <span className="relative flex size-1.5">
-              <span className="absolute inline-flex size-full animate-ping rounded-full bg-aqua-400 opacity-75" />
-              <span className="relative inline-flex size-1.5 rounded-full bg-aqua-300" />
+              <span className="absolute inline-flex size-full animate-ping rounded-full bg-rose-300 opacity-75" />
+              <span className="relative inline-flex size-1.5 rounded-full bg-rose-200" />
             </span>
             Accepting new clients
           </Pill>
@@ -135,7 +135,7 @@ export default function Hero({ onBook }) {
         >
           {credentials.slice(0, 4).map((c) => (
             <span key={c} className="flex items-center gap-2 text-[13px] text-ink-4">
-              <Icon name="check" size={13} className="text-aqua-700" />
+              <Icon name="check" size={13} className="text-ink" />
               {c}
             </span>
           ))}
@@ -155,7 +155,7 @@ export default function Hero({ onBook }) {
             <motion.span
               animate={{ y: [-16, 16] }}
               transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut', repeatType: 'reverse' }}
-              className="block h-5 w-px bg-gradient-to-b from-transparent via-aqua-400 to-transparent"
+              className="block h-5 w-px bg-gradient-to-b from-transparent via-peach-100 to-transparent"
             />
           </span>
           <span className="font-mono text-[10.5px] uppercase tracking-[0.24em]">Scroll to explore</span>

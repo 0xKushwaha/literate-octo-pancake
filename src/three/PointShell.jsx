@@ -108,8 +108,8 @@ export default function PointShell({ count = 9000, scrollRef, dpr = 1.5 }) {
       uOffset: { value: 0.035 },
       uOpacity: { value: 0.65 },
       uPixelRatio: { value: dpr },
-      uColorA: { value: new THREE.Color('#1CC5B3') },
-      uColorB: { value: new THREE.Color('#A06EFF') },
+      uColorA: { value: new THREE.Color('#FFC6CA') },
+      uColorB: { value: new THREE.Color('#FFBF00') },
     }),
     [dpr],
   );

@@ -1,14 +1,32 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { listActiveExercises } from '../lib/queries/breathing';
+import { breathingDefaults } from '../data/breathingDefaults';
 import { Section, SectionHeading, Stagger, staggerItem, EASE } from '../components/primitives';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useReducedMotion } from '../lib/hooks';
 
 const PHASE_COLORS = {
-  inhale: { ring: 'border-[var(--color-aqua-400)]', bg: 'bg-[var(--color-aqua-100,#e6fbf7)]', text: 'text-[var(--color-aqua-700)]', glow: 'shadow-[0_0_60px_16px_rgba(54,228,207,0.2)]' },
-  hold: { ring: 'border-[var(--color-iris-400,#7B7CFF)]', bg: 'bg-[var(--color-iris-100,#ededff)]', text: 'text-[var(--color-iris-700,#3f38c4)]', glow: 'shadow-[0_0_60px_16px_rgba(123,124,255,0.18)]' },
-  exhale: { ring: 'border-[var(--color-violet-400,#A06EFF)]', bg: 'bg-[var(--color-violet-100,#f1e8ff)]', text: 'text-[var(--color-violet-700,#6b21d4)]', glow: 'shadow-[0_0_60px_16px_rgba(160,110,255,0.18)]' },
+  // One palette colour per phase, far enough apart to tell apart mid-exercise
+  // with your eyes half closed, which is the actual use case.
+  inhale: {
+    ring: 'border-rose-400',
+    bg: 'bg-rose-100',
+    text: 'text-ink',
+    glow: 'shadow-[0_0_60px_16px_rgba(255,176,181,0.55)]',
+  },
+  hold: {
+    ring: 'border-peach-100',
+    bg: 'bg-peach-100',
+    text: 'text-ink',
+    glow: 'shadow-[0_0_60px_16px_rgba(249,220,192,0.6)]',
+  },
+  exhale: {
+    ring: 'border-amber-500',
+    bg: 'bg-amber-500',
+    text: 'text-ink',
+    glow: 'shadow-[0_0_60px_16px_rgba(255,191,0,0.45)]',
+  },
 };
 
 function buildPhases(ex) {
@@ -53,7 +71,7 @@ function BreathingGuide({ exercise, onClose }) {
       {/* Progress bar */}
       <div className="w-full max-w-xs overflow-hidden rounded-full bg-gray-100 h-1">
         <motion.div
-          className="h-full bg-gradient-to-r from-aqua-400 to-violet-400 rounded-full"
+          className="h-full bg-gradient-to-r from-rose-300 to-amber-500 rounded-full"
           animate={{ width: `${progress * 100}%` }}
           transition={{ duration: 0.6, ease: 'easeOut' }}
         />
@@ -118,13 +136,13 @@ function ExerciseCard({ exercise, onStart }) {
     <motion.div variants={staggerItem}>
       <button
         onClick={() => onStart(exercise)}
-        className="group flex w-full flex-col items-start rounded-3xl border border-line bg-surface p-7 text-left shadow-[var(--shadow-card)] transition-all duration-500 hover:shadow-[var(--shadow-lift)] hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-aqua-400"
+        className="group flex w-full flex-col items-start rounded-3xl border border-line bg-surface p-7 text-left shadow-[var(--shadow-card)] transition-all duration-500 hover:shadow-[var(--shadow-lift)] hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
       >
         <div className="flex w-full items-center justify-between gap-3">
           <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-4">
             {exercise.technique}
           </span>
-          <span className="inline-flex size-9 items-center justify-center rounded-full border border-line text-ink-3 transition-all group-hover:border-aqua-400 group-hover:bg-aqua-100 group-hover:text-aqua-700">
+          <span className="inline-flex size-9 items-center justify-center rounded-full border border-line text-ink-3 transition-all group-hover:border-rose-300 group-hover:bg-rose-100 group-hover:text-ink">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
           </span>
         </div>
@@ -147,7 +165,7 @@ function ExerciseCard({ exercise, onStart }) {
           ))}
         </div>
 
-        <div className="mt-5 font-mono text-[11px] text-aqua-700 tracking-wide">
+        <div className="mt-5 font-mono text-[11px] text-ink tracking-wide">
           {exercise.inhale_sec}s in
           {exercise.hold_in_sec > 0 ? ` · ${exercise.hold_in_sec}s hold` : ''}
           {` · ${exercise.exhale_sec}s out`}
@@ -160,18 +178,27 @@ function ExerciseCard({ exercise, onStart }) {
 }
 
 export default function Breathing() {
-  const [exercises, setExercises] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // Starts with the built-in set, so the section renders on first paint and
+  // keeps working when the database is unreachable or has not been seeded.
+  const [exercises, setExercises] = useState(breathingDefaults);
   const [active, setActive] = useState(null);
 
   useEffect(() => {
+    let alive = true;
     listActiveExercises()
-      .then(setExercises)
-      .catch(() => setExercises([]))
-      .finally(() => setLoading(false));
+      .then((rows) => {
+        if (!alive) return;
+        // Only replace the defaults when the database actually has something.
+        // An empty table means "not set up yet", not "show nothing".
+        if (Array.isArray(rows) && rows.length) setExercises(rows);
+      })
+      .catch((err) => {
+        // Was swallowed silently, which made this section vanish from the page
+        // with no explanation anywhere. The visitor still gets the defaults.
+        console.warn('[lumen] breathing exercises unavailable, using defaults', err);
+      });
+    return () => { alive = false; };
   }, []);
-
-  if (!loading && exercises.length === 0) return null;
 
   return (
     <>

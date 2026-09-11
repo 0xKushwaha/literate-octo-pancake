@@ -43,21 +43,21 @@ export default class ErrorBoundary extends Component {
         <div className="flex flex-wrap items-center justify-center gap-3">
           <button
             onClick={() => window.location.reload()}
-            className="inline-flex h-12 items-center rounded-full bg-ink px-6 text-[15px] font-medium text-white transition-colors hover:bg-[#161e33]"
+            className="inline-flex h-12 items-center rounded-full bg-ink px-6 text-[15px] font-medium text-white transition-colors hover:bg-ink-2"
           >
             Reload the page
           </button>
           <a
             href={`tel:${tel}`}
-            className="inline-flex h-12 items-center rounded-full border border-line-2 bg-surface px-6 text-[15px] text-ink transition-colors hover:border-aqua-500"
+            className="inline-flex h-12 items-center rounded-full border border-line-2 bg-surface px-6 text-[15px] text-ink transition-colors hover:border-rose-400"
           >
             Call {brand.phone}
           </a>
         </div>
 
-        <div className="mt-4 max-w-[52ch] rounded-2xl border border-coral-500 bg-coral-100 px-6 py-4">
+        <div className="mt-4 max-w-[52ch] rounded-2xl border border-amber-500 bg-amber-500 px-6 py-4">
           <p className="text-[14px] leading-relaxed text-ink-2">
-            <strong className="font-medium text-coral-700">In immediate crisis?</strong> Call or
+            <strong className="font-medium text-ink">In immediate crisis?</strong> Call or
             text <strong className="font-medium">988</strong> — Suicide &amp; Crisis Lifeline,
             24/7. If someone is in danger right now, call 911.
           </p>

@@ -25,10 +25,10 @@ function Step({ item, index, total }) {
       <div className="relative flex flex-col items-center">
         <motion.span
           style={{ scale: dot }}
-          className="relative z-10 grid size-12 shrink-0 place-items-center rounded-full border border-line bg-surface font-mono text-[11px] tracking-widest text-aqua-700"
+          className="relative z-10 grid size-12 shrink-0 place-items-center rounded-full border border-line bg-surface font-mono text-[11px] tracking-widest text-ink"
         >
           {item.step}
-          <span className="absolute inset-0 rounded-full bg-aqua-200 blur-lg" />
+          <span className="absolute inset-0 rounded-full bg-rose-200 blur-lg" />
         </motion.span>
         {index < total - 1 && (
           <span className="mt-2 w-px flex-1 bg-gradient-to-b from-line via-line to-transparent" />
@@ -40,7 +40,7 @@ function Step({ item, index, total }) {
           <h3 className="font-display text-[clamp(1.6rem,3vw,2.4rem)] leading-tight tracking-tight text-ink">
             {item.title}
           </h3>
-          <span className="font-mono text-[10.5px] uppercase tracking-[0.2em] text-aqua-700">
+          <span className="font-mono text-[10.5px] uppercase tracking-[0.2em] text-ink">
             {item.detail}
           </span>
         </div>
@@ -94,7 +94,7 @@ export default function Approach() {
         </div>
 
         <div className="lg:sticky lg:top-28 lg:h-fit">
-          <div className="glass rounded-4xl p-8 shadow-[var(--shadow-lift)] ring-1 ring-aqua-200/30 sm:p-10">
+          <div className="glass rounded-4xl p-8 shadow-[var(--shadow-lift)] ring-1 ring-rose-200/30 sm:p-10">
             <p className="font-display text-2xl leading-snug tracking-tight text-ink">
               What makes it hold together
             </p>
@@ -102,7 +102,7 @@ export default function Approach() {
               {pillars.map((p, i) => (
                 <Reveal key={p.title} delay={i * 0.1} as="li">
                   <div className="flex gap-4">
-                    <span className="mt-0.5 grid size-10 shrink-0 place-items-center rounded-full border border-aqua-300 bg-aqua-100 text-aqua-700">
+                    <span className="mt-0.5 grid size-10 shrink-0 place-items-center rounded-full border border-rose-300 bg-rose-100 text-ink">
                       <Icon name={p.icon} size={18} />
                     </span>
                     <div>

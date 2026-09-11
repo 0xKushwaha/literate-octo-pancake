@@ -47,9 +47,9 @@ export default function Footer({ onBook }) {
   return (
     <footer className="relative border-t border-line bg-bg">
       {/* crisis banner — the one thing that must never be hard to find */}
-      <div className="border-b border-line bg-coral-100">
+      <div className="border-b border-line bg-amber-500">
         <Section className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 py-4 text-center">
-          <span className="text-[13.5px] text-coral-700">In immediate crisis?</span>
+          <span className="text-[13.5px] text-ink">In immediate crisis?</span>
           <span className="text-[13.5px] text-ink-2">
             Call or text <strong className="font-medium text-ink">988</strong> — Suicide &amp;
             Crisis Lifeline, 24/7. If someone is in danger right now, call 911.
@@ -62,7 +62,7 @@ export default function Footer({ onBook }) {
           <div>
             <a href="#top" className="flex items-center gap-2.5">
               <span className="relative grid size-7 place-items-center">
-                <span className="absolute inset-0 rounded-full bg-gradient-to-br from-aqua-400 to-violet-400 opacity-90 blur-[6px]" />
+                <span className="absolute inset-0 rounded-full bg-gradient-to-br from-rose-300 to-amber-500 opacity-90 blur-[6px]" />
                 <span className="relative size-2.5 rounded-full bg-ink" />
               </span>
               <span className="font-display text-[26px] leading-none tracking-tight">

@@ -53,48 +53,63 @@
   --font-display: "Instrument Serif", ui-serif, Georgia, serif;
   --font-mono: "JetBrains Mono Variable", ui-monospace, SFMono-Regular, monospace;
 
+  /* ============================================================
+     PALETTE — "Malibu Escape" pastels + Amber, from colur/
+     ============================================================
+     The complete set of hues in this project. Nothing outside this list:
+
+       #FFE5E7  #FFD3D6  #FFC6CA  #FFB0B5   rose, lightest to deepest
+       #F9E6E4                              blush
+       #F9DCC0                              peach
+       #FFBF00                              amber
+
+     Plus black and white, which is what the reference swatches themselves
+     use for type. Every "darker" value below is black at an alpha, not a new
+     hue, so the palette stays closed.
+
+     The constraint worth knowing: every palette colour is light. The darkest,
+     #FFBF00, sits at about 1.9:1 against white, so none of them can carry
+     text. Accent therefore lives in FILLS, with black type on top, and never
+     in the type itself. That is also how both reference images are built.
+     ============================================================ */
+
   /* grounds */
-  --color-bg: #FFF6F4;
-  --color-bg-2: #FEEFEC;
+  --color-bg: #F9E6E4;
+  --color-bg-2: #FFD3D6;
+  --color-bg-3: #FFC6CA;
   --color-surface: #ffffff;
-  --color-surface-2: #FFFAF8;
-  --color-surface-3: #FEF3F0;
+  --color-surface-2: #FFE5E7;
+  --color-surface-3: #FFD3D6;
 
-  /* hairlines */
-  --color-line: #EDE5E2;
-  --color-line-2: #DDD5D2;
+  /* hairlines — black at alpha, so they read on every palette ground */
+  --color-line: rgba(0, 0, 0, 0.10);
+  --color-line-2: rgba(0, 0, 0, 0.20);
 
-  /* text, strongest first */
-  --color-ink: #0a1020;
-  --color-ink-2: #39435a;
-  --color-ink-3: #4f5970;
-  --color-ink-4: #646d80;
+  /* Text, strongest first.
+     0.62 is the floor, set by the worst ground in the palette: on rose-400
+     (#FFB0B5) it lands at 4.9:1, just past WCAG AA for body text. 0.58 was
+     4.48:1 there — close enough to look fine and still a fail. */
+  --color-ink: #000000;
+  --color-ink-2: rgba(0, 0, 0, 0.78);
+  --color-ink-3: rgba(0, 0, 0, 0.68);
+  --color-ink-4: rgba(0, 0, 0, 0.62);
 
-  /* aurora accents — darker steps are for text, lighter for surfaces & 3D */
-  --color-aqua-700: #0d6f68;
-  --color-aqua-600: #0d9488;
-  --color-aqua-500: #1CC5B3;
-  --color-aqua-400: #36E4CF;
-  --color-aqua-300: #7eead9;
-  --color-aqua-200: #c2f5ec;
-  --color-aqua-100: #e6fbf7;
+  /* rose — the primary accent, used as fill and edge */
+  --color-rose-100: #FFE5E7;
+  --color-rose-200: #FFD3D6;
+  --color-rose-300: #FFC6CA;
+  --color-rose-400: #FFB0B5;
 
-  --color-iris-700: #3f38c4;
-  --color-iris-600: #4f46e5;
-  --color-iris-500: #7B7CFF;
-  --color-iris-400: #A5ADFF;
-  --color-iris-100: #eceffe;
+  /* blush — the quiet ground tint */
+  --color-blush-100: #F9E6E4;
 
-  --color-violet-700: #6b21d4;
-  --color-violet-600: #7c3aed;
-  --color-violet-500: #A06EFF;
-  --color-violet-400: #C4A8FF;
-  --color-violet-100: #f2ecfe;
+  /* peach — the one warm break from pink */
+  --color-peach-100: #F9DCC0;
 
-  --color-coral-700: #c23c1c;
-  --color-coral-600: #e2542f;
-  --color-coral-500: #f2734f;
-  --color-coral-100: #fdeee8;
+  /* amber — the single saturated colour. Attention, and nothing else:
+     primary actions, the crisis banner, error states. Always with black
+     type on it, never as type itself. */
+  --color-amber-500: #FFBF00;
 
   --radius-4xl: 2rem;
   --radius-5xl: 2.75rem;
@@ -103,9 +118,9 @@
   --ease-in-out-quint: cubic-bezier(0.83, 0, 0.17, 1);
 
   /* elevation — depth comes from shadow here, not from translucent fills */
-  --shadow-card: 0 1px 3px rgba(10, 16, 32, 0.03), 0 12px 32px -16px rgba(10, 16, 32, 0.08);
-  --shadow-lift: 0 2px 6px rgba(10, 16, 32, 0.04), 0 24px 56px -20px rgba(10, 16, 32, 0.15);
-  --shadow-float: 0 10px 24px rgba(10, 16, 32, 0.06), 0 40px 80px -30px rgba(10, 16, 32, 0.22);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.04), 0 12px 32px -16px rgba(0, 0, 0, 0.10);
+  --shadow-lift: 0 2px 6px rgba(0, 0, 0, 0.05), 0 24px 56px -20px rgba(0, 0, 0, 0.16);
+  --shadow-float: 0 10px 24px rgba(0, 0, 0, 0.07), 0 40px 80px -30px rgba(0, 0, 0, 0.22);
 }
 
 /* ============================================================
@@ -133,15 +148,17 @@
 
   --color-muted: var(--color-surface-3);
   --color-muted-foreground: var(--color-ink-3);
-  --color-accent: var(--color-aqua-100);
-  --color-accent-foreground: var(--color-aqua-700);
+  --color-accent: var(--color-rose-100);
+  --color-accent-foreground: var(--color-ink);
 
-  --color-destructive: var(--color-coral-700);
-  --color-destructive-foreground: #ffffff;
+  /* No red in the palette. Destructive reads as amber-with-black, the same
+     treatment the crisis banner uses — loud, and legible on every ground. */
+  --color-destructive: var(--color-amber-500);
+  --color-destructive-foreground: var(--color-ink);
 
   --color-border: var(--color-line);
   --color-input: var(--color-line-2);
-  --color-ring: var(--color-aqua-500);
+  --color-ring: var(--color-ink);
 }
 
 @layer base {
@@ -179,7 +196,7 @@
   }
 
   ::selection {
-    background: color-mix(in oklab, var(--color-aqua-400) 38%, transparent);
+    background: color-mix(in oklab, var(--color-amber-500) 45%, transparent);
     color: var(--color-ink);
   }
 
@@ -197,7 +214,7 @@
   }
 
   :focus-visible {
-    outline: 2px solid var(--color-aqua-600);
+    outline: 2px solid var(--color-ink);
     outline-offset: 3px;
     border-radius: 6px;
   }
@@ -210,7 +227,7 @@
     border-radius: 99px;
     border: 2px solid var(--color-bg);
   }
-  ::-webkit-scrollbar-thumb:hover { background: var(--color-aqua-500); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--color-rose-400); }
 }
 
 /* ============================================================
@@ -227,8 +244,8 @@
   background: linear-gradient(
     100deg,
     var(--color-ink) 0%,
-    var(--color-aqua-600) 32%,
-    var(--color-violet-600) 64%,
+    var(--color-amber-500) 32%,
+    var(--color-rose-400) 64%,
     var(--color-ink) 100%
   );
   background-size: 220% 100%;
@@ -255,7 +272,7 @@
     110deg,
     var(--color-ink) 0%,
     var(--color-ink) 35%,
-    var(--color-aqua-500) 50%,
+    var(--color-amber-500) 50%,
     var(--color-ink) 65%,
     var(--color-ink) 100%
   );
@@ -339,8 +356,8 @@
     background-color 0.35s;
 }
 .lumen-ring.is-hover {
-  border-color: var(--color-aqua-600);
-  background: color-mix(in oklab, var(--color-aqua-400) 15%, transparent);
+  border-color: var(--color-ink);
+  background: color-mix(in oklab, var(--color-amber-500) 22%, transparent);
 }
 
 /* paper grain — multiplied so it darkens rather than fogs */
@@ -461,14 +478,15 @@
 }
 
 .prose-lumen a {
-  color: var(--color-aqua-700, #0d6f68);
+  color: var(--color-ink);
   text-decoration: underline;
-  text-decoration-thickness: 1px;
+  text-decoration-color: var(--color-amber-500);
+  text-decoration-thickness: 2px;
   text-underline-offset: 3px;
   transition: color 0.2s;
 }
 .prose-lumen a:hover {
-  color: var(--color-aqua-600, #0a8f86);
+  text-decoration-color: var(--color-rose-400);
 }
 
 .prose-lumen ul {
@@ -486,7 +504,7 @@
 }
 
 .prose-lumen blockquote {
-  border-left: 3px solid var(--color-aqua-400, #36E4CF);
+  border-left: 3px solid var(--color-amber-500);
   padding-left: 1.2rem;
   margin-left: 0;
   color: var(--color-ink-3);

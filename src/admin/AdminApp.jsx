@@ -31,7 +31,7 @@ function AdminShell({ children }) {
         toastOptions={{
           duration: 3200,
           style: { fontSize: '0.875rem', borderRadius: '0.5rem' },
-          success: { iconTheme: { primary: '#0d9488', secondary: '#fff' } },
+          success: { iconTheme: { primary: '#FFBF00', secondary: '#fff' } },
           error: { duration: 6000 },
         }}
       />

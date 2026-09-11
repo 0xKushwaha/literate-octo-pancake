@@ -4,17 +4,17 @@ import { services as staticServices } from '../data/site';
 import { useSiteContent } from '../lib/queries/siteContent';
 
 const accentRing = {
-  aqua: 'group-hover:border-aqua-400',
-  iris: 'group-hover:border-iris-400',
-  violet: 'group-hover:border-violet-400',
-  coral: 'group-hover:border-coral-500',
+  rose: 'group-hover:border-rose-300',
+  blush: 'group-hover:border-rose-300',
+  peach: 'group-hover:border-rose-300',
+  amber: 'group-hover:border-amber-500',
 };
 
 const accentText = {
-  aqua: 'text-aqua-700',
-  iris: 'text-iris-600',
-  violet: 'text-violet-600',
-  coral: 'text-coral-700',
+  rose: 'text-ink',
+  blush: 'text-ink',
+  peach: 'text-ink',
+  amber: 'text-ink',
 };
 
 export default function Services({ onBook }) {

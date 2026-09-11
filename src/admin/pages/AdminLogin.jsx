@@ -32,7 +32,7 @@ export default function AdminLogin() {
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex size-10 items-center justify-center rounded-full bg-gradient-to-br from-teal-400 to-violet-400">
+          <div className="mx-auto mb-4 flex size-10 items-center justify-center rounded-full bg-gradient-to-br from-teal-400 to-amber-500">
             <span className="size-3 rounded-full bg-white" />
           </div>
           <h1 className="text-xl font-semibold text-gray-900">{brand.name} Admin</h1>

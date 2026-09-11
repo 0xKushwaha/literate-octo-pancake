@@ -14,6 +14,14 @@ function availabilityLabel(days) {
   return `Available in ${days} days`;
 }
 
+/** Snaps a therapist's hue to the palette, matching Avatar's own mapping. */
+function paletteFor(h) {
+  const n = ((h % 360) + 360) % 360;
+  if (n >= 340 || n < 15) return '#FFB0B5';
+  if (n < 38) return '#F9DCC0';
+  return '#FFBF00';
+}
+
 export default function Therapists({ onBook }) {
   const [filter, setFilter] = useState('all');
 
@@ -76,7 +84,9 @@ export default function Therapists({ onBook }) {
               <div
                 aria-hidden
                 className="pointer-events-none absolute -right-16 -top-16 size-44 rounded-full opacity-0 blur-3xl transition-opacity duration-700 group-hover:opacity-100"
-                style={{ background: `hsl(${t.hue[0]} 80% 55% / 0.30)` }}
+                // Palette colour rather than a free hsl, so the hover bloom on each
+                // card matches that therapist's portrait exactly.
+                style={{ background: `color-mix(in oklab, ${paletteFor(t.hue[0])} 55%, transparent)` }}
               />
 
               <div className="relative flex items-start gap-4">
@@ -108,8 +118,8 @@ export default function Therapists({ onBook }) {
               </div>
 
               <div className="relative mt-6 flex items-center justify-between border-t border-line pt-5">
-                <span className="flex items-center gap-2 text-[13px] text-aqua-700">
-                  <span className="size-1.5 rounded-full bg-aqua-500 shadow-[0_0_0_3px_rgba(45,212,191,0.22)]" />
+                <span className="flex items-center gap-2 text-[13px] text-ink">
+                  <span className="size-1.5 rounded-full bg-rose-400 shadow-[0_0_0_3px_rgba(255,198,202,0.22)]" />
                   {availabilityLabel(t.nextAvailable)}
                 </span>
                 <Button
@@ -129,7 +139,7 @@ export default function Therapists({ onBook }) {
       {shown.length === 0 && (
         <p className="mt-10 text-[15px] text-ink-3">
           Nobody listed for that yet — but we almost certainly have someone.{' '}
-          <button onClick={() => onBook?.()} className="text-aqua-700 underline underline-offset-4">
+          <button onClick={() => onBook?.()} className="text-ink underline underline-offset-4">
             Ask for a match
           </button>
           .

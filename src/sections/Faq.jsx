@@ -27,7 +27,7 @@ export default function Faq() {
             </p>
             <a
               href={`tel:${brand.phone.replace(/[^\d+]/g, '')}`}
-              className="mt-4 inline-flex items-center gap-2 text-[15px] text-aqua-700 transition-colors hover:text-aqua-600"
+              className="mt-4 inline-flex items-center gap-2 text-[15px] text-ink transition-colors hover:text-ink"
             >
               <Icon name="phone" size={15} />
               {brand.phone}
@@ -49,7 +49,7 @@ export default function Faq() {
                 </span>
                 <span
                   aria-hidden
-                  className="grid size-9 shrink-0 place-items-center rounded-full border border-line text-ink-3 transition-all duration-500 group-hover:border-line-2 group-hover:text-ink group-data-[state=open]:rotate-45 group-data-[state=open]:border-aqua-400 group-data-[state=open]:bg-aqua-100 group-data-[state=open]:text-aqua-700"
+                  className="grid size-9 shrink-0 place-items-center rounded-full border border-line text-ink-3 transition-all duration-500 group-hover:border-line-2 group-hover:text-ink group-data-[state=open]:rotate-45 group-data-[state=open]:border-rose-300 group-data-[state=open]:bg-rose-100 group-data-[state=open]:text-ink"
                 >
                   <Icon name="plus" size={16} />
                 </span>

@@ -138,11 +138,14 @@ export function Magnetic({ children, strength = 0.35, className = '' }) {
 
 const variants = {
   primary:
-    'bg-ink text-white hover:bg-[#161e33] shadow-[var(--shadow-lift)]',
-  glow: 'text-white bg-gradient-to-r from-aqua-500 via-iris-500 to-violet-500 hover:brightness-110 shadow-[0_18px_48px_-16px_rgba(79,70,229,0.50),0_0_0_1px_rgba(79,70,229,0.15)] hover:shadow-[0_22px_56px_-14px_rgba(79,70,229,0.60),0_0_0_1px_rgba(79,70,229,0.2)]',
+    'bg-ink text-white hover:bg-ink-2 shadow-[var(--shadow-lift)]',
+  // Was white type on the gradient. Every colour in this palette is light —
+  // white on #FFBF00 is about 1.6:1 — so the label is black and the gradient
+  // carries the emphasis on its own.
+  glow: 'text-ink bg-gradient-to-r from-rose-400 via-peach-100 to-amber-500 hover:brightness-105 shadow-[0_18px_48px_-16px_rgba(255,176,181,0.55),0_0_0_1px_rgba(0,0,0,0.08)] hover:shadow-[0_22px_56px_-14px_rgba(255,191,0,0.55),0_0_0_1px_rgba(0,0,0,0.12)]',
   ghost: 'glass text-ink hover:bg-surface hover:shadow-[var(--shadow-card)]',
   quiet: 'text-ink-3 hover:text-ink',
-  outline: 'border border-line-2 bg-surface text-ink hover:border-aqua-500 hover:text-aqua-700',
+  outline: 'border border-line-2 bg-surface text-ink hover:border-rose-400 hover:text-ink',
 };
 
 const sizes = {
@@ -191,7 +194,7 @@ export const Button = forwardRef(function Button(
 export function Eyebrow({ children, className = '' }) {
   return (
     <div className={`flex items-center gap-3 ${className}`}>
-      <span className="h-px w-8 bg-gradient-to-r from-aqua-400/80 to-transparent" />
+      <span className="h-px w-8 bg-gradient-to-r from-rose-300/80 to-transparent" />
       <span className="eyebrow">{children}</span>
     </div>
   );
@@ -241,10 +244,10 @@ export function Section({ id, children, className = '', ...rest }) {
 export function Pill({ children, className = '', tone = 'default' }) {
   const tones = {
     default: 'border-line bg-surface-2 text-ink-2',
-    aqua: 'border-aqua-300/60 bg-aqua-100/80 text-aqua-700 shadow-[0_0_12px_-3px_rgba(45,212,191,0.25)]',
-    iris: 'border-iris-400/60 bg-iris-100/80 text-iris-600 shadow-[0_0_12px_-3px_rgba(79,70,229,0.2)]',
-    violet: 'border-violet-400/60 bg-violet-100/80 text-violet-600 shadow-[0_0_12px_-3px_rgba(124,58,237,0.2)]',
-    coral: 'border-coral-500 bg-coral-100 text-coral-700',
+    rose: 'border-rose-400/60 bg-rose-100 text-ink',
+    blush: 'border-rose-300/60 bg-blush-100 text-ink',
+    peach: 'border-peach-100 bg-peach-100 text-ink',
+    amber: 'border-amber-500 bg-amber-500 text-ink',
   };
   return (
     <span
@@ -325,7 +328,7 @@ export function TiltCard({ children, className = '', max = 6, glow = true }) {
           className="pointer-events-none absolute inset-0 rounded-[inherit] opacity-0 transition-opacity duration-500"
           style={{
             opacity: light.on ? 1 : 0,
-            background: `radial-gradient(480px circle at ${light.x}% ${light.y}%, color-mix(in oklab, var(--color-aqua-400) 18%, transparent), transparent 58%)`,
+            background: `radial-gradient(480px circle at ${light.x}% ${light.y}%, color-mix(in oklab, var(--color-amber-500) 20%, transparent), transparent 58%)`,
           }}
         />
       )}

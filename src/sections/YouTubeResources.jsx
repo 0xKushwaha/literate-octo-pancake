@@ -18,7 +18,7 @@ function VideoCard({ video, onPlay }) {
     <motion.div variants={staggerItem}>
       <button
         onClick={() => onPlay(video)}
-        className="group relative flex w-full flex-col overflow-hidden rounded-3xl border border-line bg-surface shadow-[var(--shadow-card)] transition-all duration-500 hover:shadow-[var(--shadow-lift)] hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-aqua-400 text-left"
+        className="group relative flex w-full flex-col overflow-hidden rounded-3xl border border-line bg-surface shadow-[var(--shadow-card)] transition-all duration-500 hover:shadow-[var(--shadow-lift)] hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 text-left"
       >
         {/* Thumbnail */}
         <div className="relative aspect-video w-full overflow-hidden bg-surface-2">
@@ -47,11 +47,11 @@ function VideoCard({ video, onPlay }) {
         {/* Info */}
         <div className="flex flex-col gap-2 p-5">
           {video.category && (
-            <span className="inline-flex items-center self-start rounded-full bg-aqua-100 px-2.5 py-0.5 text-[11px] font-medium text-aqua-700">
+            <span className="inline-flex items-center self-start rounded-full bg-rose-100 px-2.5 py-0.5 text-[11px] font-medium text-ink">
               {video.category}
             </span>
           )}
-          <h3 className="font-display text-[1.05rem] leading-snug tracking-tight text-ink line-clamp-2 group-hover:text-aqua-700 transition-colors">
+          <h3 className="font-display text-[1.05rem] leading-snug tracking-tight text-ink line-clamp-2 group-hover:text-ink transition-colors">
             {video.title}
           </h3>
           {video.curator_note && (

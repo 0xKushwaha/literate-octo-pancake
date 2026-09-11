@@ -46,7 +46,7 @@ export default function BlogPostPage() {
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
           <Link to="/" className="flex items-center gap-2.5">
             <span className="relative grid size-6 place-items-center">
-              <span className="absolute inset-0 rounded-full bg-gradient-to-br from-aqua-400 to-violet-400 opacity-90 blur-[5px]" />
+              <span className="absolute inset-0 rounded-full bg-gradient-to-br from-rose-300 to-amber-500 opacity-90 blur-[5px]" />
               <span className="relative size-2 rounded-full bg-ink" />
             </span>
             <span className="font-display text-[22px] leading-none tracking-tight">{brand.name}</span>
@@ -72,7 +72,7 @@ export default function BlogPostPage() {
             <div className="mx-auto max-w-2xl">
               {/* Meta */}
               <div className="flex flex-wrap items-center gap-3">
-                {article.category && <Pill accent="aqua" size="sm">{article.category}</Pill>}
+                {article.category && <Pill accent="rose" size="sm">{article.category}</Pill>}
                 {date && <span className="text-[13px] text-ink-4">{date}</span>}
                 <span className="text-[13px] text-ink-4">·</span>
                 <span className="text-[13px] text-ink-4">{estimateReadTime(article.content)} min read</span>
@@ -119,8 +119,8 @@ export default function BlogPostPage() {
                       to={`/blog/${a.slug}`}
                       className="group rounded-2xl border border-line bg-surface p-5 transition-all hover:shadow-[var(--shadow-card)]"
                     >
-                      {a.category && <Pill accent="aqua" size="sm">{a.category}</Pill>}
-                      <h3 className="mt-3 font-display text-[17px] leading-snug tracking-tight text-ink group-hover:text-aqua-700 transition-colors">
+                      {a.category && <Pill accent="rose" size="sm">{a.category}</Pill>}
+                      <h3 className="mt-3 font-display text-[17px] leading-snug tracking-tight text-ink group-hover:text-ink transition-colors">
                         {a.title}
                       </h3>
                     </Link>

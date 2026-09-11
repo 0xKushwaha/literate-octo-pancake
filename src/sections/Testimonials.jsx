@@ -5,7 +5,7 @@ import { testimonials } from '../data/site';
 function Card({ t }) {
   return (
     <figure className="w-[340px] shrink-0 rounded-4xl border border-line bg-surface p-7 shadow-[var(--shadow-card)] sm:w-[420px]">
-      <div className="flex gap-0.5 text-aqua-700">
+      <div className="flex gap-0.5 text-ink">
         {Array.from({ length: 5 }).map((_, i) => (
           <Icon key={i} name="star" size={13} filled />
         ))}

@@ -27,7 +27,7 @@ export default function Pricing({ onBook }) {
             <div
               className={`relative flex h-full flex-col rounded-4xl p-8 transition-transform duration-500 sm:p-9 ${
                 p.featured
-                  ? 'border border-aqua-300 bg-surface shadow-[var(--shadow-float)] lg:-translate-y-4'
+                  ? 'border border-rose-300 bg-surface shadow-[var(--shadow-float)] lg:-translate-y-4'
                   : 'border border-line bg-surface shadow-[var(--shadow-card)]'
               }`}
             >
@@ -35,14 +35,14 @@ export default function Pricing({ onBook }) {
                 <>
                   <div
                     aria-hidden
-                    className="pointer-events-none absolute inset-0 rounded-[inherit] bg-[radial-gradient(130%_80%_at_50%_0%,rgba(54,228,207,0.18),transparent_55%)]"
+                    className="pointer-events-none absolute inset-0 rounded-[inherit] bg-[radial-gradient(130%_80%_at_50%_0%,rgba(255,176,181,0.18),transparent_55%)]"
                   />
                   <div
                     aria-hidden
-                    className="pointer-events-none absolute inset-x-8 -top-px h-px bg-gradient-to-r from-transparent via-aqua-400 to-transparent"
+                    className="pointer-events-none absolute inset-x-8 -top-px h-px bg-gradient-to-r from-transparent via-peach-100 to-transparent"
                   />
                   <div className="absolute -top-3 left-8">
-                    <Pill tone="aqua">Most chosen</Pill>
+                    <Pill tone="rose">Most chosen</Pill>
                   </div>
                 </>
               )}
@@ -67,7 +67,7 @@ export default function Pricing({ onBook }) {
                     <Icon
                       name="check"
                       size={14}
-                      className={`mt-1 shrink-0 ${p.featured ? 'text-aqua-700' : 'text-ink-4'}`}
+                      className={`mt-1 shrink-0 ${p.featured ? 'text-ink' : 'text-ink-4'}`}
                     />
                     {f}
                   </li>

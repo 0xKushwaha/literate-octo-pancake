@@ -98,13 +98,13 @@ const emptyForm = {
  * and Radix owns the aria-pressed / roving-tabindex bookkeeping.
  */
 const chipCls =
-  'h-auto min-w-0 rounded-full border border-line bg-surface px-4 py-2.5 text-[14px] text-ink-2 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-line-2 hover:bg-surface hover:text-ink active:scale-[0.97] data-[state=on]:border-aqua-500 data-[state=on]:bg-aqua-100 data-[state=on]:text-aqua-700 data-[state=on]:shadow-[0_4px_14px_-6px_rgba(13,148,136,0.45)]';
+  'h-auto min-w-0 rounded-full border border-line bg-surface px-4 py-2.5 text-[14px] text-ink-2 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-line-2 hover:bg-surface hover:text-ink active:scale-[0.97] data-[state=on]:border-rose-400 data-[state=on]:bg-rose-100 data-[state=on]:text-ink data-[state=on]:shadow-[0_4px_14px_-6px_rgba(255,191,0,0.45)]';
 
 const cardCls =
-  'h-auto min-w-0 flex-col items-start justify-start gap-3 rounded-3xl border border-line bg-surface p-5 text-left transition-all duration-300 hover:border-line-2 hover:bg-surface data-[state=on]:border-aqua-500 data-[state=on]:bg-aqua-100';
+  'h-auto min-w-0 flex-col items-start justify-start gap-3 rounded-3xl border border-line bg-surface p-5 text-left transition-all duration-300 hover:border-line-2 hover:bg-surface data-[state=on]:border-rose-400 data-[state=on]:bg-rose-100';
 
 const fieldCls =
-  'h-auto w-full rounded-2xl border-line-2 bg-surface-2 px-4 py-3.5 text-[15px] text-ink shadow-none placeholder:text-ink-4 focus-visible:border-aqua-500 focus-visible:ring-[3px] focus-visible:ring-aqua-500/20 md:text-[15px]';
+  'h-auto w-full rounded-2xl border-line-2 bg-surface-2 px-4 py-3.5 text-[15px] text-ink shadow-none placeholder:text-ink-4 focus-visible:border-rose-400 focus-visible:ring-[3px] focus-visible:ring-rose-400/20 md:text-[15px]';
 
 function Field({ label, hint, error, htmlFor, children }) {
   return (
@@ -114,7 +114,7 @@ function Field({ label, hint, error, htmlFor, children }) {
           {label}
         </Label>
         {error ? (
-          <span className="text-[12px] text-coral-700">{error}</span>
+          <span className="text-[12px] text-ink">{error}</span>
         ) : hint ? (
           <span className="text-[12px] text-ink-4">{hint}</span>
         ) : null}
@@ -198,7 +198,7 @@ function FormatStep({ form, set }) {
           <ToggleGroupItem key={f.id} value={f.id} className={cardCls}>
             <span
               className={`grid size-10 place-items-center rounded-2xl border border-line ${
-                form.format === f.id ? 'text-aqua-700' : 'text-ink-3'
+                form.format === f.id ? 'text-ink' : 'text-ink-3'
               }`}
             >
               <Icon name={f.icon} size={19} />
@@ -250,7 +250,7 @@ function TherapistStep({ form, set, matches }) {
           value="any"
           className={`${cardCls} w-full flex-row items-center gap-4`}
         >
-          <span className="grid size-12 shrink-0 place-items-center rounded-full border border-aqua-300 bg-aqua-100 text-aqua-700">
+          <span className="grid size-12 shrink-0 place-items-center rounded-full border border-rose-300 bg-rose-100 text-ink">
             <Icon name="shuffle" size={20} />
           </span>
           <span>
@@ -269,7 +269,7 @@ function TherapistStep({ form, set, matches }) {
                 <span className="min-w-0">
                   <span className="block truncate text-[15px] text-ink">{t.name}</span>
                   <span className="mt-0.5 block text-[12.5px] text-ink-3">{t.credentials}</span>
-                  <span className="mt-1.5 block text-[12px] text-aqua-700">
+                  <span className="mt-1.5 block text-[12px] text-ink">
                     {t.nextAvailable <= 1 ? 'Free tomorrow' : `Free in ${t.nextAvailable} days`}
                   </span>
                 </span>
@@ -323,14 +323,14 @@ function TimeStep({ form, set }) {
                 value={k}
                 disabled={count === 0}
                 aria-label={`${f.full}, ${count} openings`}
-                className="h-auto w-[76px] shrink-0 flex-col gap-1 rounded-2xl border border-line bg-surface py-3 transition-all duration-300 hover:border-line-2 hover:bg-surface disabled:opacity-30 data-[state=on]:border-aqua-500 data-[state=on]:bg-aqua-100"
+                className="h-auto w-[76px] shrink-0 flex-col gap-1 rounded-2xl border border-line bg-surface py-3 transition-all duration-300 hover:border-line-2 hover:bg-surface disabled:opacity-30 data-[state=on]:border-rose-400 data-[state=on]:bg-rose-100"
               >
                 <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink-4">
                   {f.weekday}
                 </span>
                 <span
                   className={`font-display text-2xl leading-none ${
-                    form.date === k ? 'text-aqua-700' : 'text-ink'
+                    form.date === k ? 'text-ink' : 'text-ink'
                   }`}
                 >
                   {f.day}
@@ -495,7 +495,7 @@ function DetailsStep({ form, set, errors }) {
           checked={form.consent}
           onCheckedChange={(v) => set({ consent: v === true })}
           aria-invalid={!!errors.consent}
-          className="mt-0.5 size-5 rounded-md border-line-2 data-[state=checked]:border-aqua-600 data-[state=checked]:bg-aqua-600 data-[state=checked]:text-white"
+          className="mt-0.5 size-5 rounded-md border-line-2 data-[state=checked]:border-rose-400 data-[state=checked]:bg-amber-500 data-[state=checked]:text-ink"
         />
         <Label
           htmlFor={ids.consent}
@@ -504,7 +504,7 @@ function DetailsStep({ form, set, errors }) {
           <span>
             I consent to telehealth care and agree to the privacy practices. I understand this
             booking can be cancelled free of charge up to 24 hours beforehand.
-            {errors.consent && <span className="mt-1 block text-coral-700">{errors.consent}</span>}
+            {errors.consent && <span className="mt-1 block text-ink">{errors.consent}</span>}
           </span>
         </Label>
       </div>
@@ -556,7 +556,7 @@ function ReviewStep({ form, therapist }) {
           <p className="text-[13px] text-ink-4">Focus areas</p>
           <div className="mt-3 flex flex-wrap gap-1.5">
             {form.concerns.map((c) => (
-              <Pill key={c} tone="aqua">
+              <Pill key={c} tone="rose">
                 {c}
               </Pill>
             ))}
@@ -564,7 +564,7 @@ function ReviewStep({ form, therapist }) {
         </div>
       )}
 
-      <div className="rounded-3xl border border-aqua-300 bg-aqua-100 p-5">
+      <div className="rounded-3xl border border-rose-300 bg-rose-100 p-5">
         <div className="flex items-baseline justify-between">
           <span className="text-[14px] text-ink-2">Estimated due at session</span>
           <span className="font-display text-3xl leading-none tracking-tight text-ink">${due}</span>
@@ -589,9 +589,9 @@ function SuccessStep({ reference, form, therapist, onClose }) {
         transition={{ duration: 0.7, ease: EASE }}
         className="relative grid size-20 place-items-center"
       >
-        <span className="absolute inset-0 rounded-full border border-aqua-400 [animation:pulse-ring_2.4s_ease-out_infinite]" />
-        <span className="absolute inset-0 rounded-full bg-aqua-200 blur-xl" />
-        <span className="relative grid size-16 place-items-center rounded-full border border-aqua-400 bg-aqua-100 text-aqua-700">
+        <span className="absolute inset-0 rounded-full border border-rose-300 [animation:pulse-ring_2.4s_ease-out_infinite]" />
+        <span className="absolute inset-0 rounded-full bg-rose-200 blur-xl" />
+        <span className="relative grid size-16 place-items-center rounded-full border border-rose-300 bg-rose-100 text-ink">
           <Icon name="check" size={26} />
         </span>
       </motion.div>
@@ -609,7 +609,7 @@ function SuccessStep({ reference, form, therapist, onClose }) {
 
       <div className="mt-8 rounded-2xl border border-line bg-surface-2 px-6 py-4">
         <p className="font-mono text-[10.5px] uppercase tracking-[0.22em] text-ink-4">Reference</p>
-        <p className="mt-1.5 font-mono text-xl tracking-[0.14em] text-aqua-700">{reference}</p>
+        <p className="mt-1.5 font-mono text-xl tracking-[0.14em] text-ink">{reference}</p>
       </div>
 
       <p className="mt-8 max-w-[46ch] text-[13.5px] leading-relaxed text-ink-4">
@@ -842,7 +842,7 @@ export default function BookingDialog({ open, onClose, prefill, openerRef }) {
 
           <div className="mt-5 h-px w-full overflow-hidden bg-line">
             <motion.div
-              className="h-full w-full origin-left bg-gradient-to-r from-aqua-500 to-violet-500"
+              className="h-full w-full origin-left bg-gradient-to-r from-rose-400 to-amber-500"
               initial={{ scaleX: 0 }}
               animate={{ scaleX: progress }}
               transition={{ duration: 0.7, ease: EASE }}
@@ -897,7 +897,7 @@ export default function BookingDialog({ open, onClose, prefill, openerRef }) {
                     initial={{ opacity: 0, y: 4 }}
                     animate={{ opacity: 1, y: 0 }}
                     role="alert"
-                    className="truncate text-[13px] text-coral-700"
+                    className="truncate text-[13px] text-ink"
                   >
                     {stepError}
                   </motion.p>

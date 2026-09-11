@@ -113,8 +113,8 @@ export default function Particles({ count = 2600, scrollRef, dpr = 1.5 }) {
       uScroll: { value: 0 },
       uOpacity: { value: 0.72 },
       uPixelRatio: { value: dpr },
-      uColorA: { value: new THREE.Color('#1CC5B3') },
-      uColorB: { value: new THREE.Color('#A06EFF') },
+      uColorA: { value: new THREE.Color('#FFB0B5') },
+      uColorB: { value: new THREE.Color('#FFBF00') },
     }),
     [dpr],
   );
