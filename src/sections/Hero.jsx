@@ -6,9 +6,14 @@ import Icon from '../components/Icon';
 import { useBrand, useSiteContent } from '../lib/queries/siteContent';
 
 /**
- * The changing word sits on its own line inside a box that is always one
- * line tall, so a long phrase never pushes the paragraph and buttons around
- * when it swaps in. Pauses for reduced motion.
+ * The changing word on its own line.
+ *
+ * Every word is rendered, stacked in the same grid cell, with the inactive
+ * ones hidden. That makes the box exactly as tall and as wide as the longest
+ * word in the list, so nothing below it moves when the word swaps — and,
+ * unlike a fixed height with overflow hidden, nothing is clipped either.
+ * Fraunces italic has deep descenders and tall ascenders (the g and f in
+ * "grief" were losing their tails), so the box has to measure itself.
  */
 function RotatingWord({ words }) {
   const [i, setI] = useState(0);
@@ -18,12 +23,20 @@ function RotatingWord({ words }) {
     const t = setInterval(() => setI((n) => (n + 1) % words.length), 2600);
     return () => clearInterval(t);
   }, [words.length]);
-  const word = words[i] ?? '';
+
   return (
-    <span className="block h-[1.15em] overflow-hidden">
-      <span key={`${word}-${i}`} className="word-swap block truncate text-aurora italic">
-        {word}
-      </span>
+    <span className="grid pb-[0.12em] leading-[1.18]">
+      {words.map((word, n) => (
+        <span
+          key={`${word}-${n}`}
+          aria-hidden={n === i ? undefined : true}
+          className={`col-start-1 row-start-1 justify-self-start text-aurora italic ${
+            n === i ? 'word-swap' : 'invisible'
+          }`}
+        >
+          {word}
+        </span>
+      ))}
     </span>
   );
 }

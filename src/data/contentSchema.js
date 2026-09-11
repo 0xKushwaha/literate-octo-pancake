@@ -176,7 +176,7 @@ export const CONTENT_SCHEMA = [
   f('resources.lead', 'Lead paragraph', 'Videos and articles reviewed by our clinical team, on anxiety, sleep, relationships and more.', 'richtext'),
   f('resources.image_url', 'Resources page photo (URL)', IMAGES.resources),
   f('resources.videos_title', 'Videos sub-heading', 'Watch'),
-  f('resources.videos_empty', 'Shown when no videos are featured', 'No videos yet. Feature one from the admin and it appears here.'),
+  f('resources.videos_empty', 'Shown when there are no active videos', 'No videos yet. Add one from the admin and it appears here.'),
   f('resources.articles_empty', 'Shown when no articles are published', 'No articles yet.'),
   f('resources.articles_title', 'Articles sub-heading', 'Read'),
 

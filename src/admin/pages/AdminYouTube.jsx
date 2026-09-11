@@ -115,11 +115,11 @@ function VideoForm({ initial, onSave, onCancel }) {
         <div className="flex flex-col gap-2 justify-center pt-4">
           <label className="flex items-center gap-2 cursor-pointer">
             <input type="checkbox" checked={form.is_featured} onChange={(e) => set('is_featured', e.target.checked)} className="rounded" />
-            <span className="text-sm text-gray-700">Featured (shown on homepage)</span>
+            <span className="text-sm text-gray-700">Featured (shown first on the Resources page)</span>
           </label>
           <label className="flex items-center gap-2 cursor-pointer">
             <input type="checkbox" checked={form.is_active} onChange={(e) => set('is_active', e.target.checked)} className="rounded" />
-            <span className="text-sm text-gray-700">Active</span>
+            <span className="text-sm text-gray-700">Active (visible on the site)</span>
           </label>
         </div>
       </div>
@@ -155,13 +155,14 @@ export default function AdminYouTube() {
   };
 
   const featured = rows.filter((v) => v.is_featured).length;
+  const active = rows.filter((v) => v.is_active).length;
 
   return (
     <>
       <PageHeader
         title="YouTube resources"
         count={rows.length}
-        subtitle={rows.length ? `${featured} featured on the homepage` : null}
+        subtitle={rows.length ? `${active} live on the Resources page · ${featured} shown first` : null}
       >
         <Button onClick={() => setEditing('new')} disabled={editing === 'new'}>+ Add video</Button>
       </PageHeader>
@@ -181,7 +182,7 @@ export default function AdminYouTube() {
           <SearchInput
             value={query}
             onChange={setQuery}
-            placeholder="Search titles, categories and notes\u2026"
+            placeholder="Search titles, categories and notes…"
             resultCount={filtered.length}
             total={rows.length}
           />
@@ -233,7 +234,7 @@ export default function AdminYouTube() {
                     <td className="max-w-xs truncate px-5 py-3 font-medium text-gray-900">{v.title}</td>
                     <td className="px-5 py-3 text-gray-500">{v.category || '\u2014'}</td>
                     <td className="px-5 py-3 text-gray-500">
-                      {v.is_featured ? <span title="Featured">\u2605</span> : '\u2014'}
+                      {v.is_featured ? <span title="Shown first on the Resources page">★</span> : '\u2014'}
                     </td>
                     <td className="px-5 py-3"><StatusBadge status={v.is_active ? 'active' : 'inactive'} /></td>
                     <td className="px-5 py-3 text-right">

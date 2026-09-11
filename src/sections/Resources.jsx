@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getLatestArticles, getArticleBySlug } from '../lib/queries/articles';
-import { listFeaturedVideos } from '../lib/queries/youtube';
+import { listActiveVideos } from '../lib/queries/youtube';
 import { MoreLink, Section, SectionHeading, Stagger, StaggerItem, sectionPad } from '../components/primitives';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { sanitizeHtml } from '../lib/sanitizeHtml';
@@ -134,7 +134,7 @@ function ArticleReader({ article, onClose }) {
  * Featured videos and the latest articles. Used as a teaser nowhere and as the
  * body of /resources, which is where the nav's Resources menu points.
  */
-export default function Resources({ withHeading = true, videoLimit = 6, articleLimit = 3, teaser = false, showEmpty = false }) {
+export default function Resources({ withHeading = true, videoLimit = 12, articleLimit = 3, teaser = false, showEmpty = false }) {
   const content = useSiteContent('resources');
   const blogContent = useSiteContent('blog');
   const [videos, setVideos] = useState([]);
@@ -146,11 +146,18 @@ export default function Resources({ withHeading = true, videoLimit = 6, articleL
 
   useEffect(() => {
     let alive = true;
-    Promise.allSettled([listFeaturedVideos(videoLimit), getLatestArticles(articleLimit)])
+    // Every active video, not only the featured ones. "Featured" now decides
+    // the order here rather than whether a video is visible at all: a video
+    // added in the admin and never ticked as featured used to save fine and
+    // then appear nowhere, which reads as the admin being broken.
+    Promise.allSettled([listActiveVideos(), getLatestArticles(articleLimit)])
       .then(([v, a]) => {
         if (!alive) return;
-        if (v.status === 'fulfilled') setVideos(v.value ?? []);
-        else console.error('[lumen] could not load video resources', v.reason);
+        if (v.status === 'fulfilled') {
+          const rows = v.value ?? [];
+          const ordered = [...rows].sort((x, y) => Number(Boolean(y.is_featured)) - Number(Boolean(x.is_featured)));
+          setVideos(ordered.slice(0, videoLimit));
+        } else console.error('[lumen] could not load video resources', v.reason);
         if (a.status === 'fulfilled') setArticles(a.value ?? []);
         else console.error('[lumen] could not load articles', a.reason);
       })

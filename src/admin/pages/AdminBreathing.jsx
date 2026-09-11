@@ -192,7 +192,7 @@ export default function AdminBreathing() {
           <SearchInput
             value={query}
             onChange={setQuery}
-            placeholder="Search by name, technique or difficulty\u2026"
+            placeholder="Search by name, technique or difficulty…"
             resultCount={filtered.length}
             total={rows.length}
           />
