@@ -15,6 +15,15 @@ import { useBooking } from '../lib/booking';
  * team, every service, the resource library and the FAQ all live on their own
  * pages now. Keeping this page short is the point: the previous single-page
  * version asked for about twelve screens of scrolling before the footer.
+ *
+ * The order is deliberate, and it is not the order the money is in. A first
+ * visit goes: here is what we do, here is the thing you were afraid to say,
+ * here is a minute of breathing you can have right now for nothing — and only
+ * then the services, the team, and what it costs. Someone weighing up therapy
+ * is not ready to be sold to in the first five seconds, and the free, useful
+ * thing is what earns the scroll that gets them to the rest. Prices stay one
+ * click away, on /services and /pricing, where someone who wants them will
+ * look for them.
  */
 export default function HomePage() {
   const openBooking = useBooking();
@@ -22,12 +31,12 @@ export default function HomePage() {
     <>
       <Hero onBook={openBooking} />
       <HeardYou limit={3} />
+      <BreathePrompt />
       <Services onBook={openBooking} limit={3} teaser />
       <Approach teaser />
       <Therapists onBook={openBooking} limit={3} teaser />
       <Testimonials limit={3} />
       <Explore />
-      <BreathePrompt />
       <CtaBand onBook={openBooking} />
     </>
   );

@@ -51,7 +51,7 @@ export default function Faq({ withHeading = true }) {
                 </span>
                 <span
                   aria-hidden
-                  className="grid size-9 shrink-0 place-items-center rounded-full border border-line text-ink-3 transition-all duration-500 group-hover:border-line-2 group-hover:text-ink group-data-[state=open]:rotate-45 group-data-[state=open]:border-rose-300 group-data-[state=open]:bg-rose-100 group-data-[state=open]:text-ink"
+                  className="grid size-9 shrink-0 place-items-center rounded-full border border-line text-ink-3 transition-all duration-500 group-hover:border-line-2 group-hover:text-ink group-data-[state=open]:rotate-45 group-data-[state=open]:border-brand-300 group-data-[state=open]:bg-brand-100 group-data-[state=open]:text-ink"
                 >
                   <Icon name="plus" size={16} />
                 </span>

@@ -33,14 +33,19 @@ function count(value, fallback, max) {
   return Math.min(n, max);
 }
 
-/** The still version of the guide on /breathe: rings out, rings in. */
+/**
+ * A small, still version of the player's ring. One ring stays put so the
+ * shape still reads under prefers-reduced-motion and in a screenshot; two
+ * drift outward on a six-second loop, which is roughly the pace of the
+ * breathing it is advertising.
+ */
 function BreathingCircle() {
   return (
-    <div className="relative grid size-40 shrink-0 place-items-center">
-      <span className="absolute size-24 rounded-full border border-rose-300" />
-      <span className="absolute size-24 rounded-full border border-rose-400 animate-[pulse-ring_4.2s_var(--ease-out-expo)_infinite]" />
-      <span className="absolute size-24 rounded-full border border-rose-300 animate-[pulse-ring_4.2s_var(--ease-out-expo)_2.1s_infinite]" />
-      <span className="relative grid size-16 place-items-center rounded-full bg-rose-200 text-ink">
+    <div className="relative grid size-40 shrink-0 place-items-center" aria-hidden="true">
+      <span className="absolute size-32 rounded-full border border-brand-300" />
+      <span className="absolute size-24 rounded-full bg-brand-200 breathe-echo opacity-40" />
+      <span className="absolute size-24 rounded-full bg-brand-200 breathe-echo opacity-40" style={{ animationDelay: '3s' }} />
+      <span className="relative grid size-16 place-items-center rounded-full bg-brand-500 text-white">
         <Icon name="wave" size={22} />
       </span>
     </div>
@@ -84,9 +89,9 @@ export default function BreathePrompt() {
             <StaggerItem key={e.id}>
               <Link
                 to="/breathe"
-                className="group flex items-center gap-4 rounded-3xl border border-line bg-surface p-5 shadow-[var(--shadow-card)] transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[var(--shadow-lift)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
+                className="group flex items-center gap-4 rounded-3xl border border-line bg-surface p-5 shadow-[var(--shadow-card)] transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[var(--shadow-lift)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
               >
-                <span className="grid size-11 shrink-0 place-items-center rounded-full bg-rose-100 text-ink">
+                <span className="grid size-11 shrink-0 place-items-center rounded-full bg-brand-100 text-accent-strong">
                   <Icon name="wave" size={18} />
                 </span>
                 <span className="min-w-0 flex-1">

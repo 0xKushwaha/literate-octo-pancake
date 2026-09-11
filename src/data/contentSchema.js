@@ -143,8 +143,12 @@ export const CONTENT_SCHEMA = [
   f('brand.address', 'Address', brand.address),
   f('brand.crisis_line', 'Crisis banner text', 'Call or text 988 — Suicide & Crisis Lifeline, 24/7. If someone is in danger right now, call 911.', 'richtext'),
   f('brand.credentials', 'Credential badges (hero)', credentials, LIST, 'Short trust badges shown under the hero buttons.', strings('Badge')),
-  f('brand.accent_color', 'Accent colour (hex)', '#FFB0B5', 'text', 'One colour for highlights, pills and hover states, e.g. #FFB0B5. Buttons stay black so the accent can be anything.'),
-  f('brand.button_color', 'Button colour (hex)', '#000000', 'text', 'Primary button background. Keep it dark enough for white text.'),
+  // Two colours, and the whole site is mixed from them. New keys on purpose:
+  // the old accent_color / button_color rows are still in site_content with
+  // the pastel values this site shipped with, and reusing the keys would have
+  // meant the stored pink quietly overriding the new palette on the live site.
+  f('brand.brand_color', 'Brand colour (hex)', '#0E6E7E', 'text', 'The one brand colour: buttons, links, focus rings, and every soft wash on the site is this mixed with white. Keep it dark enough for white text on top — anything that reads well as a button will work.'),
+  f('brand.highlight_color', 'Highlight colour (hex)', '#FFBF00', 'text', 'The loud colour, used sparingly: the crisis banner, the button on the dark closing band, the exhale in the breathing player. It always carries black text, so keep it bright.'),
 
   // ── Navigation ────────────────────────────────────────────────────────────
   f('nav.book_label', 'Book button label', 'Book a session'),
@@ -175,6 +179,7 @@ export const CONTENT_SCHEMA = [
   f('hero.match_badge', 'Badge on the card over the photo', 'Matched in 1 day'),
 
   // ── Trust / stats ─────────────────────────────────────────────────────────
+  f('trust.insurers_label', 'Label above the insurer strip in the hero', 'Covered by'),
   f('trust.stats', 'The four numbers', stats, LIST, 'The strip under the hero — 14,200+ Sessions held, 4.9/5 Average client rating, 36h Median wait, 92% Still in care. Each one counts up as it scrolls into view.', {
     itemLabel: 'Number',
     summaryKey: 'label',
@@ -240,6 +245,7 @@ export const CONTENT_SCHEMA = [
   f('breathing.exhale_label', 'Prompt: breathe out', 'Breathe out'),
   f('breathing.cycle_label', 'Cycle counter', 'Cycle {n} of {total}', 'text', 'Use {n} and {total} where the numbers should go.'),
   f('breathing.end_label', 'Button during a session', 'End session'),
+  f('breathing.again_label', 'Button to repeat a finished session', 'Go again'),
   f('breathing.done_title', 'Title when a session finishes', 'Session complete'),
   f('breathing.done_body', 'Body when a session finishes', 'Take a moment to notice how you feel.', 'richtext'),
 
@@ -250,6 +256,7 @@ export const CONTENT_SCHEMA = [
   f('services.home_cta', 'Homepage "see all" link', 'See every service'),
   f('services.header_cta', 'Button in the page header', 'Book a session'),
   f('services.price_prefix', 'Word before the price on a card', 'from'),
+  f('services.card_cta', 'Card footer on the homepage (shown instead of the price)', 'Start here', 'text', 'The homepage cards lead with the session length and this line; the price shows on the Services and Pricing pages.'),
   f('services.aside', 'Side note', 'Every clinician here specialises. You will not be handed to whoever happened to have a Tuesday free.', 'richtext'),
   f('services.items', 'Service cards', services, LIST, 'These also fill the Care menu in the navigation and the booking form.', {
     itemLabel: 'Service',

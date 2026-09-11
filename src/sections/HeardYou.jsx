@@ -2,7 +2,7 @@ import { Reveal, Section, SectionHeading, Stagger, StaggerItem } from '../compon
 import { useSiteContent } from '../lib/queries/siteContent';
 
 const TILTS = ['-rotate-1', 'rotate-1', '-rotate-[0.5deg]', 'rotate-[0.75deg]', '-rotate-1'];
-const TONES = ['bg-rose-100', 'bg-surface', 'bg-surface-3', 'bg-surface', 'bg-rose-100'];
+const TONES = ['bg-brand-100', 'bg-surface', 'bg-surface-3', 'bg-surface', 'bg-brand-100'];
 
 /**
  * First-person reasons people delay therapy, in their words. The section

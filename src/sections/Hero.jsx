@@ -30,7 +30,7 @@ function RotatingWord({ words }) {
         <span
           key={`${word}-${n}`}
           aria-hidden={n === i ? undefined : true}
-          className={`col-start-1 row-start-1 justify-self-start text-aurora italic ${
+          className={`mark col-start-1 row-start-1 justify-self-start text-aurora italic ${
             n === i ? 'word-swap' : 'invisible'
           }`}
         >
@@ -51,7 +51,7 @@ function MatchCard({ therapist, badge }) {
         <p className="truncate text-[13.5px] font-semibold text-ink">{therapist.name}</p>
         <p className="truncate text-[12px] text-ink-3">{therapist.credentials}</p>
       </div>
-      <span className="shrink-0 rounded-full bg-rose-200 px-2 py-0.5 text-[10.5px] font-semibold text-ink">{badge}</span>
+      <span className="shrink-0 rounded-full bg-amber-500 px-2 py-0.5 text-[10.5px] font-semibold text-ink">{badge}</span>
     </div>
   );
 }
@@ -61,13 +61,19 @@ export default function Hero({ onBook }) {
   const trust = useSiteContent('trust');
   const brand = useBrand();
   const therapistsContent = useSiteContent('therapists');
+  const booking = useSiteContent('booking');
   const words = Array.isArray(content.rotating_words) && content.rotating_words.length ? content.rotating_words : ['you'];
   const credentials = Array.isArray(brand.credentials) ? brand.credentials : [];
   const stats = Array.isArray(trust.stats) ? trust.stats : [];
+  // The same list the booking form offers, minus the two entries that are not
+  // insurers. Nothing new to maintain, and it can never drift from the form.
+  const insurers = (Array.isArray(booking.insurers) ? booking.insurers : []).filter(
+    (n) => !/^self-pay$|not sure|^other/i.test(String(n).trim()),
+  );
   const therapists = Array.isArray(therapistsContent.items) ? therapistsContent.items : [];
 
   return (
-    <section id="top" className="backdrop-soft relative overflow-hidden pt-10 sm:pt-16">
+    <section id="top" className="backdrop-soft relative overflow-hidden pt-12 sm:pt-20">
       <div className="mx-auto grid w-full max-w-[1280px] items-center gap-12 px-5 sm:px-8 lg:grid-cols-2 lg:gap-14">
         <div>
           <div className="flex flex-wrap items-center gap-3">
@@ -83,7 +89,7 @@ export default function Hero({ onBook }) {
             <RotatingWord words={words} />
           </h1>
 
-          <p className="mt-6 max-w-[50ch] text-[17px] leading-relaxed text-ink-2 sm:text-[18px]">{content.subheadline}</p>
+          <p className="mt-7 max-w-[46ch] text-[17px] leading-relaxed text-ink-2 sm:text-[18.5px]">{content.subheadline}</p>
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <Button variant="primary" size="lg" icon="arrow" onClick={onBook} className="w-full sm:w-auto">
@@ -94,10 +100,13 @@ export default function Hero({ onBook }) {
             </Button>
           </div>
 
-          <ul className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2">
+          <ul className="mt-8 flex flex-wrap items-center gap-2">
             {credentials.slice(0, 4).map((c) => (
-              <li key={c} className="flex items-center gap-1.5 text-[13px] text-ink-3">
-                <Icon name="check" size={13} className="text-ink" />
+              <li
+                key={c}
+                className="flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5 text-[12.5px] text-ink-2"
+              >
+                <Icon name="check" size={12} className="text-brand-500" />
                 {c}
               </li>
             ))}
@@ -105,7 +114,14 @@ export default function Hero({ onBook }) {
         </div>
 
         <div className="relative">
-          <div className="overflow-hidden rounded-[2rem] bg-surface-2 shadow-[var(--shadow-lift)]" style={{ aspectRatio: '5 / 4' }}>
+          {/* A flat brand panel offset behind the photo. One colour, no blend —
+              it is there to stop the picture floating on the tint with nothing
+              to sit against. */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -bottom-7 -left-7 hidden h-full w-full rounded-[2rem] bg-brand-200 sm:block"
+          />
+          <div className="relative overflow-hidden rounded-[2rem] bg-surface-2 shadow-[var(--shadow-lift)]" style={{ aspectRatio: '5 / 4' }}>
             {content.image_url && (
               <img
                 src={content.image_url}
@@ -120,18 +136,42 @@ export default function Hero({ onBook }) {
         </div>
       </div>
 
-      {stats.length > 0 && (
-        <div className="mx-auto mt-16 w-full max-w-[1280px] px-5 pb-4 sm:px-8">
-          <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-3xl border border-line bg-line lg:grid-cols-4">
-            {stats.map((s) => (
-              <div key={s.label} className="flex flex-col-reverse bg-surface px-6 py-5 sm:py-6">
-                <dt className="mt-1.5 text-[13px] leading-snug text-ink-3">{s.label}</dt>
-                <dd className="font-display text-[clamp(1.9rem,3.2vw,2.5rem)] font-medium leading-none tracking-tight text-ink">
-                  <Counter value={Number(s.value) || 0} decimals={s.decimals ?? 0} suffix={s.suffix ?? ''} />
-                </dd>
-              </div>
-            ))}
-          </dl>
+      {/* The proof strip. It was four bordered white cards, which read as a
+          fifth component on a page that already has plenty; hairlines and
+          space do the same job and let the numbers be the loudest thing in
+          the band. The insurer line under it is the quiet answer to "can I
+          afford this" — the one money question worth answering before the
+          page has asked for anything. */}
+      {(stats.length > 0 || insurers.length > 0) && (
+        <div className="mx-auto mt-16 w-full max-w-[1280px] px-5 pb-2 sm:px-8">
+          {stats.length > 0 && (
+            <dl className="grid grid-cols-2 border-t border-line lg:grid-cols-4">
+              {stats.map((s, i) => (
+                <div
+                  key={s.label}
+                  className={`flex flex-col-reverse px-1 py-6 sm:py-7 ${
+                    i % 2 === 1 ? 'border-l border-line pl-6' : 'lg:border-l lg:border-line lg:pl-6'
+                  } ${i > 1 ? 'border-t border-line lg:border-t-0' : ''}`}
+                >
+                  <dt className="mt-2 text-[12.5px] leading-snug text-ink-3">{s.label}</dt>
+                  <dd className="font-display text-[clamp(2.1rem,3.6vw,2.9rem)] font-medium leading-none tracking-tight text-accent-strong">
+                    <Counter value={Number(s.value) || 0} decimals={s.decimals ?? 0} suffix={s.suffix ?? ''} />
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          )}
+
+          {insurers.length > 0 && (
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-line py-5">
+              <span className="eyebrow">{trust.insurers_label}</span>
+              {insurers.map((name) => (
+                <span key={name} className="text-[14px] font-medium tracking-tight text-ink-3">
+                  {name}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </section>

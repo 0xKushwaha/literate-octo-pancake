@@ -90,15 +90,15 @@ const emptyForm = {
 // Every label here is a CMS field, so a long one has to wrap inside the chip
 // rather than run out of it.
 const chipCls =
-  'h-auto min-w-0 max-w-full whitespace-normal break-words rounded-full border border-line bg-surface px-4 py-2.5 text-[14px] text-ink-2 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-line-2 hover:bg-surface hover:text-ink active:scale-[0.97] data-[state=on]:border-rose-400 data-[state=on]:bg-rose-100 data-[state=on]:text-ink data-[state=on]:shadow-[0_4px_14px_-6px_rgba(255,191,0,0.45)]';
+  'h-auto min-w-0 max-w-full whitespace-normal break-words rounded-full border border-line bg-surface px-4 py-2.5 text-[14px] text-ink-2 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-line-2 hover:bg-surface hover:text-ink active:scale-[0.97] data-[state=on]:border-brand-500 data-[state=on]:bg-brand-100 data-[state=on]:text-ink data-[state=on]:shadow-[0_4px_14px_-6px_rgba(255,191,0,0.45)]';
 
 // Same fix as chipCls: without `whitespace-normal` the note under "Video call"
 // sets itself on one line and prints straight through the card's edge.
 const cardCls =
-  'h-auto min-w-0 max-w-full whitespace-normal break-words flex-col items-start justify-start gap-3 rounded-3xl border border-line bg-surface p-5 text-left transition-all duration-300 hover:border-line-2 hover:bg-surface data-[state=on]:border-rose-400 data-[state=on]:bg-rose-100';
+  'h-auto min-w-0 max-w-full whitespace-normal break-words flex-col items-start justify-start gap-3 rounded-3xl border border-line bg-surface p-5 text-left transition-all duration-300 hover:border-line-2 hover:bg-surface data-[state=on]:border-brand-500 data-[state=on]:bg-brand-100';
 
 const fieldCls =
-  'h-auto w-full rounded-2xl border-line-2 bg-surface-2 px-4 py-3.5 text-[15px] text-ink shadow-none placeholder:text-ink-4 focus-visible:border-rose-400 focus-visible:ring-[3px] focus-visible:ring-rose-400/20 md:text-[15px]';
+  'h-auto w-full rounded-2xl border-line-2 bg-surface-2 px-4 py-3.5 text-[15px] text-ink shadow-none placeholder:text-ink-4 focus-visible:border-brand-500 focus-visible:ring-[3px] focus-visible:ring-brand-500/20 md:text-[15px]';
 
 function Field({ label, hint, error, htmlFor, children }) {
   return (
@@ -250,7 +250,7 @@ function TherapistStep({ form, set, matches }) {
           value="any"
           className={`${cardCls} w-full flex-row items-center gap-4`}
         >
-          <span className="grid size-12 shrink-0 place-items-center rounded-full border border-rose-300 bg-rose-100 text-ink">
+          <span className="grid size-12 shrink-0 place-items-center rounded-full border border-brand-300 bg-brand-100 text-ink">
             <Icon name="shuffle" size={20} />
           </span>
           <span>
@@ -325,7 +325,7 @@ function TimeStep({ form, set }) {
                 value={k}
                 disabled={count === 0}
                 aria-label={`${f.full}, ${count} openings`}
-                className="h-auto w-[76px] shrink-0 flex-col gap-1 rounded-2xl border border-line bg-surface py-3 transition-all duration-300 hover:border-line-2 hover:bg-surface disabled:opacity-30 data-[state=on]:border-rose-400 data-[state=on]:bg-rose-100"
+                className="h-auto w-[76px] shrink-0 flex-col gap-1 rounded-2xl border border-line bg-surface py-3 transition-all duration-300 hover:border-line-2 hover:bg-surface disabled:opacity-30 data-[state=on]:border-brand-500 data-[state=on]:bg-brand-100"
               >
                 <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink-4">
                   {f.weekday}
@@ -499,7 +499,7 @@ function DetailsStep({ form, set, errors }) {
           checked={form.consent}
           onCheckedChange={(v) => set({ consent: v === true })}
           aria-invalid={!!errors.consent}
-          className="mt-0.5 size-5 rounded-md border-line-2 data-[state=checked]:border-rose-400 data-[state=checked]:bg-amber-500 data-[state=checked]:text-ink"
+          className="mt-0.5 size-5 rounded-md border-line-2 data-[state=checked]:border-brand-500 data-[state=checked]:bg-brand-500 data-[state=checked]:text-white"
         />
         <Label
           htmlFor={ids.consent}
@@ -570,7 +570,7 @@ function ReviewStep({ form, therapist }) {
         </div>
       )}
 
-      <div className="rounded-3xl border border-rose-300 bg-rose-100 p-5">
+      <div className="rounded-3xl border border-brand-300 bg-brand-100 p-5">
         <div className="flex items-baseline justify-between">
           <span className="text-[14px] text-ink-2">{copy.estimate_label}</span>
           <span className="font-display text-3xl leading-none tracking-tight text-ink">${due}</span>
@@ -598,9 +598,9 @@ function SuccessStep({ reference, form, therapist, onClose }) {
         transition={{ duration: 0.7, ease: EASE }}
         className="relative grid size-20 place-items-center"
       >
-        <span className="absolute inset-0 rounded-full border border-rose-300 [animation:pulse-ring_2.4s_ease-out_infinite]" />
-        <span className="absolute inset-0 rounded-full bg-rose-200 blur-xl" />
-        <span className="relative grid size-16 place-items-center rounded-full border border-rose-300 bg-rose-100 text-ink">
+        <span className="absolute inset-0 rounded-full border border-brand-300 [animation:pulse-ring_2.4s_ease-out_infinite]" />
+        <span className="absolute inset-0 rounded-full bg-brand-200 blur-xl" />
+        <span className="relative grid size-16 place-items-center rounded-full border border-brand-300 bg-brand-100 text-ink">
           <Icon name="check" size={26} />
         </span>
       </motion.div>
@@ -856,9 +856,12 @@ export default function BookingDialog({ open, onClose, prefill, openerRef }) {
             <Icon name="close" size={18} />
           </button>
 
-          <div className="mt-5 h-px w-full overflow-hidden bg-line">
+          {/* Was a two-colour bar; it is one solid brand colour now, and two
+              pixels rather than one so the step you are on is visible from a
+              phone at arm's length. */}
+          <div className="mt-5 h-0.5 w-full overflow-hidden rounded-full bg-line">
             <motion.div
-              className="h-full w-full origin-left bg-gradient-to-r from-rose-400 to-amber-500"
+              className="h-full w-full origin-left rounded-full bg-brand-500"
               initial={{ scaleX: 0 }}
               animate={{ scaleX: progress }}
               transition={{ duration: 0.7, ease: EASE }}

@@ -30,7 +30,7 @@ function VideoCard({ video, onPlay }) {
     <StaggerItem className="h-full">
       <button
         onClick={() => onPlay(video)}
-        className="group flex h-full w-full flex-col overflow-hidden rounded-3xl border border-line bg-surface text-left shadow-[var(--shadow-card)] transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-lift)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
+        className="group flex h-full w-full flex-col overflow-hidden rounded-3xl border border-line bg-surface text-left shadow-[var(--shadow-card)] transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-lift)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
       >
         <div className="relative aspect-video w-full overflow-hidden bg-surface-2">
           <img
@@ -55,7 +55,7 @@ function VideoCard({ video, onPlay }) {
         </div>
         <div className="flex flex-1 flex-col gap-2 p-5">
           {video.category && (
-            <span className="inline-flex items-center self-start rounded-full bg-rose-100 px-2.5 py-0.5 text-[11px] font-medium text-ink">
+            <span className="inline-flex items-center self-start rounded-full bg-brand-100 px-2.5 py-0.5 text-[11px] font-medium text-ink">
               {video.category}
             </span>
           )}
@@ -76,10 +76,10 @@ function ArticleCard({ article, onClick, labels }) {
     <StaggerItem className="h-full">
       <button
         onClick={() => onClick(article)}
-        className="group flex h-full w-full flex-col rounded-3xl border border-line bg-surface p-6 text-left shadow-[var(--shadow-card)] transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-lift)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
+        className="group flex h-full w-full flex-col rounded-3xl border border-line bg-surface p-6 text-left shadow-[var(--shadow-card)] transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-lift)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
       >
         <div className="flex items-center gap-2.5">
-          <span className="inline-flex items-center rounded-full bg-peach-100 px-2.5 py-0.5 text-[11px] font-medium text-ink">
+          <span className="inline-flex items-center rounded-full bg-sand-100 px-2.5 py-0.5 text-[11px] font-medium text-ink">
             {article.category || labels.default_category}
           </span>
           {article.published_at && <span className="text-[12px] text-ink-4">{formatDate(article.published_at)}</span>}
@@ -103,7 +103,7 @@ function ArticleReader({ article, onClose, labels }) {
       <div className="border-b border-line px-8 pb-6 pt-8 sm:px-12">
         <div className="flex items-center gap-3">
           {article.category && (
-            <span className="inline-flex items-center rounded-full bg-rose-100 px-3 py-0.5 text-[11px] font-medium uppercase tracking-wide text-ink">
+            <span className="inline-flex items-center rounded-full bg-brand-100 px-3 py-0.5 text-[11px] font-medium uppercase tracking-wide text-ink">
               {article.category}
             </span>
           )}

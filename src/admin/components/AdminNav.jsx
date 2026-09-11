@@ -25,7 +25,7 @@ export default function AdminNav() {
       <div className="border-b border-gray-200 px-5 py-4">
         <div className="flex items-center gap-2">
           <span className="relative grid size-5 place-items-center">
-            <span className="absolute inset-0 rounded-full bg-gradient-to-br from-teal-400 to-amber-500 opacity-80 blur-[4px]" />
+            <span className="absolute inset-0 rounded-full bg-brand-500" />
             <span className="relative size-2 rounded-full bg-gray-900" />
           </span>
           <span className="font-semibold text-gray-900">{brand.name} Admin</span>

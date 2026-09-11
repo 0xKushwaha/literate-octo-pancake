@@ -97,15 +97,27 @@ function useInViewOnce(amount = 0.15) {
 /* ---------------------------------------------------------------- Button */
 
 /**
- * Two buttons, on purpose. `primary` is the one action colour (admin:
- * brand.button_color), everything else is white with a hairline. Older
- * variant names map onto those two so nothing needs a rename.
+ * Three buttons, on purpose.
+ *
+ * `primary` is the brand colour with white type — the action on every light
+ * page. `accent` is amber with black type, and exists only for the dark
+ * closing band, where a teal button would disappear into the panel it sits
+ * on. `secondary` is white with a hairline. Older variant names map onto
+ * those, so nothing needs a rename.
+ *
+ * The lift on hover is two pixels and the press is a 3% squash: enough to
+ * feel answered, not enough to move the layout.
  */
-const PRIMARY = 'bg-[var(--button)] text-white hover:brightness-110 shadow-[var(--shadow-lift)]';
-const SECONDARY = 'border border-line-2 bg-surface text-ink hover:border-ink hover:shadow-[var(--shadow-card)]';
+const PRIMARY =
+  'bg-[var(--button)] text-white shadow-[var(--shadow-card)] hover:-translate-y-0.5 hover:shadow-[var(--shadow-lift)] hover:brightness-[1.08]';
+const ACCENT =
+  'bg-amber-500 text-ink shadow-[var(--shadow-card)] hover:-translate-y-0.5 hover:shadow-[var(--shadow-lift)] hover:brightness-[1.04]';
+const SECONDARY =
+  'border border-line-2 bg-surface text-ink hover:-translate-y-0.5 hover:border-ink hover:shadow-[var(--shadow-card)]';
 const variants = {
   primary: PRIMARY,
   glow: PRIMARY,
+  accent: ACCENT,
   secondary: SECONDARY,
   ghost: SECONDARY,
   outline: SECONDARY,
@@ -126,8 +138,8 @@ export const Button = forwardRef(function Button(
     <Tag
       ref={ref}
       className={`group relative inline-flex items-center justify-center gap-2 rounded-full font-semibold tracking-tight
-        transition-[transform,box-shadow,background-color,border-color,filter] duration-200
-        active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40
+        transition-[transform,box-shadow,background-color,border-color,filter] duration-200 ease-[var(--ease-out-expo)]
+        active:translate-y-0 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40
         ${variants[variant]} ${sizes[size]} ${className}`}
       {...rest}
     >
@@ -148,8 +160,8 @@ export const Button = forwardRef(function Button(
 
 export function Eyebrow({ children, className = '' }) {
   return (
-    <div className={`flex items-center gap-3 ${className}`}>
-      <span className="size-1.5 rounded-full bg-amber-500" />
+    <div className={`flex items-center gap-2.5 ${className}`}>
+      <span className="h-3 w-1 rounded-full bg-amber-500" />
       <span className="eyebrow">{children}</span>
     </div>
   );
@@ -195,9 +207,15 @@ export function Section({ id, children, className = '', ...rest }) {
 export function Pill({ children, className = '', tone = 'default' }) {
   const tones = {
     default: 'border-line bg-surface-2 text-ink-2',
-    rose: 'border-rose-400/60 bg-rose-100 text-ink',
-    blush: 'border-rose-300/60 bg-blush-100 text-ink',
-    peach: 'border-peach-100 bg-peach-100 text-ink',
+    // `rose`/`blush`/`peach` are the names the old pastel palette used; they
+    // are kept as aliases so every call site did not have to change when the
+    // palette moved to teal.
+    brand: 'border-brand-300 bg-brand-100 text-ink',
+    rose: 'border-brand-300 bg-brand-100 text-ink',
+    soft: 'border-brand-200/70 bg-brand-50 text-ink',
+    blush: 'border-brand-200/70 bg-brand-50 text-ink',
+    sand: 'border-sand-100 bg-sand-100 text-ink',
+    peach: 'border-sand-100 bg-sand-100 text-ink',
     amber: 'border-amber-500 bg-amber-500 text-ink',
   };
   return (
@@ -239,11 +257,18 @@ export function Counter({ value, decimals = 0, suffix = '', duration = 1400 }) {
 
 /* ---------------------------------------------------------------- Pages */
 
-/** Lazy, non-shifting photo. `ratio` is a CSS aspect-ratio string. */
-export function Photo({ src, alt = '', ratio = '4 / 3', className = '', priority = false }) {
+/**
+ * Lazy, non-shifting photo. `ratio` is a CSS aspect-ratio string.
+ *
+ * `framed` puts a flat brand-coloured panel behind the picture, offset down
+ * and to the left. It is one solid colour — the point is to give the photo
+ * an edge to sit against on a page that is otherwise all white cards, which
+ * a gradient wash used to do and no longer does.
+ */
+export function Photo({ src, alt = '', ratio = '4 / 3', className = '', priority = false, framed = false }) {
   if (!src) return null;
-  return (
-    <div className={`overflow-hidden rounded-[2rem] bg-surface-2 ${className}`} style={{ aspectRatio: ratio }}>
+  const img = (
+    <div className="overflow-hidden rounded-[2rem] bg-surface-2 shadow-[var(--shadow-lift)]" style={{ aspectRatio: ratio }}>
       <img
         src={src}
         alt={alt}
@@ -252,6 +277,16 @@ export function Photo({ src, alt = '', ratio = '4 / 3', className = '', priority
         decoding="async"
         className="h-full w-full object-cover"
       />
+    </div>
+  );
+  if (!framed) return <div className={className}>{img}</div>;
+  return (
+    <div className={`relative ${className}`}>
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -bottom-4 -left-4 h-full w-full rounded-[2rem] bg-brand-200"
+      />
+      <div className="relative">{img}</div>
     </div>
   );
 }
@@ -271,7 +306,7 @@ export function PageHeader({ eyebrow, title, lead, image, imageAlt = '', childre
           {lead && <p className="mt-5 max-w-[52ch] text-[16.5px] leading-relaxed text-ink-2">{lead}</p>}
           {children && <div className="mt-7 flex flex-wrap items-center gap-3">{children}</div>}
         </div>
-        <Photo src={image} alt={imageAlt} ratio="4 / 3" priority />
+        <Photo src={image} alt={imageAlt} ratio="4 / 3" priority framed />
       </Section>
     </div>
   );
@@ -286,7 +321,7 @@ export function sectionPad(withHeading) {
 export function MoreLink({ to, children, className = '' }) {
   return (
     <Link to={to} className={`group inline-flex items-center gap-2 text-[15px] font-semibold text-ink ${className}`}>
-      <span className="underline decoration-rose-300 decoration-2 underline-offset-4 group-hover:decoration-ink">{children}</span>
+      <span className="underline decoration-amber-500 decoration-2 underline-offset-4 transition-colors group-hover:decoration-ink">{children}</span>
       <Icon name="arrow" size={16} className="transition-transform duration-200 group-hover:translate-x-0.5" />
     </Link>
   );

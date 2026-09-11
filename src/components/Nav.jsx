@@ -106,7 +106,7 @@ function Dropdown({ item, open, setOpen, badge }) {
 
 function Badge({ text }) {
   return (
-    <span className="pointer-events-none absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-rose-200 px-2 py-px text-[10.5px] font-semibold text-ink">
+    <span className="pointer-events-none absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-amber-500 px-2 py-px text-[10.5px] font-semibold text-ink">
       {text}
     </span>
   );
@@ -157,8 +157,8 @@ export default function Nav({ onBook }) {
       <header className={`sticky top-0 z-50 transition-[background-color,box-shadow,border-color] duration-300 ${scrolled ? 'border-b border-line bg-bg/90 shadow-[0_1px_0_rgba(0,0,0,0.02)] backdrop-blur-md' : 'border-b border-transparent bg-bg'}`}>
         <nav className="mx-auto flex h-[68px] max-w-[1280px] items-center justify-between gap-6 px-5 sm:px-8">
           <Link to="/" className="flex items-center gap-2.5" aria-label={`${brand.name} home`}>
-            <span className="grid size-8 place-items-center rounded-full bg-rose-300">
-              <span className="size-3 rounded-full bg-ink" />
+            <span className="grid size-8 place-items-center rounded-full bg-brand-500">
+              <span className="size-3 rounded-full bg-amber-500" />
             </span>
             <span className="font-display text-[24px] font-semibold leading-none tracking-tight text-ink">{brand.name}</span>
           </Link>
