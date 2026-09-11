@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import { getArticleById, upsertArticle } from '../../lib/queries/articles';
 import { supabase, isDemo } from '../../lib/supabase';
 import RichTextEditor from '../components/RichTextEditor';
+import { publishedAtFor } from '../articlePublishDate';
 import { useSaveShortcut, useUnsavedChanges } from '../hooks';
 import { Button, FormSkeleton } from '../components/ui';
 
@@ -26,6 +27,10 @@ export default function AdminBlogEditor() {
   const [loading, setLoading] = useState(!isNew);
   const [loadError, setLoadError] = useState(null);
 
+  // The article's existing publish date. It has to travel with every save —
+  // see src/admin/articlePublishDate.js for why.
+  const [publishedAt, setPublishedAt] = useState(null);
+
   // What was last persisted, serialised. Comparing against this is what makes
   // the unsaved-changes prompt accurate rather than firing on every visit.
   // State, not a ref, because it is read during render to compute `dirty`.
@@ -35,6 +40,7 @@ export default function AdminBlogEditor() {
     if (isNew) {
       setBaseline(JSON.stringify(EMPTY));
       setForm(EMPTY);
+      setPublishedAt(null);
       setLoading(false);
       return;
     }
@@ -53,6 +59,7 @@ export default function AdminBlogEditor() {
         };
         setBaseline(JSON.stringify(loaded));
         setForm(loaded);
+        setPublishedAt(a.published_at ?? null);
         setLoadError(null);
       })
       .catch((err) => {
@@ -83,6 +90,9 @@ export default function AdminBlogEditor() {
         const { data: { user } } = await supabase.auth.getUser();
         userId = user?.id ?? null;
       }
+      const nextPublished = publish ?? form.is_published;
+      const nextPublishedAt = publishedAtFor({ isPublished: nextPublished, existing: publishedAt });
+
       const payload = {
         ...(!isNew ? { id } : {}),
         title: form.title.trim(),
@@ -91,10 +101,11 @@ export default function AdminBlogEditor() {
         category: form.category || null,
         content: form.content,
         author_id: userId,
-        is_published: publish ?? form.is_published,
-        ...(publish && !form.is_published ? { published_at: new Date().toISOString() } : {}),
+        is_published: nextPublished,
+        published_at: nextPublishedAt,
       };
       await upsertArticle(payload);
+      setPublishedAt(nextPublishedAt);
       // Stand the guard down before navigating, or it prompts on the redirect
       // back to the list — which reads as the save having failed.
       setBaseline(JSON.stringify({ ...form, is_published: payload.is_published }));
@@ -109,7 +120,7 @@ export default function AdminBlogEditor() {
     } finally {
       setSaving(false);
     }
-  }, [form, id, isNew, navigate, allowLeaving]);
+  }, [form, id, isNew, navigate, allowLeaving, publishedAt]);
 
   // ⌘S / Ctrl+S saves without publishing, matching every editor people already
   // use. Without it the browser's own "save page" dialog opens instead.
