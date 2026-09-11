@@ -1,6 +1,14 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* The motion modules hold no class names at all — they are scroll maths and
+   capability probes. Tailwind's scanner does not know that: it treats every
+   bare word it finds as a candidate utility, so `addEventListener('resize')`
+   silently shipped a `.resize` rule nothing uses. That only gets worse as
+   this folder grows, because the vocabulary in there is scale, rotate,
+   opacity, transform and grid. Excluded rather than policed by hand. */
+@source not "./motion";
+
 /* Fonts are bundled, not fetched from a CDN. On a therapy site the visit
    itself is sensitive: a Google Fonts request would hand a third party the
    visitor's IP and referrer on every page load, and it forces the CSP to
@@ -120,6 +128,13 @@
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out-quint: cubic-bezier(0.83, 0, 0.17, 1);
 
+  /* The two curves above are the UI ones, and they stay the UI ones: a button
+     answering a press wants to arrive quickly. These two are for the slower,
+     scroll-linked movement, where the point is that nothing snaps. Organic
+     leaves late and settles long; drift never fully stops. */
+  --ease-organic: cubic-bezier(0.33, 0, 0.16, 1);
+  --ease-drift: cubic-bezier(0.45, 0, 0.15, 1);
+
   /* elevation — depth comes from shadow here, not from translucent fills.
      Tinted with the ink hue so shadows sit in the same world as the paper. */
   --shadow-card: 0 1px 3px rgba(11, 31, 36, 0.04), 0 12px 32px -16px rgba(11, 31, 36, 0.12);
@@ -174,6 +189,15 @@
     /* Buttons are the brand colour. Kept as its own variable so a single
        override can change them without touching the washes. */
     --button: var(--accent);
+
+    /* Motion durations in one place, so the slow things stay in step with each
+       other. Quick and base match what the components already hard-code;
+       breath is one full inhale, the pace the whole site moves at when it is
+       not reacting to anything. */
+    --dur-quick: 180ms;
+    --dur-base: 360ms;
+    --dur-slow: 720ms;
+    --dur-breath: 4200ms;
   }
 
   *,

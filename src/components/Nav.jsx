@@ -3,6 +3,7 @@ import { Link, NavLink, useLocation } from 'react-router-dom';
 import { Button } from './primitives';
 import Icon from './Icon';
 import { telHref, useBrand, useSiteContent } from '../lib/queries/siteContent';
+import { useScrollValue } from '../motion/ScrollStory';
 
 /**
  * Top navigation. Five items, three of them dropdowns, in the order the site
@@ -112,6 +113,9 @@ function Badge({ text }) {
   );
 }
 
+/** The bar gains its hairline and frosted ground once the page has moved. */
+const pastTop = (m) => m.y > 16;
+
 export default function Nav({ onBook }) {
   const brand = useBrand();
   const navContent = useSiteContent('nav');
@@ -122,21 +126,11 @@ export default function Nav({ onBook }) {
   const badgeItem = String(navContent.badge_item ?? '').trim();
   const badgeText = String(navContent.badge_text ?? '').trim();
 
-  const [scrolled, setScrolled] = useState(false);
+  // Fed by the one shared scroll driver. The selector returns a boolean, so
+  // the nav re-renders on the frame the threshold is crossed and on no other.
+  const scrolled = useScrollValue(pastTop);
   const [open, setOpen] = useState(null);
   const [drawer, setDrawer] = useState(false);
-
-  useEffect(() => {
-    let ticking = false;
-    const onScroll = () => {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(() => { setScrolled(window.scrollY > 16); ticking = false; });
-    };
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
 
   // Close everything on navigation, Escape, or a click outside the bar.
   useEffect(() => { setOpen(null); setDrawer(false); }, [pathname]);
