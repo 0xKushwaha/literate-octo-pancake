@@ -61,7 +61,7 @@ export default function Services({ onBook, limit, teaser = false, withHeading = 
                     {s.duration}
                   </span>
                   <span className="text-[14.5px] text-ink-2">
-                    <span className="text-ink-4">from </span>${s.price}
+                    <span className="text-ink-4">{content.price_prefix} </span>${s.price}
                   </span>
                 </div>
               </button>

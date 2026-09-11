@@ -44,7 +44,7 @@ export default function Pricing({ onBook, withHeading = true }) {
                     className="pointer-events-none absolute inset-x-8 -top-px h-px bg-gradient-to-r from-transparent via-peach-100 to-transparent"
                   />
                   <div className="absolute -top-3 left-8">
-                    <Pill tone="rose">Most chosen</Pill>
+                    <Pill tone="rose">{content.featured_badge}</Pill>
                   </div>
                 </>
               )}

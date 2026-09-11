@@ -5,9 +5,9 @@ import Avatar from '../components/Avatar';
 import Icon from '../components/Icon';
 import { useSiteContent } from '../lib/queries/siteContent';
 
-function availabilityLabel(days) {
-  if (days <= 1) return 'Available tomorrow';
-  return `Available in ${days} days`;
+function availabilityLabel(days, content) {
+  if (days <= 1) return content.available_tomorrow;
+  return String(content.available_days ?? '').replace('{days}', days);
 }
 
 export default function Therapists({ onBook, limit, teaser = false, withHeading = true }) {
@@ -28,8 +28,8 @@ export default function Therapists({ onBook, limit, teaser = false, withHeading 
   );
   const filters = useMemo(() => {
     const services = Array.isArray(servicesContent.items) ? servicesContent.items : [];
-    return [{ id: 'all', label: 'Everyone' }, ...services.map((s) => ({ id: s.id, label: String(s.name ?? '').split(' ')[0] }))];
-  }, [servicesContent.items]);
+    return [{ id: 'all', label: content.filter_all }, ...services.map((s) => ({ id: s.id, label: String(s.name ?? '').split(' ')[0] }))];
+  }, [servicesContent.items, content.filter_all]);
 
   const shown = useMemo(() => {
     const list = filter === 'all' ? therapists : therapists.filter((t) => t.services.includes(filter));
@@ -110,10 +110,10 @@ export default function Therapists({ onBook, limit, teaser = false, withHeading 
             <div className="mt-5 flex items-center justify-between border-t border-line pt-4">
               <span className="flex items-center gap-2 text-[13px] text-ink">
                 <span className="size-1.5 rounded-full bg-amber-500" />
-                {availabilityLabel(Number(t.nextAvailable) || 1)}
+                {availabilityLabel(Number(t.nextAvailable) || 1, content)}
               </span>
               <Button size="sm" variant="outline" icon="arrow" onClick={() => onBook?.({ therapist: t.id })}>
-                Book
+                {content.book_label}
               </Button>
             </div>
           </article>
@@ -130,7 +130,7 @@ export default function Therapists({ onBook, limit, teaser = false, withHeading 
         <p className="mt-8 text-[15px] text-ink-3">
           {content.empty_note}{' '}
           <button onClick={() => onBook?.()} className="text-ink underline underline-offset-4">
-            Ask for a match
+            {content.empty_cta}
           </button>
           .
         </p>

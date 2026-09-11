@@ -17,7 +17,7 @@ export default function ServicesPage() {
         imageAlt="Two people sitting together, one comforting the other"
       >
         <Button variant="primary" size="lg" icon="arrow" onClick={openBooking}>
-          Book a session
+          {content.header_cta}
         </Button>
       </PageHeader>
       <Services onBook={openBooking} withHeading={false} />

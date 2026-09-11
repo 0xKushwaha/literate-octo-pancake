@@ -3,6 +3,7 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import { getArticleBySlug, getRelatedArticles } from '../lib/queries/articles';
 import { Button, Pill, Section } from '../components/primitives';
 import { useBooking } from '../lib/booking';
+import { useSiteContent } from '../lib/queries/siteContent';
 import { sanitizeHtml } from '../lib/sanitizeHtml';
 
 function estimateReadTime(content) {
@@ -13,6 +14,7 @@ function estimateReadTime(content) {
 
 export default function BlogPostPage() {
   const openBooking = useBooking();
+  const content = useSiteContent('blog');
   const { slug } = useParams();
   const navigate = useNavigate();
   const [article, setArticle] = useState(null);
@@ -58,7 +60,7 @@ export default function BlogPostPage() {
           <Section className="py-12 sm:py-16">
             <div className="mx-auto max-w-2xl">
               <Link to="/blog" className="mb-8 inline-flex items-center gap-1.5 text-[14px] text-ink-3 transition-colors hover:text-ink">
-                ← All articles
+                ← {content.back_link}
               </Link>
 
               {/* Meta */}
@@ -66,7 +68,7 @@ export default function BlogPostPage() {
                 {article.category && <Pill tone="rose">{article.category}</Pill>}
                 {date && <span className="text-[13px] text-ink-4">{date}</span>}
                 <span className="text-[13px] text-ink-4">·</span>
-                <span className="text-[13px] text-ink-4">{estimateReadTime(article.content)} min read</span>
+                <span className="text-[13px] text-ink-4">{estimateReadTime(article.content)} {content.read_time_suffix}</span>
               </div>
 
               <h1 className="mt-5 font-display text-4xl leading-[1.1] tracking-tight text-ink sm:text-5xl">
@@ -89,10 +91,10 @@ export default function BlogPostPage() {
 
               {/* CTA */}
               <div className="mt-10 rounded-3xl border border-line bg-surface-2 p-8 text-center">
-                <p className="font-display text-2xl tracking-tight text-ink">Ready to talk to someone?</p>
-                <p className="mt-3 text-[14.5px] text-ink-3">Our therapists are accepting new clients.</p>
+                <p className="font-display text-2xl tracking-tight text-ink">{content.post_cta_title}</p>
+                <p className="mt-3 text-[14.5px] text-ink-3">{content.post_cta_body}</p>
                 <Button variant="primary" icon="arrow" className="mt-6" onClick={openBooking}>
-                  Book a session
+                  {content.post_cta_button}
                 </Button>
               </div>
             </div>
@@ -102,7 +104,7 @@ export default function BlogPostPage() {
           {related.length > 0 && (
             <div className="border-t border-line bg-surface-2">
               <Section className="py-16">
-                <h2 className="font-display text-2xl tracking-tight text-ink">Related articles</h2>
+                <h2 className="font-display text-2xl tracking-tight text-ink">{content.related_title}</h2>
                 <div className="mt-8 grid gap-5 sm:grid-cols-3">
                   {related.map((a) => (
                     <Link

@@ -20,7 +20,7 @@ export default function HowItWorksPage() {
         imageAlt="A person smiling during a video call at home"
       >
         <Button variant="primary" size="lg" icon="arrow" onClick={openBooking}>
-          Start the intake
+          {content.header_cta}
         </Button>
       </PageHeader>
       <Approach withHeading={false} />

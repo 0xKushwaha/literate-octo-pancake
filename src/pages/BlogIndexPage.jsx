@@ -4,9 +4,7 @@ import { listPublishedArticles } from '../lib/queries/articles';
 import { Button, PageHeader, Pill, Section } from '../components/primitives';
 import { useSiteContent } from '../lib/queries/siteContent';
 
-const CATEGORIES = ['All', 'Getting Started', 'Anxiety', 'Depression', 'Relationships', 'Mindfulness', 'Trauma', 'Techniques', 'Sleep', 'Psychiatry'];
-
-function ArticleCard({ article }) {
+function ArticleCard({ article, readMore }) {
   const date = article.published_at
     ? new Date(article.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
     : null;
@@ -29,7 +27,7 @@ function ArticleCard({ article }) {
         <p className="mt-3 line-clamp-3 text-[14px] leading-relaxed text-ink-3">{article.excerpt}</p>
       )}
       <div className="mt-5 flex items-center gap-1.5 text-[13px] font-medium text-ink">
-        Read more
+        {readMore}
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform group-hover:translate-x-0.5">
           <path d="M5 12h14M12 5l7 7-7 7"/>
         </svg>
@@ -41,6 +39,7 @@ function ArticleCard({ article }) {
 export default function BlogIndexPage() {
   const content = useSiteContent('blog');
   const resources = useSiteContent('resources');
+  const categories = Array.isArray(content.categories) && content.categories.length ? content.categories : ['All'];
   const [articles, setArticles] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -77,7 +76,7 @@ export default function BlogIndexPage() {
       <Section className="py-12 sm:py-16">
         {/* Category filter */}
         <div className="flex flex-wrap gap-2">
-          {CATEGORIES.map((cat) => (
+          {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => { setCategory(cat === 'All' ? null : cat); setPage(1); }}
@@ -99,10 +98,10 @@ export default function BlogIndexPage() {
                 <div key={i} className="h-52 rounded-3xl bg-surface-2 animate-pulse" />
               ))
             : articles.length > 0
-              ? articles.map((a) => <ArticleCard key={a.id} article={a} />)
+              ? articles.map((a) => <ArticleCard key={a.id} article={a} readMore={content.read_more} />)
               : (
                 <div className="col-span-3 py-24 text-center text-ink-4">
-                  No articles yet. Check back soon.
+                  {content.empty}
                 </div>
               )
           }
@@ -112,13 +111,13 @@ export default function BlogIndexPage() {
         {totalPages > 1 && (
           <div className="mt-14 flex justify-center gap-2">
             <Button variant="quiet" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>
-              Previous
+              {content.prev}
             </Button>
             <span className="flex items-center px-4 text-[13px] text-ink-3">
               {page} / {totalPages}
             </span>
             <Button variant="quiet" size="sm" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}>
-              Next
+              {content.next}
             </Button>
           </div>
         )}

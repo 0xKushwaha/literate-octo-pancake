@@ -42,7 +42,7 @@ function RotatingWord({ words }) {
 }
 
 /** A small "match" card floating over the photo, built from real therapist data. */
-function MatchCard({ therapist }) {
+function MatchCard({ therapist, badge }) {
   if (!therapist) return null;
   return (
     <div className="absolute -bottom-5 left-4 right-4 flex items-center gap-3 rounded-2xl border border-line bg-surface p-3 pr-4 shadow-[var(--shadow-lift)] sm:left-auto sm:right-6 sm:w-[300px]" aria-hidden="true">
@@ -51,7 +51,7 @@ function MatchCard({ therapist }) {
         <p className="truncate text-[13.5px] font-semibold text-ink">{therapist.name}</p>
         <p className="truncate text-[12px] text-ink-3">{therapist.credentials}</p>
       </div>
-      <span className="shrink-0 rounded-full bg-rose-200 px-2 py-0.5 text-[10.5px] font-semibold text-ink">Matched in 1 day</span>
+      <span className="shrink-0 rounded-full bg-rose-200 px-2 py-0.5 text-[10.5px] font-semibold text-ink">{badge}</span>
     </div>
   );
 }
@@ -116,7 +116,7 @@ export default function Hero({ onBook }) {
               />
             )}
           </div>
-          <MatchCard therapist={therapists[0]} />
+          <MatchCard therapist={therapists[0]} badge={content.match_badge} />
         </div>
       </div>
 

@@ -6,6 +6,7 @@ import Footer from '../components/Footer';
 import MobileBookBar from '../components/MobileBookBar';
 import { BookingProvider, useBooking } from '../lib/booking';
 import { useBrandTheme } from '../lib/theme';
+import { useSiteContent } from '../lib/queries/siteContent';
 
 const CommandPalette = lazy(() => import('../components/CommandPalette'));
 
@@ -30,6 +31,7 @@ function Shell() {
   const openBooking = useBooking();
   const { pathname, hash } = useLocation();
   const [palette, setPalette] = useState(false);
+  const ui = useSiteContent('ui');
   useBrandTheme();
 
   /**
@@ -105,7 +107,7 @@ function Shell() {
         href="#main"
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[95] focus:rounded-full focus:bg-ink focus:px-5 focus:py-3 focus:text-sm focus:text-white"
       >
-        Skip to content
+        {ui.skip_link}
       </a>
       <Toaster position="bottom-center" />
       <Nav onBook={openBooking} />

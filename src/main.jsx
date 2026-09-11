@@ -9,6 +9,7 @@ import HowItWorksPage from './pages/HowItWorksPage';
 import TherapistsPage from './pages/TherapistsPage';
 import PricingPage from './pages/PricingPage';
 import NotFoundPage from './pages/NotFoundPage';
+import { useSiteContent } from './lib/queries/siteContent';
 import './index.css';
 
 // Split off the pages most visitors never open, so the first load stays small.
@@ -19,21 +20,22 @@ const BlogPostPage = lazy(() => import('./pages/BlogPostPage'));
 const AdminApp = lazy(() => import('./admin/AdminApp'));
 
 function RouteError() {
+  const ui = useSiteContent('ui');
   return (
     <div className="flex min-h-[100svh] flex-col items-center justify-center gap-8 bg-bg px-6 py-20 text-center">
       <div>
         <h1 className="mt-5 max-w-[20ch] font-display text-[clamp(2rem,5vw,3.25rem)] leading-tight tracking-tight text-ink">
-          Something went wrong
+          {ui.error_title}
         </h1>
         <p className="mx-auto mt-5 max-w-[46ch] text-[16px] leading-relaxed text-ink-3">
-          That is on us, not you. Reloading usually fixes it.
+          {ui.error_body}
         </p>
       </div>
       <button
         onClick={() => window.location.reload()}
         className="inline-flex h-12 items-center rounded-full bg-ink px-6 text-[15px] font-medium text-white transition-colors hover:bg-ink-2"
       >
-        Reload the page
+        {ui.error_button}
       </button>
     </div>
   );

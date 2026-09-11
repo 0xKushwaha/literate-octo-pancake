@@ -3,26 +3,21 @@ import toast from 'react-hot-toast';
 import { deleteContent, getAllContent, upsertContent } from '../../lib/queries/siteContent';
 import { parseJsonValue, stringifyContentValue } from '../../lib/contentMerge';
 import {
-  CONTENT_SCHEMA, SCHEMA_BY_KEY, SECTION_ORDER, SECTION_TITLES,
+  CONTENT_SCHEMA, PAGE_BLURBS, PAGE_ORDER, PAGE_PATHS, PAGE_TITLES,
+  SCHEMA_BY_KEY, SECTION_ORDER, SECTION_PAGE, SECTION_TITLES,
 } from '../../data/contentSchema';
+import { iconNames } from '../../components/Icon';
 import { useSearch } from '../hooks';
 import { Button, EmptyState, PageHeader, Panel, SearchInput, TableSkeleton } from '../components/ui';
 
-const SEARCH_FIELDS = ['label', 'key', 'value', 'section', 'sectionTitle'];
+const SEARCH_FIELDS = ['label', 'key', 'value', 'section', 'sectionTitle', 'pageTitle', 'hint'];
 
-function groupBySection(items) {
-  const grouped = items.reduce((acc, item) => {
-    const s = item.section ?? 'other';
-    if (!acc[s]) acc[s] = [];
-    acc[s].push(item);
-    return acc;
-  }, {});
-  const order = (s) => {
-    const i = SECTION_ORDER.indexOf(s);
-    return i === -1 ? SECTION_ORDER.length : i;
-  };
-  return Object.entries(grouped).sort(([a], [b]) => order(a) - order(b));
-}
+const inputBase =
+  'w-full rounded-lg border border-gray-300 px-3 py-1.5 text-sm outline-none transition focus:border-teal-500 focus:ring-1 focus:ring-teal-500';
+const dirtyBase =
+  'w-full rounded-lg border border-amber-400 px-3 py-1.5 text-sm outline-none transition focus:border-amber-500 focus:ring-1 focus:ring-amber-500';
+
+/* ------------------------------------------------------------------ helpers */
 
 /** Validates the text of a `json` field. Returns an error message or null. */
 function validateJson(text, defaultValue) {
@@ -34,37 +29,205 @@ function validateJson(text, defaultValue) {
   return null;
 }
 
-const inputClass = (dirty, invalid) =>
-  `w-full rounded-lg border px-3 py-1.5 text-sm outline-none transition focus:ring-1 ${
-    invalid
-      ? 'border-red-400 focus:border-red-500 focus:ring-red-500'
-      : dirty
-        ? 'border-amber-400 focus:border-amber-500 focus:ring-amber-500'
-        : 'border-gray-300 focus:border-teal-500 focus:ring-teal-500'
-  }`;
+/** A one-line summary of a list item, for the collapsed row header. */
+function itemSummary(item, spec) {
+  if (typeof item === 'string') return item;
+  if (!item || typeof item !== 'object') return '';
+  const first = (spec?.fields ?? []).find((f) => !f.advanced && item[f.key] != null && item[f.key] !== '');
+  const value = first ? item[first.key] : Object.values(item)[0];
+  return Array.isArray(value) ? value.join(', ') : String(value ?? '');
+}
+
+function blankItem(spec) {
+  if (spec?.itemType === 'string') return '';
+  const out = {};
+  for (const f of spec?.fields ?? []) {
+    out[f.key] = f.type === 'number' ? 0 : f.type === 'boolean' ? false : f.type === 'tags' ? [] : '';
+  }
+  return out;
+}
+
+/* ------------------------------------------------------------- item fields */
+
+function ItemField({ field, value, onChange }) {
+  const id = `f-${field.key}-${Math.random().toString(36).slice(2, 7)}`;
+  const common = { id, className: inputBase };
+
+  return (
+    <label className="block" htmlFor={id}>
+      <span className="mb-1 block text-[11px] font-medium text-gray-600">{field.label}</span>
+      {field.type === 'richtext' ? (
+        <textarea {...common} rows={3} value={value ?? ''} onChange={(e) => onChange(e.target.value)} className={`${inputBase} resize-y`} />
+      ) : field.type === 'number' ? (
+        <input {...common} type="number" value={value ?? ''} onChange={(e) => onChange(e.target.value === '' ? '' : Number(e.target.value))} />
+      ) : field.type === 'boolean' ? (
+        <span className="flex h-[34px] items-center">
+          <input id={id} type="checkbox" checked={Boolean(value)} onChange={(e) => onChange(e.target.checked)} className="rounded" />
+        </span>
+      ) : field.type === 'tags' ? (
+        <input
+          {...common}
+          type="text"
+          value={Array.isArray(value) ? value.join(', ') : (value ?? '')}
+          onChange={(e) => onChange(e.target.value.split(',').map((x) => x.trim()).filter(Boolean))}
+        />
+      ) : field.type === 'icon' ? (
+        <select {...common} value={value ?? ''} onChange={(e) => onChange(e.target.value)}>
+          <option value="">None</option>
+          {iconNames.map((n) => (
+            <option key={n} value={n}>{n}</option>
+          ))}
+        </select>
+      ) : (
+        <input {...common} type="text" value={value ?? ''} onChange={(e) => onChange(e.target.value)} />
+      )}
+      {field.hint && <span className="mt-1 block text-[10.5px] text-gray-400">{field.hint}</span>}
+    </label>
+  );
+}
+
+/**
+ * The row editor for a list field.
+ *
+ * Lists used to be a raw JSON textarea, which meant the four numbers under the
+ * hero — the thing someone is most likely to want to change — could only be
+ * edited by hand-writing JSON. Each entry is now a card of labelled inputs with
+ * add, remove and reorder, and any key the schema does not describe is carried
+ * through untouched so nothing is lost.
+ */
+function ListEditor({ spec, items, onChange }) {
+  const [open, setOpen] = useState(() => new Set([0]));
+  const isStrings = spec.itemType === 'string';
+  const toggle = (i) => setOpen((prev) => {
+    const next = new Set(prev);
+    if (next.has(i)) next.delete(i); else next.add(i);
+    return next;
+  });
+
+  const setItem = (i, next) => onChange(items.map((item, n) => (n === i ? next : item)));
+  const move = (i, by) => {
+    const to = i + by;
+    if (to < 0 || to >= items.length) return;
+    const next = [...items];
+    [next[i], next[to]] = [next[to], next[i]];
+    onChange(next);
+  };
+  const remove = (i) => onChange(items.filter((_, n) => n !== i));
+  const add = () => {
+    onChange([...items, blankItem(spec)]);
+    setOpen((prev) => new Set(prev).add(items.length));
+  };
+
+  if (isStrings) {
+    return (
+      <div className="flex flex-col gap-2">
+        {items.map((item, i) => (
+          <div key={i} className="flex items-center gap-2">
+            <input type="text" value={item ?? ''} onChange={(e) => setItem(i, e.target.value)} className={inputBase} />
+            <RowButtons i={i} count={items.length} onMove={move} onRemove={remove} />
+          </div>
+        ))}
+        <AddButton onClick={add} label={spec.itemLabel ?? 'item'} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      {items.map((item, i) => {
+        const isOpen = open.has(i);
+        return (
+          <div key={i} className="rounded-xl border border-gray-200 bg-gray-50/60">
+            <div className="flex items-center gap-2 px-3 py-2">
+              <button
+                type="button"
+                onClick={() => toggle(i)}
+                className="flex min-w-0 flex-1 items-center gap-2 text-left"
+                aria-expanded={isOpen}
+              >
+                <span className={`text-gray-400 transition-transform ${isOpen ? 'rotate-90' : ''}`}>›</span>
+                <span className="shrink-0 text-[11px] font-medium text-gray-500">
+                  {spec.itemLabel ?? 'Item'} {i + 1}
+                </span>
+                <span className="truncate text-[12.5px] text-gray-700">{itemSummary(item, spec)}</span>
+              </button>
+              <RowButtons i={i} count={items.length} onMove={move} onRemove={remove} />
+            </div>
+            {isOpen && (
+              <div className="grid gap-3 border-t border-gray-200 px-3 py-3 sm:grid-cols-2">
+                {(spec.fields ?? []).map((field) => (
+                  <div key={field.key} className={field.type === 'richtext' ? 'sm:col-span-2' : ''}>
+                    <ItemField
+                      field={field}
+                      value={item?.[field.key]}
+                      onChange={(v) => setItem(i, { ...item, [field.key]: v })}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })}
+      <AddButton onClick={add} label={spec.itemLabel ?? 'item'} />
+    </div>
+  );
+}
+
+function RowButtons({ i, count, onMove, onRemove }) {
+  const btn = 'grid size-7 shrink-0 place-items-center rounded-md text-gray-400 transition hover:bg-gray-200 hover:text-gray-700 disabled:opacity-30 disabled:hover:bg-transparent';
+  return (
+    <div className="flex shrink-0 items-center gap-0.5">
+      <button type="button" className={btn} onClick={() => onMove(i, -1)} disabled={i === 0} title="Move up">↑</button>
+      <button type="button" className={btn} onClick={() => onMove(i, 1)} disabled={i === count - 1} title="Move down">↓</button>
+      <button
+        type="button"
+        className={`${btn} hover:bg-red-50 hover:text-red-600`}
+        onClick={() => { if (window.confirm('Remove this entry?')) onRemove(i); }}
+        title="Remove"
+      >
+        ×
+      </button>
+    </div>
+  );
+}
+
+function AddButton({ onClick, label }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="self-start rounded-lg border border-dashed border-gray-300 px-3 py-1.5 text-[12.5px] text-gray-500 transition hover:border-teal-400 hover:text-teal-700"
+    >
+      + Add {String(label).toLowerCase()}
+    </button>
+  );
+}
+
+/* --------------------------------------------------------------- field row */
 
 function ContentRow({ item, onSave, onReset }) {
   const saved = item.value ?? '';
   const [value, setValue] = useState(saved);
   const [seen, setSeen] = useState(saved);
   const [saving, setSaving] = useState(false);
+  const [raw, setRaw] = useState(false);
   const dirty = value !== saved;
   const isJson = item.type === 'json';
+  const hasEditor = isJson && (item.fields || item.itemType);
   const jsonError = isJson ? validateJson(value, item.defaultValue) : null;
-  const defaultText = stringifyContentValue(item.defaultValue);
   const isDefault = !item.stored;
 
   // The parent replaces `item` whenever the list reloads. Without this the
   // input keeps showing whatever was in local state at first mount, which
   // looks exactly like "the admin panel is not updating the text".
-  //
-  // Adjusting during render rather than in an effect: React discards this
-  // render and redoes it immediately, so the stale value is never painted and
-  // there is no second commit for the browser to flicker through.
   if (saved !== seen) {
     setSeen(saved);
     setValue(saved);
   }
+
+  const parsed = hasEditor && !jsonError ? parseJsonValue(value) : undefined;
+  const listItems = Array.isArray(parsed) ? parsed : [];
 
   const save = async () => {
     if (jsonError) { toast.error(jsonError); return; }
@@ -99,52 +262,29 @@ function ContentRow({ item, onSave, onReset }) {
     }
   };
 
+  const inputClass = dirty ? dirtyBase : inputBase;
+
   return (
-    <div className="flex items-start gap-4 py-3 border-b border-gray-100 last:border-0">
-      <div className="min-w-0 flex-1">
-        <div className="mb-1 flex flex-wrap items-center gap-x-2 gap-y-0.5">
-          <p className="text-xs font-medium text-gray-600">{item.label}</p>
-          <span className="font-mono text-[10px] text-gray-400">{item.key}</span>
-          {isDefault ? (
-            <span className="rounded-full bg-gray-100 px-1.5 py-px text-[10px] text-gray-500">default</span>
-          ) : (
-            <span className="rounded-full bg-teal-50 px-1.5 py-px text-[10px] text-teal-700">customised</span>
-          )}
-        </div>
-        {item.hint && <p className="mb-1.5 text-[11px] text-gray-400">{item.hint}</p>}
-        {isJson ? (
-          <textarea
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            rows={Math.min(24, Math.max(6, value.split('\n').length + 1))}
-            spellCheck={false}
-            className={`${inputClass(dirty, Boolean(jsonError))} resize-y font-mono text-[12px] leading-relaxed`}
-          />
-        ) : item.type === 'richtext' ? (
-          <textarea
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            rows={3}
-            className={`${inputClass(dirty, false)} resize-y`}
-          />
+    <div className="border-b border-gray-100 py-4 last:border-0">
+      <div className="mb-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
+        <p className="text-[13px] font-medium text-gray-800">{item.label}</p>
+        {isDefault ? (
+          <span className="rounded-full bg-gray-100 px-1.5 py-px text-[10px] text-gray-500">default</span>
         ) : (
-          <input
-            type="text"
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter' && dirty) { e.preventDefault(); save(); } }}
-            className={inputClass(dirty, false)}
-          />
+          <span className="rounded-full bg-teal-50 px-1.5 py-px text-[10px] text-teal-700">edited</span>
         )}
-        {jsonError && dirty && <p className="mt-1 text-[11px] text-red-600">{jsonError}</p>}
-      </div>
-      <div className="mt-7 flex shrink-0 flex-col items-end gap-1.5">
-        <div className="flex items-center gap-2">
-          {dirty && !saving && (
+        <span className="ml-auto flex items-center gap-2">
+          {hasEditor && (
             <button
-              onClick={() => setValue(saved)}
-              className="rounded-lg px-2 py-1.5 text-xs text-gray-500 transition hover:bg-gray-100 hover:text-gray-800"
+              type="button"
+              onClick={() => setRaw((r) => !r)}
+              className="text-[11px] text-gray-400 underline-offset-2 hover:text-gray-700 hover:underline"
             >
+              {raw ? 'Use the editor' : 'Edit as JSON'}
+            </button>
+          )}
+          {dirty && !saving && (
+            <button onClick={() => setValue(saved)} className="rounded-lg px-2 py-1 text-xs text-gray-500 transition hover:bg-gray-100 hover:text-gray-800">
               Undo
             </button>
           )}
@@ -155,13 +295,46 @@ function ContentRow({ item, onSave, onReset }) {
           >
             {saving ? 'Saving…' : dirty ? 'Save' : 'Saved'}
           </button>
-        </div>
+        </span>
+      </div>
+      {item.hint && <p className="mb-2 text-[11.5px] text-gray-400">{item.hint}</p>}
+
+      {hasEditor && !raw ? (
+        jsonError ? (
+          <p className="text-[12px] text-red-600">{jsonError} Switch to “Edit as JSON” to repair it.</p>
+        ) : (
+          <ListEditor
+            spec={item}
+            items={listItems}
+            onChange={(next) => setValue(JSON.stringify(next, null, 2))}
+          />
+        )
+      ) : isJson ? (
+        <textarea
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          rows={Math.min(24, Math.max(6, value.split('\n').length + 1))}
+          spellCheck={false}
+          className={`${inputClass} resize-y font-mono text-[12px] leading-relaxed`}
+        />
+      ) : item.type === 'richtext' ? (
+        <textarea value={value} onChange={(e) => setValue(e.target.value)} rows={3} className={`${inputClass} resize-y`} />
+      ) : (
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter' && dirty) { e.preventDefault(); save(); } }}
+          className={inputClass}
+        />
+      )}
+
+      {jsonError && raw && <p className="mt-1 text-[11px] text-red-600">{jsonError}</p>}
+
+      <div className="mt-1.5 flex items-center gap-3">
+        <span className="font-mono text-[10px] text-gray-300">{item.key}</span>
         {!isDefault && !saving && (
-          <button
-            onClick={reset}
-            className="text-[11px] text-gray-400 underline-offset-2 transition hover:text-gray-700 hover:underline"
-            title={`Default: ${defaultText.slice(0, 120)}`}
-          >
+          <button onClick={reset} className="text-[11px] text-gray-400 underline-offset-2 transition hover:text-gray-700 hover:underline">
             Reset to default
           </button>
         )}
@@ -170,18 +343,26 @@ function ContentRow({ item, onSave, onReset }) {
   );
 }
 
+/* -------------------------------------------------------------- the page */
+
 /** Builds the admin rows: every schema field, with stored values layered on. */
 function buildItems(remote = []) {
   const remoteMap = Object.fromEntries(remote.map((r) => [r.key, r]));
   const items = CONTENT_SCHEMA.map((d) => {
     const r = remoteMap[d.key];
+    const page = SECTION_PAGE[d.section] ?? 'everywhere';
     const base = {
       key: d.key,
       section: d.section,
       sectionTitle: SECTION_TITLES[d.section] ?? d.section,
+      page,
+      pageTitle: PAGE_TITLES[page] ?? page,
       label: d.label,
       type: d.type,
       hint: d.hint,
+      fields: d.fields,
+      itemType: d.itemType,
+      itemLabel: d.itemLabel,
       defaultValue: d.value,
       stored: Boolean(r),
     };
@@ -194,13 +375,16 @@ function buildItems(remote = []) {
   // older version of the site) are still shown so they can be edited or reset.
   remote.forEach((r) => {
     if (SCHEMA_BY_KEY[r.key]) return;
+    const section = r.section ?? r.key.split('.')[0];
     items.push({
       key: r.key,
-      section: r.section ?? r.key.split('.')[0],
-      sectionTitle: SECTION_TITLES[r.section] ?? r.section ?? 'other',
+      section,
+      sectionTitle: SECTION_TITLES[section] ?? section,
+      page: SECTION_PAGE[section] ?? 'everywhere',
+      pageTitle: PAGE_TITLES[SECTION_PAGE[section] ?? 'everywhere'],
       label: r.label ?? r.key,
       type: r.type ?? 'text',
-      hint: 'Legacy field — no longer used by the current site. Reset to remove it.',
+      hint: 'No longer used by the site. Reset to remove it.',
       defaultValue: '',
       stored: true,
       value: String(r.value ?? ''),
@@ -209,10 +393,26 @@ function buildItems(remote = []) {
   return items;
 }
 
+function groupByPage(items) {
+  const byPage = new Map();
+  for (const item of items) {
+    if (!byPage.has(item.page)) byPage.set(item.page, new Map());
+    const sections = byPage.get(item.page);
+    if (!sections.has(item.section)) sections.set(item.section, []);
+    sections.get(item.section).push(item);
+  }
+  const pageRank = (p) => { const i = PAGE_ORDER.indexOf(p); return i === -1 ? PAGE_ORDER.length : i; };
+  const sectionRank = (s) => { const i = SECTION_ORDER.indexOf(s); return i === -1 ? SECTION_ORDER.length : i; };
+  return [...byPage.entries()]
+    .sort(([a], [b]) => pageRank(a) - pageRank(b))
+    .map(([page, sections]) => [page, [...sections.entries()].sort(([a], [b]) => sectionRank(a) - sectionRank(b))]);
+}
+
 export default function AdminContent() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
+  const [openPage, setOpenPage] = useState('everywhere');
 
   useEffect(() => {
     let active = true;
@@ -247,8 +447,9 @@ export default function AdminContent() {
   }, []);
 
   const { query, setQuery, filtered } = useSearch(items, SEARCH_FIELDS);
-  const grouped = useMemo(() => groupBySection(filtered), [filtered]);
-  const customised = items.filter((i) => i.stored).length;
+  const searching = query.trim().length > 0;
+  const grouped = useMemo(() => groupByPage(filtered), [filtered]);
+  const edited = items.filter((i) => i.stored).length;
 
   return (
     <>
@@ -264,7 +465,7 @@ export default function AdminContent() {
       <PageHeader
         title="Site content"
         count={items.length}
-        subtitle={`Every heading, paragraph, button and list on the public site. ${customised} customised. Saved changes go live on the next page load — no rebuild.`}
+        subtitle={`Every word, photo and list on the public site, grouped by the page it appears on. ${edited} changed from the default. Saved edits go live on the next page load — no rebuild.`}
       />
 
       {!loading && items.length > 0 && (
@@ -272,7 +473,7 @@ export default function AdminContent() {
           <SearchInput
             value={query}
             onChange={setQuery}
-            placeholder="Search by section, label, key or current text…"
+            placeholder="Search for any text on the site…"
             resultCount={filtered.length}
             total={items.length}
           />
@@ -284,28 +485,54 @@ export default function AdminContent() {
       ) : filtered.length === 0 ? (
         <Panel>
           <EmptyState
-            title={`No fields match “${query}”`}
-            hint="Search covers the section, the label, the dot-notation key, and the text currently stored."
+            title={`Nothing matches “${query}”`}
+            hint="Search covers the page, the section, the label, the key and the text itself — try a phrase you can see on the site."
             action={<Button variant="ghost" onClick={() => setQuery('')}>Clear search</Button>}
           />
         </Panel>
       ) : (
-        <div className="space-y-6">
-          {grouped.map(([section, sectionItems]) => (
-            <Panel key={section}>
-              <div className="flex items-baseline justify-between border-b border-gray-200 bg-gray-50 px-5 py-3">
-                <h2 className="text-sm font-semibold text-gray-900">{SECTION_TITLES[section] ?? section}</h2>
-                <span className="text-xs text-gray-400">
-                  {sectionItems.length} {sectionItems.length === 1 ? 'field' : 'fields'}
-                </span>
-              </div>
-              <div className="px-5">
-                {sectionItems.map((item) => (
-                  <ContentRow key={item.key} item={item} onSave={handleSave} onReset={handleReset} />
-                ))}
-              </div>
-            </Panel>
-          ))}
+        <div className="space-y-3">
+          {grouped.map(([page, sections]) => {
+            const isOpen = searching || openPage === page;
+            const count = sections.reduce((n, [, list]) => n + list.length, 0);
+            return (
+              <Panel key={page}>
+                <button
+                  type="button"
+                  onClick={() => setOpenPage(isOpen && !searching ? null : page)}
+                  aria-expanded={isOpen}
+                  className="flex w-full items-center gap-3 px-5 py-4 text-left"
+                >
+                  <span className={`text-gray-400 transition-transform ${isOpen ? 'rotate-90' : ''}`}>›</span>
+                  <span className="min-w-0">
+                    <span className="flex flex-wrap items-baseline gap-2">
+                      <span className="text-[15px] font-semibold text-gray-900">{PAGE_TITLES[page] ?? page}</span>
+                      {PAGE_PATHS[page] && <span className="font-mono text-[11px] text-gray-400">{PAGE_PATHS[page]}</span>}
+                    </span>
+                    <span className="mt-0.5 block text-[12px] text-gray-500">{PAGE_BLURBS[page]}</span>
+                  </span>
+                  <span className="ml-auto shrink-0 text-xs text-gray-400">{count}</span>
+                </button>
+
+                {isOpen && (
+                  <div className="border-t border-gray-200">
+                    {sections.map(([section, list]) => (
+                      <section key={section} className="border-b border-gray-100 last:border-0">
+                        <h3 className="bg-gray-50 px-5 py-2 text-[12px] font-semibold uppercase tracking-wide text-gray-500">
+                          {SECTION_TITLES[section] ?? section}
+                        </h3>
+                        <div className="px-5">
+                          {list.map((item) => (
+                            <ContentRow key={item.key} item={item} onSave={handleSave} onReset={handleReset} />
+                          ))}
+                        </div>
+                      </section>
+                    ))}
+                  </div>
+                )}
+              </Panel>
+            );
+          })}
         </div>
       )}
     </>

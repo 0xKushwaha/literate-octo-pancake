@@ -35,7 +35,7 @@ export default function HeardYou({ limit }) {
 
       {limit && (
         <Reveal delay={0.2} className="mt-10 text-center">
-          <p className="text-[15px] text-ink-3">We built the practice around exactly these. Here is how.</p>
+          <p className="text-[15px] text-ink-3">{content.footnote}</p>
         </Reveal>
       )}
     </Section>

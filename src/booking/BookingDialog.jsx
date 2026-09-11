@@ -27,6 +27,10 @@ import { LIMITS, isEmail, isPhone, looksAutomated, normalise } from './validate'
 import { submitBooking } from '../lib/queries/bookings';
 import { concerns, services, therapists } from '../data/site';
 import {
+  BOOKING_CADENCE, BOOKING_FORMATS, BOOKING_STEPS, BOOKING_WHO, INSURERS as INSURERS_DEFAULT,
+} from '../data/contentSchema';
+import { useSiteContent } from '../lib/queries/siteContent';
+import {
   dayKey,
   formatDay,
   formatTime,
@@ -35,42 +39,27 @@ import {
   upcomingDays,
 } from './slots';
 
-const STEPS = [
-  { id: 'about', label: 'About you' },
-  { id: 'format', label: 'Format' },
-  { id: 'therapist', label: 'Therapist' },
-  { id: 'time', label: 'Time' },
-  { id: 'details', label: 'Details' },
-  { id: 'review', label: 'Review' },
-];
 
-const FORMATS = [
-  { id: 'video', label: 'Video call', icon: 'video', note: 'Anywhere we are licensed' },
-  { id: 'inperson', label: 'In person', icon: 'pin', note: 'Filbert Street, SF' },
-  { id: 'phone', label: 'Phone', icon: 'phone', note: 'No camera, no app' },
-];
-
-const WHO = [
-  { id: 'individual', label: 'Just me' },
-  { id: 'couples', label: 'Me and my partner' },
-  { id: 'teen', label: 'My teenager' },
-  { id: 'psychiatry', label: 'Medication review' },
-];
-
-const CADENCE = [
-  { id: 'weekly', label: 'Weekly' },
-  { id: 'biweekly', label: 'Every two weeks' },
-  { id: 'once', label: 'Just one session for now' },
-];
-
-const INSURERS = [
-  'Self-pay',
-  'Aetna',
-  'Cigna',
-  'United Healthcare',
-  'Blue Shield of California',
-  'Other / not sure',
-];
+/**
+ * The option lists live in the CMS (Admin → Site content → Everywhere →
+ * Booking), so the practice can change the formats it offers, who a session
+ * can be for, the cadences and the insurer list without a deploy. `useOptions`
+ * falls back to the built-in defaults whenever a stored list is empty or
+ * malformed, so the form can never end up with no options at all.
+ */
+function useBookingOptions() {
+  const c = useSiteContent('booking');
+  const list = (value, fallback) => (Array.isArray(value) && value.length ? value : fallback);
+  return {
+    copy: c,
+    STEPS: list(c.steps, BOOKING_STEPS),
+    FORMATS: list(c.formats, BOOKING_FORMATS),
+    WHO: list(c.who, BOOKING_WHO),
+    CADENCE: list(c.cadence, BOOKING_CADENCE),
+    CONCERNS: list(c.concerns, concerns),
+    INSURERS: list(c.insurers, INSURERS_DEFAULT),
+  };
+}
 
 const emptyForm = {
   concerns: [],
@@ -138,11 +127,13 @@ function StepHeader({ title, lead }) {
 /* ------------------------------------------------------------------ steps */
 
 function AboutStep({ form, set }) {
+  const { CONCERNS, WHO, copy, STEPS } = useBookingOptions();
+  const step = STEPS[0] ?? {};
   return (
     <div className="flex flex-col gap-10">
       <StepHeader
-        title="What brings you here?"
-        lead="Pick anything that fits. This routes you to the right clinician — it is not a diagnosis, and you can change it later."
+        title={step.title}
+        lead={step.lead}
       />
 
       <ToggleGroup
@@ -153,7 +144,7 @@ function AboutStep({ form, set }) {
         aria-label="What brings you here"
         className="flex w-full flex-wrap justify-start gap-2"
       >
-        {concerns.map((c) => (
+        {CONCERNS.map((c) => (
           <ToggleGroupItem key={c} value={c} className={chipCls}>
             {c}
           </ToggleGroupItem>
@@ -161,7 +152,7 @@ function AboutStep({ form, set }) {
       </ToggleGroup>
 
       <div>
-        <p className="text-[13px] text-ink-2">Who is this for?</p>
+        <p className="text-[13px] text-ink-2">{copy.who_question}</p>
         <ToggleGroup
           spacing={2}
           type="single"
@@ -182,9 +173,11 @@ function AboutStep({ form, set }) {
 }
 
 function FormatStep({ form, set }) {
+  const { FORMATS, CADENCE, copy, STEPS } = useBookingOptions();
+  const step = STEPS[1] ?? {};
   return (
     <div className="flex flex-col gap-10">
-      <StepHeader title="How would you like to meet?" lead="You can switch format any week." />
+      <StepHeader title={step.title} lead={step.lead} />
 
       <ToggleGroup
         spacing={2}
@@ -210,7 +203,7 @@ function FormatStep({ form, set }) {
       </ToggleGroup>
 
       <div>
-        <p className="text-[13px] text-ink-2">How often, to start?</p>
+        <p className="text-[13px] text-ink-2">{copy.cadence_question}</p>
         <ToggleGroup
           spacing={2}
           type="single"
@@ -231,11 +224,13 @@ function FormatStep({ form, set }) {
 }
 
 function TherapistStep({ form, set, matches }) {
+  const { copy, STEPS } = useBookingOptions();
+  const step = STEPS[2] ?? {};
   return (
     <div className="flex flex-col gap-8">
       <StepHeader
-        title="Choose who you would like to see"
-        lead="These are matched to what you told us. Every one offers a free fifteen-minute intro call first."
+        title={step.title}
+        lead={step.lead}
       />
 
       <ToggleGroup
@@ -254,7 +249,7 @@ function TherapistStep({ form, set, matches }) {
             <Icon name="shuffle" size={20} />
           </span>
           <span>
-            <span className="block text-[15px] text-ink">Match me with someone</span>
+            <span className="block text-[15px] text-ink">{copy.match_me}</span>
             <span className="mt-1 block text-[13px] text-ink-3">
               A clinician reads your intake and picks. Usually the fastest route to a session.
             </span>
@@ -288,6 +283,8 @@ function TherapistStep({ form, set, matches }) {
 }
 
 function TimeStep({ form, set }) {
+  const { STEPS } = useBookingOptions();
+  const step = STEPS[3] ?? {};
   const days = useMemo(() => upcomingDays(12), []);
   const selectedDate = form.date ? parseDayKey(form.date) : null;
   const slots = useMemo(
@@ -299,8 +296,8 @@ function TimeStep({ form, set }) {
   return (
     <div className="flex flex-col gap-8">
       <StepHeader
-        title="Pick a time"
-        lead="These are live openings, not a request queue. All times Pacific."
+        title={step.title}
+        lead={step.lead}
       />
 
       <div>
@@ -380,6 +377,8 @@ function TimeStep({ form, set }) {
 }
 
 function DetailsStep({ form, set, errors }) {
+  const { INSURERS, copy, STEPS } = useBookingOptions();
+  const step = STEPS[4] ?? {};
   const uid = useId();
   const ids = {
     name: `${uid}-name`,
@@ -394,12 +393,12 @@ function DetailsStep({ form, set, errors }) {
   return (
     <div className="flex flex-col gap-8">
       <StepHeader
-        title="Where should we reach you?"
-        lead="Used to confirm the appointment and nothing else. No newsletter, no partners."
+        title={step.title}
+        lead={step.lead}
       />
 
       <div className="grid gap-5 sm:grid-cols-2">
-        <Field label="Full name" error={errors.name} htmlFor={ids.name}>
+        <Field label={copy.field_name} error={errors.name} htmlFor={ids.name}>
           <Input
             id={ids.name}
             className={fieldCls}
@@ -411,7 +410,7 @@ function DetailsStep({ form, set, errors }) {
             onChange={(e) => set({ name: e.target.value })}
           />
         </Field>
-        <Field label="Email" error={errors.email} htmlFor={ids.email}>
+        <Field label={copy.field_email} error={errors.email} htmlFor={ids.email}>
           <Input
             id={ids.email}
             type="email"
@@ -424,7 +423,7 @@ function DetailsStep({ form, set, errors }) {
             onChange={(e) => set({ email: e.target.value })}
           />
         </Field>
-        <Field label="Phone" hint="Optional" error={errors.phone} htmlFor={ids.phone}>
+        <Field label={copy.field_phone} hint={copy.optional} error={errors.phone} htmlFor={ids.phone}>
           <Input
             id={ids.phone}
             type="tel"
@@ -436,7 +435,7 @@ function DetailsStep({ form, set, errors }) {
             onChange={(e) => set({ phone: e.target.value })}
           />
         </Field>
-        <Field label="Insurance" error={errors.insurer} htmlFor={ids.insurer}>
+        <Field label={copy.field_insurer} error={errors.insurer} htmlFor={ids.insurer}>
           <Select value={form.insurer} onValueChange={(v) => set({ insurer: v })}>
             <SelectTrigger
               id={ids.insurer}
@@ -460,8 +459,8 @@ function DetailsStep({ form, set, errors }) {
       </div>
 
       <Field
-        label="Anything you want your therapist to know first?"
-        hint="Optional"
+        label={copy.field_note}
+        hint={copy.optional}
         htmlFor={ids.notes}
       >
         <Textarea
@@ -513,6 +512,8 @@ function DetailsStep({ form, set, errors }) {
 }
 
 function ReviewStep({ form, therapist }) {
+  const { FORMATS, CADENCE, copy, STEPS } = useBookingOptions();
+  const step = STEPS[5] ?? {};
   const date = form.date ? parseDayKey(form.date) : null;
   const service = services.find((s) => s.id === form.who);
   const rows = [
@@ -535,7 +536,7 @@ function ReviewStep({ form, therapist }) {
 
   return (
     <div className="flex flex-col gap-8">
-      <StepHeader title="Does this look right?" lead="Nothing is charged today." />
+      <StepHeader title={step.title} lead={step.lead} />
 
       <dl className="overflow-hidden rounded-3xl border border-line">
         {rows.map((r, i) => (
@@ -553,7 +554,7 @@ function ReviewStep({ form, therapist }) {
 
       {form.concerns.length > 0 && (
         <div>
-          <p className="text-[13px] text-ink-4">Focus areas</p>
+          <p className="text-[13px] text-ink-4">{copy.focus_label}</p>
           <div className="mt-3 flex flex-wrap gap-1.5">
             {form.concerns.map((c) => (
               <Pill key={c} tone="rose">
@@ -566,7 +567,7 @@ function ReviewStep({ form, therapist }) {
 
       <div className="rounded-3xl border border-rose-300 bg-rose-100 p-5">
         <div className="flex items-baseline justify-between">
-          <span className="text-[14px] text-ink-2">Estimated due at session</span>
+          <span className="text-[14px] text-ink-2">{copy.estimate_label}</span>
           <span className="font-display text-3xl leading-none tracking-tight text-ink">${due}</span>
         </div>
         <p className="mt-3 text-[13px] leading-relaxed text-ink-3">
@@ -580,6 +581,9 @@ function ReviewStep({ form, therapist }) {
 }
 
 function SuccessStep({ reference, form, therapist, onClose }) {
+  const { copy: bookingCopy } = useBookingOptions();
+  const ui = useSiteContent('ui');
+  const copy = { ...bookingCopy, close_label: ui.close };
   const date = form.date ? parseDayKey(form.date) : null;
   return (
     <div className="flex flex-col items-center py-8 text-center">
@@ -597,7 +601,7 @@ function SuccessStep({ reference, form, therapist, onClose }) {
       </motion.div>
 
       <h3 className="mt-8 font-display text-[clamp(1.9rem,4vw,2.6rem)] leading-tight tracking-tight text-ink">
-        You are booked.
+        {copy.success_title}
       </h3>
       <p className="mt-4 max-w-[44ch] text-[15.5px] leading-relaxed text-ink-3">
         {date
@@ -608,13 +612,12 @@ function SuccessStep({ reference, form, therapist, onClose }) {
       </p>
 
       <div className="mt-8 rounded-2xl border border-line bg-surface-2 px-6 py-4">
-        <p className="font-mono text-[10.5px] uppercase tracking-[0.22em] text-ink-4">Reference</p>
+        <p className="font-mono text-[10.5px] uppercase tracking-[0.22em] text-ink-4">{copy.reference_label}</p>
         <p className="mt-1.5 font-mono text-xl tracking-[0.14em] text-ink">{reference}</p>
       </div>
 
       <p className="mt-8 max-w-[46ch] text-[13.5px] leading-relaxed text-ink-4">
-        Your information is stored securely and only accessible to our clinical team. We&apos;ll be in
-        touch within one business day.
+        {copy.success_privacy}
       </p>
 
       <div data-print-hide className="mt-8 flex flex-wrap items-center justify-center gap-3">
@@ -639,11 +642,11 @@ function SuccessStep({ reference, form, therapist, onClose }) {
               )
             }
           >
-            Add to calendar
+            {copy.add_to_calendar}
           </Button>
         )}
         <Button variant="outline" size="lg" onClick={onClose}>
-          Close
+          {copy.close_label}
         </Button>
       </div>
     </div>
@@ -653,6 +656,7 @@ function SuccessStep({ reference, form, therapist, onClose }) {
 /* ------------------------------------------------------------------ shell */
 
 export default function BookingDialog({ open, onClose, prefill, openerRef }) {
+  const { copy } = useBookingOptions();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState(() => ({ ...emptyForm, ...(loadDraft() ?? {}) }));
   const [errors, setErrors] = useState({});
@@ -828,7 +832,7 @@ export default function BookingDialog({ open, onClose, prefill, openerRef }) {
             {reference ? 'Confirmed' : `Step ${step + 1} of ${STEPS.length} — ${STEPS[step].label}`}
           </DialogDescription>
           <DialogTitle className="mt-1.5 font-display text-xl font-normal tracking-tight text-ink">
-            Book a session
+            {copy.dialog_title}
           </DialogTitle>
 
           <button
@@ -904,7 +908,7 @@ export default function BookingDialog({ open, onClose, prefill, openerRef }) {
                 ) : (
                   <p className="truncate text-[13px] text-ink-4">
                     {step === 0
-                      ? 'Takes about two minutes.'
+                      ? copy.step_note
                       : step === 3
                         ? 'All times Pacific.'
                         : step === 5
@@ -917,7 +921,7 @@ export default function BookingDialog({ open, onClose, prefill, openerRef }) {
               <div className="flex shrink-0 items-center gap-2">
                 {step > 0 && (
                   <Button variant="quiet" size="md" onClick={back}>
-                    Back
+                    {copy.back}
                   </Button>
                 )}
                 <Button
@@ -930,8 +934,8 @@ export default function BookingDialog({ open, onClose, prefill, openerRef }) {
                   {submitting
                     ? 'Confirming…'
                     : step === STEPS.length - 1
-                      ? 'Confirm booking'
-                      : 'Continue'}
+                      ? copy.submit
+                      : copy.continue}
                 </Button>
               </div>
             </div>

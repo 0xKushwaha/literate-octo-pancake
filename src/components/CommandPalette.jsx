@@ -32,6 +32,7 @@ const PAGES = [
  */
 export default function CommandPalette({ onBook, initialOpen = false }) {
   const brand = useBrand();
+  const ui = useSiteContent('ui');
   const servicesContent = useSiteContent('services');
   const therapistsContent = useSiteContent('therapists');
   const services = Array.isArray(servicesContent.items) ? servicesContent.items : [];
@@ -63,11 +64,11 @@ export default function CommandPalette({ onBook, initialOpen = false }) {
     <>
       <button
         onClick={() => setOpen(true)}
-        aria-label="Open command menu"
+        aria-label={ui.palette_title}
         className="hidden items-center gap-2 rounded-full border border-line px-3 py-1.5 text-[12.5px] text-ink-4 transition-colors hover:border-line-2 hover:text-ink-2 xl:inline-flex"
       >
         <Icon name="spark" size={13} />
-        <span>Quick actions</span>
+        <span>{ui.palette_title}</span>
         <kbd className="rounded border border-line bg-surface-2 px-1.5 py-0.5 font-mono text-[10px] text-ink-3">
           {isMac ? '⌘' : 'Ctrl'}K
         </kbd>
@@ -77,18 +78,18 @@ export default function CommandPalette({ onBook, initialOpen = false }) {
         open={open}
         onOpenChange={setOpen}
         showCloseButton={false}
-        title="Quick actions"
+        title={ui.palette_title}
         description="Search sections, therapists and services"
         className="sm:mb-auto sm:mt-[12vh] sm:max-w-xl"
       >
-        <CommandInput placeholder="Search or jump to…" />
+        <CommandInput placeholder={ui.palette_placeholder} />
         <CommandList className="max-h-[60vh]">
-          <CommandEmpty>Nothing matches that.</CommandEmpty>
+          <CommandEmpty>{ui.palette_empty}</CommandEmpty>
 
-          <CommandGroup heading="Book">
+          <CommandGroup heading={ui.palette_group_book}>
             <CommandItem onSelect={() => run(() => onBook())} value="book a session appointment">
               <Icon name="calendar" size={16} />
-              <span>Book a session</span>
+              <span>{ui.palette_book}</span>
               <CommandShortcut>Enter</CommandShortcut>
             </CommandItem>
             {services.map((s) => (
@@ -106,7 +107,7 @@ export default function CommandPalette({ onBook, initialOpen = false }) {
 
           <CommandSeparator />
 
-          <CommandGroup heading="Therapists">
+          <CommandGroup heading={ui.palette_group_therapists}>
             {therapists.map((t) => (
               <CommandItem
                 key={t.id}
@@ -122,7 +123,7 @@ export default function CommandPalette({ onBook, initialOpen = false }) {
 
           <CommandSeparator />
 
-          <CommandGroup heading="Go to">
+          <CommandGroup heading={ui.palette_group_pages}>
             {PAGES.map((p) => (
               <CommandItem key={p.to} value={p.label} onSelect={() => goTo(p.to)}>
                 <Icon name={p.icon} size={16} />
@@ -133,7 +134,7 @@ export default function CommandPalette({ onBook, initialOpen = false }) {
 
           <CommandSeparator />
 
-          <CommandGroup heading="Contact">
+          <CommandGroup heading={ui.palette_group_contact}>
             <CommandItem
               value={`call phone ${brand.phone}`}
               onSelect={() =>
@@ -143,7 +144,7 @@ export default function CommandPalette({ onBook, initialOpen = false }) {
               }
             >
               <Icon name="phone" size={16} />
-              <span>Call the practice</span>
+              <span>{ui.palette_call}</span>
               <CommandShortcut>{brand.phone}</CommandShortcut>
             </CommandItem>
             <CommandItem
@@ -157,7 +158,7 @@ export default function CommandPalette({ onBook, initialOpen = false }) {
               className="data-[selected=true]:bg-amber-500 data-[selected=true]:text-ink"
             >
               <Icon name="pulse" size={16} />
-              <span>Crisis line — call or text 988</span>
+              <span>{ui.palette_crisis}</span>
               <CommandShortcut>24/7</CommandShortcut>
             </CommandItem>
           </CommandGroup>

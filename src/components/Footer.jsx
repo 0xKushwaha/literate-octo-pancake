@@ -5,7 +5,7 @@ import { telHref, useBrand, useSiteContent } from '../lib/queries/siteContent';
 
 const staticColumns = [
   {
-    title: 'Practice',
+    titleKey: 'col1_title',
     links: [
       { label: 'Our services', to: '/services' },
       { label: 'How it works', to: '/how-it-works' },
@@ -14,7 +14,7 @@ const staticColumns = [
     ],
   },
   {
-    title: 'Resources',
+    titleKey: 'col2_title',
     links: [
       { label: 'Videos & articles', to: '/resources' },
       { label: 'Breathing exercises', to: '/breathe' },
@@ -23,7 +23,7 @@ const staticColumns = [
     ],
   },
   {
-    title: 'Legal',
+    titleKey: 'col3_title',
     links: [
       { label: 'Privacy policy', key: 'privacy_url' },
       { label: 'Terms of service', key: 'terms_url' },
@@ -35,8 +35,10 @@ const staticColumns = [
 export default function Footer({ onBook }) {
   const brand = useBrand();
   const footerContent = useSiteContent('footer');
+  const ui = useSiteContent('ui');
   const columns = staticColumns.map((col) => ({
     ...col,
+    title: footerContent[col.titleKey],
     links: col.links.map((l) => (l.key ? { label: l.label, href: footerContent[l.key] || '#' } : l)),
   }));
 
@@ -45,7 +47,7 @@ export default function Footer({ onBook }) {
       {/* crisis banner — the one thing that must never be hard to find */}
       <div className="border-b border-line bg-amber-500">
         <Section className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 py-4 text-center">
-          <span className="text-[13.5px] text-ink">In immediate crisis?</span>
+          <span className="text-[13.5px] text-ink">{ui.crisis_prefix}</span>
           <span className="text-[13.5px] text-ink-2">{brand.crisis_line}</span>
         </Section>
       </div>
@@ -87,7 +89,7 @@ export default function Footer({ onBook }) {
             </div>
 
             <Button className="mt-8" variant="secondary" icon="arrow" onClick={() => onBook?.()}>
-              Book a session
+              {footerContent.book_label}
             </Button>
           </div>
 

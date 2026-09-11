@@ -29,23 +29,27 @@ const PHASE_COLORS = {
   },
 };
 
-function buildPhases(ex) {
+function buildPhases(ex, labels) {
   const phases = [];
   for (let i = 0; i < ex.cycles; i++) {
-    phases.push({ label: 'Breathe in', type: 'inhale', scale: 1, duration: ex.inhale_sec * 1000 });
-    if (ex.hold_in_sec > 0) phases.push({ label: 'Hold', type: 'hold', scale: 1, duration: ex.hold_in_sec * 1000 });
-    phases.push({ label: 'Breathe out', type: 'exhale', scale: 0.42, duration: ex.exhale_sec * 1000 });
-    if (ex.hold_out_sec > 0) phases.push({ label: 'Hold', type: 'hold', scale: 0.42, duration: ex.hold_out_sec * 1000 });
+    phases.push({ label: labels.inhale, type: 'inhale', scale: 1, duration: ex.inhale_sec * 1000 });
+    if (ex.hold_in_sec > 0) phases.push({ label: labels.hold, type: 'hold', scale: 1, duration: ex.hold_in_sec * 1000 });
+    phases.push({ label: labels.exhale, type: 'exhale', scale: 0.42, duration: ex.exhale_sec * 1000 });
+    if (ex.hold_out_sec > 0) phases.push({ label: labels.hold, type: 'hold', scale: 0.42, duration: ex.hold_out_sec * 1000 });
   }
   return phases;
 }
 
-function BreathingGuide({ exercise, onClose }) {
+function BreathingGuide({ exercise, onClose, content }) {
   const prefersReduced = useReducedMotion();
   const [phaseIdx, setPhaseIdx] = useState(0);
   const [done, setDone] = useState(false);
   const timerRef = useRef(null);
-  const phases = useRef(buildPhases(exercise)).current;
+  const phases = useRef(buildPhases(exercise, {
+    inhale: content.inhale_label,
+    hold: content.hold_label,
+    exhale: content.exhale_label,
+  })).current;
   const totalPhases = phases.length;
 
   useEffect(() => {
@@ -79,13 +83,13 @@ function BreathingGuide({ exercise, onClose }) {
       {done ? (
         <div className="mt-14 flex flex-col items-center gap-4">
           <div className="text-5xl">✦</div>
-          <p className="font-display text-2xl tracking-tight text-ink">Session complete</p>
-          <p className="text-[14px] text-ink-3">Take a moment to notice how you feel.</p>
+          <p className="font-display text-2xl tracking-tight text-ink">{content.done_title}</p>
+          <p className="text-[14px] text-ink-3">{content.done_body}</p>
           <button
             onClick={onClose}
             className="mt-4 rounded-full bg-ink px-6 py-2.5 text-sm font-medium text-white transition hover:bg-ink/80"
           >
-            Close
+            {content.close_label}
           </button>
         </div>
       ) : (
@@ -108,7 +112,7 @@ function BreathingGuide({ exercise, onClose }) {
           </div>
 
           <p className="mt-6 text-[12px] font-semibold uppercase tracking-[0.14em] text-ink-4">
-            Cycle {cycleNum} of {exercise.cycles}
+            {String(content.cycle_label ?? '').replace('{n}', cycleNum).replace('{total}', exercise.cycles)}
           </p>
           <p className="mt-2 text-[13px] text-ink-4">{exercise.name}</p>
 
@@ -116,7 +120,7 @@ function BreathingGuide({ exercise, onClose }) {
             onClick={onClose}
             className="mt-8 rounded-full border border-line px-5 py-2 text-[13px] text-ink-3 transition hover:border-line-2 hover:text-ink"
           >
-            End session
+            {content.end_label}
           </button>
         </>
       )}
@@ -172,6 +176,8 @@ function ExerciseCard({ exercise, onStart }) {
 
 export default function Breathing({ withHeading = true, tinted = true }) {
   const content = useSiteContent('breathing');
+  const ui = useSiteContent('ui');
+  const guideContent = { ...content, close_label: ui.close };
   // Starts with the built-in set, so the section renders on first paint and
   // keeps working when the database is unreachable or has not been seeded.
   const [exercises, setExercises] = useState(breathingDefaults);
@@ -219,7 +225,7 @@ export default function Breathing({ withHeading = true, tinted = true }) {
             Guided breathing session. Follow the circle animation.
           </DialogDescription>
           {active && (
-            <BreathingGuide exercise={active} onClose={() => setActive(null)} />
+            <BreathingGuide exercise={active} onClose={() => setActive(null)} content={guideContent} />
           )}
         </DialogContent>
       </Dialog>

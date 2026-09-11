@@ -18,7 +18,7 @@ export default function TherapistsPage() {
         imageAlt="A quiet therapy room with two armchairs and a plant"
       >
         <Button variant="primary" size="lg" icon="arrow" onClick={openBooking}>
-          Ask for a match
+          {content.header_cta}
         </Button>
       </PageHeader>
       <Therapists onBook={openBooking} withHeading={false} />

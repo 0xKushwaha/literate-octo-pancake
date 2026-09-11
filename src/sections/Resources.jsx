@@ -71,7 +71,7 @@ function VideoCard({ video, onPlay }) {
 
 /* ---------------------------------------------------------------- articles */
 
-function ArticleCard({ article, onClick }) {
+function ArticleCard({ article, onClick, labels }) {
   return (
     <StaggerItem className="h-full">
       <button
@@ -80,7 +80,7 @@ function ArticleCard({ article, onClick }) {
       >
         <div className="flex items-center gap-2.5">
           <span className="inline-flex items-center rounded-full bg-peach-100 px-2.5 py-0.5 text-[11px] font-medium text-ink">
-            {article.category || 'Mental health'}
+            {article.category || labels.default_category}
           </span>
           {article.published_at && <span className="text-[12px] text-ink-4">{formatDate(article.published_at)}</span>}
         </div>
@@ -89,7 +89,7 @@ function ArticleCard({ article, onClick }) {
         </h4>
         {article.excerpt && <p className="mt-3 line-clamp-3 text-[13.5px] leading-relaxed text-ink-3">{article.excerpt}</p>}
         <div className="mt-auto flex items-center gap-1.5 pt-5 text-[13px] font-medium text-ink">
-          Read article
+          {labels.read_cta}
           <Icon name="arrow" size={14} className="transition-transform duration-200 group-hover:translate-x-0.5" />
         </div>
       </button>
@@ -97,7 +97,7 @@ function ArticleCard({ article, onClick }) {
   );
 }
 
-function ArticleReader({ article, onClose }) {
+function ArticleReader({ article, onClose, labels }) {
   return (
     <div>
       <div className="border-b border-line px-8 pb-6 pt-8 sm:px-12">
@@ -118,10 +118,10 @@ function ArticleReader({ article, onClose }) {
           onClick={onClose}
           className="rounded-full border border-line px-5 py-2 text-[13px] text-ink-3 transition hover:border-line-2 hover:text-ink"
         >
-          Close
+          {labels.close}
         </button>
         <Link to={`/blog/${article.slug}`} className="text-[13px] text-ink underline underline-offset-4">
-          Open as a page
+          {labels.open_page}
         </Link>
       </div>
     </div>
@@ -137,6 +137,13 @@ function ArticleReader({ article, onClose }) {
 export default function Resources({ withHeading = true, videoLimit = 12, articleLimit = 3, teaser = false, showEmpty = false }) {
   const content = useSiteContent('resources');
   const blogContent = useSiteContent('blog');
+  const ui = useSiteContent('ui');
+  const labels = {
+    read_cta: content.read_cta,
+    open_page: content.open_page,
+    default_category: content.default_category,
+    close: ui.close,
+  };
   const [videos, setVideos] = useState([]);
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -231,7 +238,7 @@ export default function Resources({ withHeading = true, videoLimit = 12, article
                 {hasArticles ? (
                   <Stagger className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {articles.map((a) => (
-                      <ArticleCard key={a.id} article={a} onClick={openArticle} />
+                      <ArticleCard key={a.id} article={a} onClick={openArticle} labels={labels} />
                     ))}
                   </Stagger>
                 ) : (
@@ -244,7 +251,7 @@ export default function Resources({ withHeading = true, videoLimit = 12, article
 
         {teaser && (hasVideos || hasArticles) && (
           <div className="mt-10 flex justify-center">
-            <MoreLink to="/resources">All videos and articles</MoreLink>
+            <MoreLink to="/resources">{content.headline}</MoreLink>
           </div>
         )}
       </Section>
@@ -278,7 +285,7 @@ export default function Resources({ withHeading = true, videoLimit = 12, article
                 <div className="size-6 animate-spin rounded-full border-2 border-line-2 border-t-ink" />
               </div>
             ) : (
-              <ArticleReader article={activeArticle} onClose={() => setActiveArticle(null)} />
+              <ArticleReader article={activeArticle} onClose={() => setActiveArticle(null)} labels={labels} />
             )
           )}
         </DialogContent>

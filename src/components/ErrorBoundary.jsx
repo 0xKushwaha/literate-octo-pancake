@@ -1,5 +1,5 @@
 import { Component } from 'react';
-import { brand } from '../data/site';
+import { telHref, useBrand, useSiteContent } from '../lib/queries/siteContent';
 
 /**
  * Catches render errors anywhere below it.
@@ -25,18 +25,27 @@ export default class ErrorBoundary extends Component {
 
   render() {
     if (!this.state.error) return this.props.children;
+    return <CrashScreen />;
+  }
+}
 
-    const tel = brand.phone.replace(/[^\d+]/g, '');
-    return (
+/**
+ * A function component so the fallback can read the CMS like everything else.
+ * `useSiteContent` starts from the built-in defaults and never throws, so this
+ * still renders something useful when the database is exactly what broke.
+ */
+function CrashScreen() {
+  const brand = useBrand();
+  const ui = useSiteContent('ui');
+  return (
       <div className="flex min-h-[100svh] flex-col items-center justify-center gap-8 bg-bg px-6 py-20 text-center">
         <div>
-          <p className="eyebrow">Something went wrong</p>
+          <p className="eyebrow">{ui.error_title}</p>
           <h1 className="mt-5 max-w-[20ch] font-display text-[clamp(2rem,5vw,3.25rem)] leading-tight tracking-tight text-ink">
-            This page failed to load.
+            {ui.crash_title}
           </h1>
           <p className="mx-auto mt-5 max-w-[46ch] text-[16px] leading-relaxed text-ink-3">
-            That is on us, not you. Reloading usually fixes it — and you can always reach the
-            practice directly.
+            {ui.crash_body}
           </p>
         </div>
 
@@ -45,24 +54,21 @@ export default class ErrorBoundary extends Component {
             onClick={() => window.location.reload()}
             className="inline-flex h-12 items-center rounded-full bg-ink px-6 text-[15px] font-medium text-white transition-colors hover:bg-ink-2"
           >
-            Reload the page
+            {ui.error_button}
           </button>
           <a
-            href={`tel:${tel}`}
+            href={telHref(brand.phone)}
             className="inline-flex h-12 items-center rounded-full border border-line-2 bg-surface px-6 text-[15px] text-ink transition-colors hover:border-rose-400"
           >
-            Call {brand.phone}
+            {ui.call_prefix} {brand.phone}
           </a>
         </div>
 
         <div className="mt-4 max-w-[52ch] rounded-2xl border border-amber-500 bg-amber-500 px-6 py-4">
           <p className="text-[14px] leading-relaxed text-ink-2">
-            <strong className="font-medium text-ink">In immediate crisis?</strong> Call or
-            text <strong className="font-medium">988</strong> — Suicide &amp; Crisis Lifeline,
-            24/7. If someone is in danger right now, call 911.
+            <strong className="font-medium text-ink">{ui.crisis_prefix}</strong> {brand.crisis_line}
           </p>
         </div>
       </div>
-    );
-  }
+  );
 }
