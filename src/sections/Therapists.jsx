@@ -4,9 +4,7 @@ import { Button, EASE, Pill, Section, SectionHeading } from '../components/primi
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import Avatar from '../components/Avatar';
 import Icon from '../components/Icon';
-import { services, therapists } from '../data/site';
-
-const filters = [{ id: 'all', label: 'Everyone' }, ...services.map((s) => ({ id: s.id, label: s.name.split(' ')[0] }))];
+import { useSiteContent } from '../lib/queries/siteContent';
 
 function availabilityLabel(days) {
   if (days <= 1) return 'Available tomorrow';
@@ -16,26 +14,43 @@ function availabilityLabel(days) {
 
 /** Snaps a therapist's hue to the palette, matching Avatar's own mapping. */
 function paletteFor(h) {
-  const n = ((h % 360) + 360) % 360;
+  const n = (((Number(h) || 0) % 360) + 360) % 360;
   if (n >= 340 || n < 15) return '#FFB0B5';
   if (n < 38) return '#F9DCC0';
   return '#FFBF00';
 }
 
 export default function Therapists({ onBook }) {
+  const content = useSiteContent('therapists');
+  const servicesContent = useSiteContent('services');
   const [filter, setFilter] = useState('all');
+
+  const therapists = useMemo(
+    () => (Array.isArray(content.items) ? content.items : []).map((t) => ({
+      ...t,
+      focus: Array.isArray(t.focus) ? t.focus : [],
+      formats: Array.isArray(t.formats) ? t.formats : [],
+      services: Array.isArray(t.services) ? t.services : [],
+      hue: Array.isArray(t.hue) && t.hue.length ? t.hue : [357, 45],
+    })),
+    [content.items],
+  );
+  const filters = useMemo(() => {
+    const services = Array.isArray(servicesContent.items) ? servicesContent.items : [];
+    return [{ id: 'all', label: 'Everyone' }, ...services.map((s) => ({ id: s.id, label: String(s.name ?? '').split(' ')[0] }))];
+  }, [servicesContent.items]);
 
   const shown = useMemo(
     () => (filter === 'all' ? therapists : therapists.filter((t) => t.services.includes(filter))),
-    [filter],
+    [filter, therapists],
   );
 
   return (
     <Section id="therapists" className="py-32 sm:py-44 lg:py-56">
       <SectionHeading
-        eyebrow="The practice"
-        title="People, not profiles."
-        lead="Read them properly before you choose. Every therapist here offers a free fifteen-minute intro call, because fit is not something you can tell from a headshot."
+        eyebrow={content.eyebrow}
+        title={content.headline}
+        lead={content.lead}
       />
 
       {/* ToggleGroup gives the filter roving focus + arrow-key navigation,
@@ -118,7 +133,7 @@ export default function Therapists({ onBook }) {
               <div className="relative mt-6 flex items-center justify-between border-t border-line pt-5">
                 <span className="flex items-center gap-2 text-[13px] text-ink">
                   <span className="size-1.5 rounded-full bg-rose-400 shadow-[0_0_0_3px_rgba(255,198,202,0.22)]" />
-                  {availabilityLabel(t.nextAvailable)}
+                  {availabilityLabel(Number(t.nextAvailable) || 1)}
                 </span>
                 <Button
                   size="sm"
@@ -136,7 +151,7 @@ export default function Therapists({ onBook }) {
 
       {shown.length === 0 && (
         <p className="mt-10 text-[15px] text-ink-3">
-          Nobody listed for that yet — but we almost certainly have someone.{' '}
+          {content.empty_note}{' '}
           <button onClick={() => onBook?.()} className="text-ink underline underline-offset-4">
             Ask for a match
           </button>

@@ -9,16 +9,16 @@
  * clears 12:1 against the worst case.
  */
 export default function Avatar({ name, hue = [172, 268], size = 'md', className = '' }) {
-  const initials = name
+  const initials = String(name ?? '')
     .replace(/^(Dr|Mr|Ms|Mx)\.?\s+/i, '')
     .split(' ')
     .slice(0, 2)
-    .map((w) => w[0])
+    .map((w) => w[0] ?? '')
     .join('');
 
   // The data still describes people by a hue pair; this snaps each hue to the
   // nearest palette colour so the portraits cannot drift off-palette.
-  const [h1, h2] = hue;
+  const [h1 = 357, h2 = 45] = Array.isArray(hue) ? hue : [];
   const swatch = (h) => {
     const n = ((h % 360) + 360) % 360;
     if (n >= 340 || n < 15) return '#FFB0B5';

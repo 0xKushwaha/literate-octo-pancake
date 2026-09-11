@@ -4,6 +4,8 @@ import { getLatestArticles, getArticleBySlug } from '../lib/queries/articles';
 import { Section, SectionHeading, Stagger, staggerItem } from '../components/primitives';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { sanitizeHtml } from '../lib/sanitizeHtml';
+import { useSiteContent } from '../lib/queries/siteContent';
+import { notifySectionsChanged } from '../lib/sections';
 
 const ACCENT_MAP = {
   rose: { pill: 'bg-rose-100 text-ink', hover: 'group-hover:text-ink', bar: 'bg-rose-300' },
@@ -109,6 +111,7 @@ function ArticleReader({ article, onClose }) {
 }
 
 export default function Blog() {
+  const content = useSiteContent('blog');
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeArticle, setActiveArticle] = useState(null);
@@ -130,7 +133,11 @@ export default function Blog() {
           );
         }
       })
-      .finally(() => { if (alive) setLoading(false); });
+      .finally(() => {
+        if (!alive) return;
+        setLoading(false);
+        queueMicrotask(notifySectionsChanged);
+      });
     return () => { alive = false; };
   }, []);
 
@@ -161,11 +168,22 @@ export default function Blog() {
   return (
     <>
       <Section id="blog" className="py-32 sm:py-44 lg:py-56">
-        <SectionHeading
-          eyebrow="Medical blog"
-          title="Insights from our clinical team."
-          lead="Evidence-based articles written and reviewed by licensed clinicians."
-        />
+        <div className="flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
+          <SectionHeading
+            eyebrow={content.eyebrow}
+            title={content.headline}
+            lead={content.lead}
+          />
+          <a
+            href="/blog"
+            className="inline-flex items-center gap-2 self-start rounded-full border border-line bg-surface px-5 py-2.5 text-[14px] text-ink transition-colors hover:border-line-2 lg:self-end lg:mb-2"
+          >
+            {content.view_all}
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+          </a>
+        </div>
 
         {loading ? (
           <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">

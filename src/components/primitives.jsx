@@ -66,7 +66,7 @@ export function StaggerItem({ children, className = '', ...rest }) {
 
 /** Word-by-word headline reveal with a soft blur-in. */
 export function SplitWords({ text, className = '', delay = 0, step = 0.055, once = true }) {
-  const words = text.split(' ');
+  const words = String(text ?? '').split(' ');
   return (
     <span className={className}>
       {words.map((word, i) => (

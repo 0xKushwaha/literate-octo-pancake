@@ -43,11 +43,40 @@ export function sectionOf(key) {
 export function mergeContent(defaults = {}, remote = {}) {
   const merged = { ...defaults };
   for (const [shortKey, entry] of Object.entries(remote ?? {})) {
-    const value = entry && typeof entry === 'object' ? entry.value : entry;
+    const isRow = entry && typeof entry === 'object' && !Array.isArray(entry);
+    const value = isRow ? entry.value : entry;
     if (value == null || value === '') continue;
+
+    // Structured fields (lists of services, therapists, …) are stored as JSON
+    // text. A row typed `json` — or a default that is itself an array/object —
+    // is parsed here so components receive real data, and a row that fails to
+    // parse keeps the default rather than crashing the section.
+    const wantsJson = (isRow && entry.type === 'json') || (typeof defaults[shortKey] === 'object' && defaults[shortKey] !== null);
+    if (wantsJson && typeof value === 'string') {
+      const parsed = parseJsonValue(value);
+      if (parsed === undefined) continue;
+      merged[shortKey] = parsed;
+      continue;
+    }
     merged[shortKey] = value;
   }
   return merged;
+}
+
+/** JSON.parse that returns `undefined` instead of throwing. */
+export function parseJsonValue(text) {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return undefined;
+  }
+}
+
+/** Serialises a structured default for display/editing in the admin. */
+export function stringifyContentValue(value) {
+  if (value == null) return '';
+  if (typeof value === 'string') return value;
+  return JSON.stringify(value, null, 2);
 }
 
 /** Turns raw `site_content` rows into the shortKey-indexed shape components use. */

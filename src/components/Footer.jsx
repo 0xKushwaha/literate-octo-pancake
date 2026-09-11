@@ -1,9 +1,8 @@
 import { Button, Section } from './primitives';
 import Icon from './Icon';
-import { brand as staticBrand } from '../data/site';
-import { useSiteContent } from '../lib/queries/siteContent';
+import { telHref, useBrand, useSiteContent } from '../lib/queries/siteContent';
 
-const columns = [
+const staticColumns = [
   {
     title: 'Practice',
     links: [
@@ -16,7 +15,7 @@ const columns = [
   {
     title: 'Resources',
     links: [
-      { label: 'Blog', href: '#blog' },
+      { label: 'Blog', href: '/blog' },
       { label: 'Video resources', href: '#resources' },
       { label: 'Pricing & insurance', href: '#pricing' },
       { label: 'Questions', href: '#faq' },
@@ -25,24 +24,20 @@ const columns = [
   {
     title: 'Legal',
     links: [
-      { label: 'Privacy policy', href: '#' },
-      { label: 'Terms of service', href: '#' },
-      { label: 'Accessibility', href: '#' },
+      { label: 'Privacy policy', key: 'privacy_url' },
+      { label: 'Terms of service', key: 'terms_url' },
+      { label: 'Accessibility', key: 'accessibility_url' },
     ],
   },
 ];
 
 export default function Footer({ onBook }) {
-  const brandContent = useSiteContent('brand', {
-    phone: staticBrand.phone,
-    email: staticBrand.email,
-    address: staticBrand.address,
-    tagline: staticBrand.tagline,
-  });
-  const footerContent = useSiteContent('footer', {
-    disclaimer: `This site is a design demonstration. ${staticBrand.name} is a fictional practice — nothing here is medical advice.`,
-  });
-  const brand = { ...staticBrand, ...brandContent };
+  const brand = useBrand();
+  const footerContent = useSiteContent('footer');
+  const columns = staticColumns.map((col) => ({
+    ...col,
+    links: col.links.map((l) => (l.key ? { label: l.label, href: footerContent[l.key] || '#' } : l)),
+  }));
 
   return (
     <footer className="relative border-t border-line bg-bg">
@@ -50,10 +45,7 @@ export default function Footer({ onBook }) {
       <div className="border-b border-line bg-amber-500">
         <Section className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 py-4 text-center">
           <span className="text-[13.5px] text-ink">In immediate crisis?</span>
-          <span className="text-[13.5px] text-ink-2">
-            Call or text <strong className="font-medium text-ink">988</strong> — Suicide &amp;
-            Crisis Lifeline, 24/7. If someone is in danger right now, call 911.
-          </span>
+          <span className="text-[13.5px] text-ink-2">{brand.crisis_line}</span>
         </Section>
       </div>
 
@@ -70,13 +62,12 @@ export default function Footer({ onBook }) {
               </span>
             </a>
             <p className="mt-6 max-w-[34ch] text-[15px] leading-relaxed text-ink-3">
-              {brand.tagline} A modern practice for people who have been meaning to do this for a
-              while.
+              {brand.tagline} {footerContent.blurb}
             </p>
 
             <div className="mt-8 flex flex-col gap-3 text-[14px] text-ink-3">
               <a
-                href={`tel:${brand.phone.replace(/[^\d+]/g, '')}`}
+                href={telHref(brand.phone)}
                 className="flex items-center gap-2.5 transition-colors hover:text-ink"
               >
                 <Icon name="phone" size={15} className="text-ink-4" />
@@ -120,7 +111,7 @@ export default function Footer({ onBook }) {
 
         <div className="mt-16 flex flex-col gap-4 border-t border-line pt-8 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-[12.5px] text-ink-4">
-            © {new Date().getFullYear()} {brand.name} Therapy, PC. All rights reserved.
+            © {new Date().getFullYear()} {brand.name} {footerContent.copyright_suffix}
           </p>
           <p className="max-w-xl text-[12px] leading-relaxed text-ink-4">
             {footerContent.disclaimer}

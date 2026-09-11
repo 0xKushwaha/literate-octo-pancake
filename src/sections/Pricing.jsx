@@ -1,23 +1,23 @@
 import { Button, Pill, Reveal, Section, SectionHeading } from '../components/primitives';
 import Icon from '../components/Icon';
-import { plans as staticPlans } from '../data/site';
 import { useSiteContent } from '../lib/queries/siteContent';
 
 export default function Pricing({ onBook }) {
-  const pricingContent = useSiteContent('pricing', Object.fromEntries(
-    staticPlans.map((p) => [`${p.id}_blurb`, p.blurb]),
-  ));
-  const plans = staticPlans.map((p) => ({
+  const content = useSiteContent('pricing');
+  // Plans are a list field ("pricing.plans"); the older "<id>_blurb" keys are
+  // still applied on top so earlier edits survive.
+  const plans = (Array.isArray(content.plans) ? content.plans : []).map((p) => ({
     ...p,
-    blurb: pricingContent[`${p.id}_blurb`] ?? p.blurb,
+    features: Array.isArray(p.features) ? p.features : [],
+    blurb: content[`${p.id}_blurb`] ?? p.blurb,
   }));
 
   return (
     <Section id="pricing" className="py-32 sm:py-44 lg:py-56">
       <SectionHeading
-        eyebrow="Cost"
-        title="Priced plainly, before you book."
-        lead="You see your exact out-of-pocket cost on the booking screen — insurance applied, nothing surfacing on a statement three weeks later."
+        eyebrow={content.eyebrow}
+        title={content.headline}
+        lead={content.lead}
         align="center"
       />
 
@@ -62,8 +62,8 @@ export default function Pricing({ onBook }) {
               </p>
 
               <ul className="relative mt-8 flex flex-1 flex-col gap-3.5">
-                {p.features.map((f) => (
-                  <li key={f} className="flex items-start gap-3 text-[14.5px] text-ink-2">
+                {p.features.map((f, i) => (
+                  <li key={`${f}-${i}`} className="flex items-start gap-3 text-[14.5px] text-ink-2">
                     <Icon
                       name="check"
                       size={14}
@@ -90,9 +90,7 @@ export default function Pricing({ onBook }) {
 
       <Reveal delay={0.2}>
         <p className="mx-auto mt-12 max-w-2xl text-center text-[14px] leading-relaxed text-ink-4">
-          In-network with Aetna, Cigna, United and Blue Shield of California. Out-of-network claims
-          filed for you. Sliding-scale places are always held open — ask during intake, and no, you
-          will not be asked to prove it.
+          {content.footnote}
         </p>
       </Reveal>
     </Section>

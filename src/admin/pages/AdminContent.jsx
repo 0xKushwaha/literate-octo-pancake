@@ -1,56 +1,58 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
-import { getAllContent, upsertContent } from '../../lib/queries/siteContent';
+import { deleteContent, getAllContent, upsertContent } from '../../lib/queries/siteContent';
+import { parseJsonValue, stringifyContentValue } from '../../lib/contentMerge';
+import {
+  CONTENT_SCHEMA, SCHEMA_BY_KEY, SECTION_ORDER, SECTION_TITLES,
+} from '../../data/contentSchema';
 import { useSearch } from '../hooks';
 import { Button, EmptyState, PageHeader, Panel, SearchInput, TableSkeleton } from '../components/ui';
 
-// Default content seed — mirrors site.js values.
-// These are shown in the admin as pre-filled starting points.
-// The key format must match what useSiteContent(section) expects:
-//   key = "section.shortKey" → useSiteContent reads the shortKey part.
-const DEFAULTS = [
-  // Hero
-  { key: 'hero.tagline', section: 'hero', label: 'Hero tagline', type: 'text', value: 'Therapy that meets you where you are.' },
-  { key: 'hero.subheadline', section: 'hero', label: 'Hero subheadline', type: 'text', value: 'Licensed clinicians, matched to you by a human in under a day. Video, phone or in person — and a first session this week, not next quarter.' },
-  // Brand
-  { key: 'brand.phone', section: 'brand', label: 'Phone number', type: 'text', value: '+1 (415) 555-0142' },
-  { key: 'brand.email', section: 'brand', label: 'Contact email', type: 'text', value: 'hello@lumentherapy.com' },
-  { key: 'brand.address', section: 'brand', label: 'Address', type: 'text', value: '2140 Filbert Street, San Francisco, CA 94123' },
-  { key: 'brand.tagline', section: 'brand', label: 'Brand tagline', type: 'text', value: 'Therapy that meets you where you are.' },
-  // Services (editable blurbs)
-  { key: 'services.individual_blurb', section: 'services', label: 'Individual therapy blurb', type: 'text', value: 'Weekly one-to-one work on anxiety, depression, burnout, identity and the things that are hard to say out loud.' },
-  { key: 'services.couples_blurb', section: 'services', label: 'Couples therapy blurb', type: 'text', value: 'Structured sessions for communication, repair after rupture, intimacy and deciding what comes next — together.' },
-  { key: 'services.trauma_blurb', section: 'services', label: 'Trauma & EMDR blurb', type: 'text', value: 'Paced, consent-led processing for single-incident and complex trauma. You set the speed; we hold the frame.' },
-  { key: 'services.anxiety_blurb', section: 'services', label: 'Anxiety & panic blurb', type: 'text', value: 'Skills-first care for panic, health anxiety, OCD and the loops that keep you up at 3am. Homework optional, honestly.' },
-  { key: 'services.teen_blurb', section: 'services', label: 'Teens & young adults blurb', type: 'text', value: 'Ages 14–24. School pressure, social media, first heartbreaks, figuring out who you are without an audience.' },
-  { key: 'services.psychiatry_blurb', section: 'services', label: 'Psychiatry blurb', type: 'text', value: 'Board-certified psychiatric care, coordinated with your therapist so nobody is guessing what the other one did.' },
-  // Pricing (editable blurbs)
-  { key: 'pricing.session_blurb', section: 'pricing', label: 'Pay per session blurb', type: 'text', value: 'No commitment. Book when you need to.' },
-  { key: 'pricing.weekly_blurb', section: 'pricing', label: 'Weekly care blurb', type: 'text', value: 'The rhythm most therapy actually works at.' },
-  { key: 'pricing.integrated_blurb', section: 'pricing', label: 'Therapy + psychiatry blurb', type: 'text', value: 'One care team, one plan, no repeating yourself.' },
-  // Approach
-  { key: 'approach.headline', section: 'approach', label: 'Approach section headline', type: 'text', value: 'Getting started shouldn\'t feel like homework.' },
-  // Footer
-  { key: 'footer.disclaimer', section: 'footer', label: 'Footer disclaimer', type: 'text', value: 'This site is a design demonstration. Lumen is a fictional practice — nothing here is medical advice.' },
-];
-
-const SEARCH_FIELDS = ['label', 'key', 'value', 'section'];
+const SEARCH_FIELDS = ['label', 'key', 'value', 'section', 'sectionTitle'];
 
 function groupBySection(items) {
-  return items.reduce((acc, item) => {
+  const grouped = items.reduce((acc, item) => {
     const s = item.section ?? 'other';
     if (!acc[s]) acc[s] = [];
     acc[s].push(item);
     return acc;
   }, {});
+  const order = (s) => {
+    const i = SECTION_ORDER.indexOf(s);
+    return i === -1 ? SECTION_ORDER.length : i;
+  };
+  return Object.entries(grouped).sort(([a], [b]) => order(a) - order(b));
 }
 
-function ContentRow({ item, onSave }) {
+/** Validates the text of a `json` field. Returns an error message or null. */
+function validateJson(text, defaultValue) {
+  const parsed = parseJsonValue(text);
+  if (parsed === undefined) return 'Not valid JSON. Check for a missing comma, quote or bracket.';
+  const wantArray = Array.isArray(defaultValue);
+  if (wantArray && !Array.isArray(parsed)) return 'This field must be a list: it should start with [ and end with ].';
+  if (!wantArray && (typeof parsed !== 'object' || parsed === null)) return 'This field must be an object: it should start with { and end with }.';
+  return null;
+}
+
+const inputClass = (dirty, invalid) =>
+  `w-full rounded-lg border px-3 py-1.5 text-sm outline-none transition focus:ring-1 ${
+    invalid
+      ? 'border-red-400 focus:border-red-500 focus:ring-red-500'
+      : dirty
+        ? 'border-amber-400 focus:border-amber-500 focus:ring-amber-500'
+        : 'border-gray-300 focus:border-teal-500 focus:ring-teal-500'
+  }`;
+
+function ContentRow({ item, onSave, onReset }) {
   const saved = item.value ?? '';
   const [value, setValue] = useState(saved);
   const [seen, setSeen] = useState(saved);
   const [saving, setSaving] = useState(false);
   const dirty = value !== saved;
+  const isJson = item.type === 'json';
+  const jsonError = isJson ? validateJson(value, item.defaultValue) : null;
+  const defaultText = stringifyContentValue(item.defaultValue);
+  const isDefault = !item.stored;
 
   // The parent replaces `item` whenever the list reloads. Without this the
   // input keeps showing whatever was in local state at first mount, which
@@ -65,11 +67,14 @@ function ContentRow({ item, onSave }) {
   }
 
   const save = async () => {
+    if (jsonError) { toast.error(jsonError); return; }
     setSaving(true);
     try {
-      await upsertContent({ key: item.key, value, section: item.section, label: item.label, type: item.type });
+      // Normalise JSON so what is stored is always well-formed and readable.
+      const toStore = isJson ? JSON.stringify(JSON.parse(value), null, 2) : value;
+      await upsertContent({ key: item.key, value: toStore, section: item.section, label: item.label, type: item.type });
       toast.success(`Saved "${item.label ?? item.key}"`);
-      onSave(item.key, value);
+      onSave(item.key, toStore);
     } catch (err) {
       // Surface the real reason — an RLS denial and a dropped connection are
       // very different problems and "Save failed" hides both.
@@ -80,21 +85,47 @@ function ContentRow({ item, onSave }) {
     }
   };
 
+  const reset = async () => {
+    if (!window.confirm(`Reset "${item.label ?? item.key}" to the built-in default?`)) return;
+    setSaving(true);
+    try {
+      await deleteContent(item.key);
+      toast.success(`"${item.label ?? item.key}" reset to default`);
+      onReset(item.key);
+    } catch (err) {
+      toast.error(err?.message || 'Reset failed');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div className="flex items-start gap-4 py-3 border-b border-gray-100 last:border-0">
       <div className="min-w-0 flex-1">
-        <p className="text-xs font-medium text-gray-600 mb-1">{item.label}</p>
-        <p className="font-mono text-[10px] text-gray-400 mb-1.5">{item.key}</p>
-        {item.type === 'richtext' ? (
+        <div className="mb-1 flex flex-wrap items-center gap-x-2 gap-y-0.5">
+          <p className="text-xs font-medium text-gray-600">{item.label}</p>
+          <span className="font-mono text-[10px] text-gray-400">{item.key}</span>
+          {isDefault ? (
+            <span className="rounded-full bg-gray-100 px-1.5 py-px text-[10px] text-gray-500">default</span>
+          ) : (
+            <span className="rounded-full bg-teal-50 px-1.5 py-px text-[10px] text-teal-700">customised</span>
+          )}
+        </div>
+        {item.hint && <p className="mb-1.5 text-[11px] text-gray-400">{item.hint}</p>}
+        {isJson ? (
+          <textarea
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            rows={Math.min(24, Math.max(6, value.split('\n').length + 1))}
+            spellCheck={false}
+            className={`${inputClass(dirty, Boolean(jsonError))} resize-y font-mono text-[12px] leading-relaxed`}
+          />
+        ) : item.type === 'richtext' ? (
           <textarea
             value={value}
             onChange={(e) => setValue(e.target.value)}
             rows={3}
-            className={`w-full resize-y rounded-lg border px-3 py-1.5 text-sm outline-none transition focus:ring-1 ${
-              dirty
-                ? 'border-amber-400 focus:border-amber-500 focus:ring-amber-500'
-                : 'border-gray-300 focus:border-teal-500 focus:ring-teal-500'
-            }`}
+            className={`${inputClass(dirty, false)} resize-y`}
           />
         ) : (
           <input
@@ -102,39 +133,85 @@ function ContentRow({ item, onSave }) {
             value={value}
             onChange={(e) => setValue(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter' && dirty) { e.preventDefault(); save(); } }}
-            className={`w-full rounded-lg border px-3 py-1.5 text-sm outline-none transition focus:ring-1 ${
-              dirty
-                ? 'border-amber-400 focus:border-amber-500 focus:ring-amber-500'
-                : 'border-gray-300 focus:border-teal-500 focus:ring-teal-500'
-            }`}
+            className={inputClass(dirty, false)}
           />
         )}
+        {jsonError && dirty && <p className="mt-1 text-[11px] text-red-600">{jsonError}</p>}
       </div>
-      <div className="mt-7 flex shrink-0 items-center gap-2">
-        {dirty && !saving && (
+      <div className="mt-7 flex shrink-0 flex-col items-end gap-1.5">
+        <div className="flex items-center gap-2">
+          {dirty && !saving && (
+            <button
+              onClick={() => setValue(saved)}
+              className="rounded-lg px-2 py-1.5 text-xs text-gray-500 transition hover:bg-gray-100 hover:text-gray-800"
+            >
+              Undo
+            </button>
+          )}
           <button
-            onClick={() => setValue(saved)}
-            className="rounded-lg px-2 py-1.5 text-xs text-gray-500 transition hover:bg-gray-100 hover:text-gray-800"
+            onClick={save}
+            disabled={!dirty || saving || Boolean(jsonError)}
+            className="rounded-lg bg-teal-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-teal-700 disabled:opacity-30"
           >
-            Undo
+            {saving ? 'Saving…' : dirty ? 'Save' : 'Saved'}
+          </button>
+        </div>
+        {!isDefault && !saving && (
+          <button
+            onClick={reset}
+            className="text-[11px] text-gray-400 underline-offset-2 transition hover:text-gray-700 hover:underline"
+            title={`Default: ${defaultText.slice(0, 120)}`}
+          >
+            Reset to default
           </button>
         )}
-        <button
-          onClick={save}
-          disabled={!dirty || saving}
-          className="rounded-lg bg-teal-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-teal-700 disabled:opacity-30"
-        >
-          {saving ? 'Saving…' : dirty ? 'Save' : 'Saved'}
-        </button>
       </div>
     </div>
   );
 }
 
+/** Builds the admin rows: every schema field, with stored values layered on. */
+function buildItems(remote = []) {
+  const remoteMap = Object.fromEntries(remote.map((r) => [r.key, r]));
+  const items = CONTENT_SCHEMA.map((d) => {
+    const r = remoteMap[d.key];
+    const base = {
+      key: d.key,
+      section: d.section,
+      sectionTitle: SECTION_TITLES[d.section] ?? d.section,
+      label: d.label,
+      type: d.type,
+      hint: d.hint,
+      defaultValue: d.value,
+      stored: Boolean(r),
+    };
+    if (!r || r.value == null || r.value === '') {
+      return { ...base, value: stringifyContentValue(d.value) };
+    }
+    return { ...base, value: String(r.value) };
+  });
+  // Keys stored in the database that the schema does not know about (from an
+  // older version of the site) are still shown so they can be edited or reset.
+  remote.forEach((r) => {
+    if (SCHEMA_BY_KEY[r.key]) return;
+    items.push({
+      key: r.key,
+      section: r.section ?? r.key.split('.')[0],
+      sectionTitle: SECTION_TITLES[r.section] ?? r.section ?? 'other',
+      label: r.label ?? r.key,
+      type: r.type ?? 'text',
+      hint: 'Legacy field — no longer used by the current site. Reset to remove it.',
+      defaultValue: '',
+      stored: true,
+      value: String(r.value ?? ''),
+    });
+  });
+  return items;
+}
+
 export default function AdminContent() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
-
   const [loadError, setLoadError] = useState(null);
 
   useEffect(() => {
@@ -143,27 +220,7 @@ export default function AdminContent() {
       .then((remote) => {
         if (!active) return;
         setLoadError(null);
-        // Merge defaults with whatever is already stored
-        const remoteMap = Object.fromEntries(remote.map((r) => [r.key, r]));
-        const merged = DEFAULTS.map((d) => {
-          const r = remoteMap[d.key];
-          if (!r) return d;
-          // Stored value wins; the labels/sections stay from DEFAULTS when the
-          // stored row left them null, so the admin UI never loses its grouping.
-          return {
-            ...d,
-            ...r,
-            value: r.value ?? '',
-            label: r.label ?? d.label,
-            section: r.section ?? d.section,
-            type: r.type ?? d.type,
-          };
-        });
-        // Also include any extra keys from the database not in DEFAULTS
-        remote.forEach((r) => {
-          if (!DEFAULTS.some((d) => d.key === r.key)) merged.push(r);
-        });
-        setItems(merged);
+        setItems(buildItems(remote));
       })
       .catch((err) => {
         if (!active) return;
@@ -171,7 +228,7 @@ export default function AdminContent() {
         // what is on screen is not what is stored.
         console.error('[lumen] could not load site content', err);
         setLoadError(err?.message || 'Could not reach the content database.');
-        setItems(DEFAULTS);
+        setItems(buildItems([]));
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -180,11 +237,18 @@ export default function AdminContent() {
   }, []);
 
   const handleSave = useCallback((key, newValue) => {
-    setItems((prev) => prev.map((i) => (i.key === key ? { ...i, value: newValue } : i)));
+    setItems((prev) => prev.map((i) => (i.key === key ? { ...i, value: newValue, stored: true } : i)));
+  }, []);
+
+  const handleReset = useCallback((key) => {
+    setItems((prev) => prev
+      .filter((i) => !(i.key === key && !SCHEMA_BY_KEY[key]))
+      .map((i) => (i.key === key ? { ...i, value: stringifyContentValue(i.defaultValue), stored: false } : i)));
   }, []);
 
   const { query, setQuery, filtered } = useSearch(items, SEARCH_FIELDS);
   const grouped = useMemo(() => groupBySection(filtered), [filtered]);
+  const customised = items.filter((i) => i.stored).length;
 
   return (
     <>
@@ -200,7 +264,7 @@ export default function AdminContent() {
       <PageHeader
         title="Site content"
         count={items.length}
-        subtitle="Text shown on the public site. Saved changes go live on the next page load — no rebuild."
+        subtitle={`Every heading, paragraph, button and list on the public site. ${customised} customised. Saved changes go live on the next page load — no rebuild.`}
       />
 
       {!loading && items.length > 0 && (
@@ -208,7 +272,7 @@ export default function AdminContent() {
           <SearchInput
             value={query}
             onChange={setQuery}
-            placeholder="Search by label, key or current text…"
+            placeholder="Search by section, label, key or current text…"
             resultCount={filtered.length}
             total={items.length}
           />
@@ -221,23 +285,23 @@ export default function AdminContent() {
         <Panel>
           <EmptyState
             title={`No fields match “${query}”`}
-            hint="Search covers the label, the dot-notation key, and the text currently stored."
+            hint="Search covers the section, the label, the dot-notation key, and the text currently stored."
             action={<Button variant="ghost" onClick={() => setQuery('')}>Clear search</Button>}
           />
         </Panel>
       ) : (
         <div className="space-y-6">
-          {Object.entries(grouped).map(([section, sectionItems]) => (
+          {grouped.map(([section, sectionItems]) => (
             <Panel key={section}>
               <div className="flex items-baseline justify-between border-b border-gray-200 bg-gray-50 px-5 py-3">
-                <h2 className="text-sm font-semibold capitalize text-gray-900">{section}</h2>
+                <h2 className="text-sm font-semibold text-gray-900">{SECTION_TITLES[section] ?? section}</h2>
                 <span className="text-xs text-gray-400">
                   {sectionItems.length} {sectionItems.length === 1 ? 'field' : 'fields'}
                 </span>
               </div>
               <div className="px-5">
                 {sectionItems.map((item) => (
-                  <ContentRow key={item.key} item={item} onSave={handleSave} />
+                  <ContentRow key={item.key} item={item} onSave={handleSave} onReset={handleReset} />
                 ))}
               </div>
             </Panel>

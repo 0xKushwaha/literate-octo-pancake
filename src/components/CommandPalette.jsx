@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/command';
 import Icon from './Icon';
 import Avatar from './Avatar';
-import { brand, services, therapists } from '../data/site';
+import { telHref, useBrand, useSiteContent } from '../lib/queries/siteContent';
 
 const SECTIONS = [
   { id: 'services', label: 'What we treat', icon: 'pulse' },
@@ -28,6 +28,11 @@ const SECTIONS = [
  * booking, and a phone number.
  */
 export default function CommandPalette({ onBook }) {
+  const brand = useBrand();
+  const servicesContent = useSiteContent('services');
+  const therapistsContent = useSiteContent('therapists');
+  const services = Array.isArray(servicesContent.items) ? servicesContent.items : [];
+  const therapists = Array.isArray(therapistsContent.items) ? therapistsContent.items : [];
   const [open, setOpen] = useState(false);
   const [isMac] = useState(() => /mac|iphone|ipad/i.test(navigator.platform || navigator.userAgent));
 
@@ -86,7 +91,7 @@ export default function CommandPalette({ onBook }) {
             {services.map((s) => (
               <CommandItem
                 key={s.id}
-                value={`book ${s.name} ${s.modalities.join(' ')}`}
+                value={`book ${s.name} ${(s.modalities ?? []).join(' ')}`}
                 onSelect={() => run(() => onBook({ service: s.id }))}
               >
                 <Icon name={s.icon} size={16} />
@@ -102,12 +107,12 @@ export default function CommandPalette({ onBook }) {
             {therapists.map((t) => (
               <CommandItem
                 key={t.id}
-                value={`${t.name} ${t.credentials} ${t.focus.join(' ')}`}
+                value={`${t.name} ${t.credentials} ${(t.focus ?? []).join(' ')}`}
                 onSelect={() => run(() => onBook({ therapist: t.id }))}
               >
                 <Avatar name={t.name} hue={t.hue} size="sm" className="!size-6 !text-[9px]" />
                 <span>{t.name}</span>
-                <CommandShortcut>{t.focus[0]}</CommandShortcut>
+                <CommandShortcut>{t.focus?.[0]}</CommandShortcut>
               </CommandItem>
             ))}
           </CommandGroup>
@@ -130,7 +135,7 @@ export default function CommandPalette({ onBook }) {
               value={`call phone ${brand.phone}`}
               onSelect={() =>
                 run(() => {
-                  window.location.href = `tel:${brand.phone.replace(/[^\d+]/g, '')}`;
+                  window.location.href = telHref(brand.phone);
                 })
               }
             >

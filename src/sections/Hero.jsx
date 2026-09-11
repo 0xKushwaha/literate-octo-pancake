@@ -2,16 +2,12 @@ import { motion, useScroll, useTransform } from 'motion/react';
 import { useRef } from 'react';
 import { Button, EASE, Magnetic, Pill, SplitWords } from '../components/primitives';
 import Icon from '../components/Icon';
-import { credentials } from '../data/site';
-import { useSiteContent } from '../lib/queries/siteContent';
-
-const HERO_DEFAULTS = {
-  tagline: 'Therapy that meets you where you are.',
-  subheadline: 'Licensed clinicians, matched to what you\'re carrying.',
-};
+import { useBrand, useSiteContent } from '../lib/queries/siteContent';
 
 export default function Hero({ onBook }) {
-  const content = useSiteContent('hero', HERO_DEFAULTS);
+  const content = useSiteContent('hero');
+  const brand = useBrand();
+  const credentials = Array.isArray(brand.credentials) ? brand.credentials : [];
   const ref = useRef(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] });
   const y = useTransform(scrollYProgress, [0, 1], ['0%', '45%']);
@@ -67,26 +63,24 @@ export default function Hero({ onBook }) {
               <span className="absolute inline-flex size-full animate-ping rounded-full bg-rose-300 opacity-75" />
               <span className="relative inline-flex size-1.5 rounded-full bg-rose-200" />
             </span>
-            Accepting new clients
+            {content.status_pill}
           </Pill>
           <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-ink-4">
-            Next opening — tomorrow, 09:30
+            {content.next_opening}
           </span>
         </motion.div>
 
         {/* Cinematic headline — inspired by BlueYard's massive type scale */}
         <h1 className="mt-8 max-w-[14ch] font-display text-[clamp(3.5rem,11vw,9.5rem)] leading-[0.9] tracking-[-0.04em]">
-          <SplitWords text="Therapy that" delay={0.45} />
-          <br />
-          <SplitWords text="meets" delay={0.6} />
-          {' '}
-          <span className="text-aurora">
-            <SplitWords text="you where" delay={0.72} />
-          </span>
-          <br />
-          <span className="text-aurora">
-            <SplitWords text="you are." delay={0.88} />
-          </span>
+          <SplitWords text={content.headline} delay={0.45} />
+          {content.headline_accent && (
+            <>
+              {' '}
+              <span className="text-aurora">
+                <SplitWords text={content.headline_accent} delay={0.72} />
+              </span>
+            </>
+          )}
         </h1>
 
         <motion.p
@@ -112,7 +106,7 @@ export default function Hero({ onBook }) {
               onClick={onBook}
               className="w-full sm:w-auto"
             >
-              Book your first session
+              {content.primary_cta}
             </Button>
           </Magnetic>
           <Button
@@ -123,7 +117,7 @@ export default function Hero({ onBook }) {
             iconLeft="spark"
             className="w-full sm:w-auto"
           >
-            See how it works
+            {content.secondary_cta}
           </Button>
         </motion.div>
 
@@ -158,12 +152,12 @@ export default function Hero({ onBook }) {
               className="block h-5 w-px bg-gradient-to-b from-transparent via-peach-100 to-transparent"
             />
           </span>
-          <span className="font-mono text-[10.5px] uppercase tracking-[0.24em]">Scroll to explore</span>
+          <span className="font-mono text-[10.5px] uppercase tracking-[0.24em]">{content.scroll_hint}</span>
         </a>
 
         <div className="hidden text-right sm:block">
           <p className="font-mono text-[10.5px] uppercase tracking-[0.24em] text-ink-4">
-            San Francisco · Telehealth in 14 states
+            {content.location_note}
           </p>
         </div>
       </motion.div>

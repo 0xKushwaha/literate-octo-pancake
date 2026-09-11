@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { listPublishedArticles } from '../lib/queries/articles';
 import { Button, Pill, Section, SectionHeading } from '../components/primitives';
-import { brand } from '../data/site';
+import { useBrand } from '../lib/queries/siteContent';
 
 const CATEGORIES = ['All', 'Getting Started', 'Anxiety', 'Depression', 'Relationships', 'Mindfulness', 'Trauma', 'Techniques', 'Sleep', 'Psychiatry'];
 
@@ -40,6 +40,7 @@ function ArticleCard({ article }) {
 }
 
 export default function BlogIndexPage() {
+  const brand = useBrand();
   const [articles, setArticles] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);

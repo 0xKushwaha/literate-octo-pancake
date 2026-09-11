@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { getArticleBySlug, getRelatedArticles } from '../lib/queries/articles';
 import { Button, Pill, Section } from '../components/primitives';
-import { brand } from '../data/site';
+import { useBrand } from '../lib/queries/siteContent';
 import { sanitizeHtml } from '../lib/sanitizeHtml';
 
 function estimateReadTime(content) {
@@ -12,6 +12,7 @@ function estimateReadTime(content) {
 }
 
 export default function BlogPostPage() {
+  const brand = useBrand();
   const { slug } = useParams();
   const navigate = useNavigate();
   const [article, setArticle] = useState(null);

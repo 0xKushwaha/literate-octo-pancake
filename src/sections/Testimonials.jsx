@@ -1,6 +1,6 @@
 import { Section, SectionHeading } from '../components/primitives';
 import Icon from '../components/Icon';
-import { testimonials } from '../data/site';
+import { useSiteContent } from '../lib/queries/siteContent';
 
 function Card({ t }) {
   return (
@@ -42,20 +42,23 @@ function Row({ items, reverse = false, duration = 58 }) {
 }
 
 export default function Testimonials() {
+  const content = useSiteContent('testimonials');
+  const testimonials = Array.isArray(content.items) ? content.items : [];
+  if (testimonials.length === 0) return null;
   const half = Math.ceil(testimonials.length / 2);
   return (
-    <div className="relative py-32 sm:py-44 lg:py-56">
+    <div id="testimonials" className="relative py-32 sm:py-44 lg:py-56">
       <Section>
         <SectionHeading
-          eyebrow="In their words"
-          title="The part that is hard to put in a brochure."
+          eyebrow={content.eyebrow}
+          title={content.headline}
           align="center"
         />
       </Section>
 
       <div className="mt-16 flex flex-col gap-4">
         <Row items={testimonials.slice(0, half)} duration={72} />
-        <Row items={testimonials.slice(half)} reverse duration={88} />
+        {testimonials.length > 1 && <Row items={testimonials.slice(half)} reverse duration={88} />}
       </div>
     </div>
   );

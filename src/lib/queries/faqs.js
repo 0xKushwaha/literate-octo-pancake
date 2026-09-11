@@ -3,13 +3,17 @@ import { supabase, isDemo } from '../supabase';
 import { demoFaqs } from '../demoData';
 import { faqs as staticFaqs } from '../../data/site';
 
-export function useFaqs() {
-  const [faqs, setFaqs] = useState(staticFaqs);
+/**
+ * Published FAQs from the database, falling back to `fallback` (the CMS
+ * "faq.fallback_items" list, then the static defaults) until any are published.
+ */
+export function useFaqs(fallback = staticFaqs) {
+  const [remote, setRemote] = useState(null);
 
   useEffect(() => {
     if (isDemo) {
       const published = demoFaqs.listPublished();
-      if (published.length) setFaqs(published.map((r) => ({ q: r.question, a: r.answer })));
+      if (published.length) setRemote(published.map((r) => ({ q: r.question, a: r.answer })));
       return;
     }
 
@@ -20,12 +24,13 @@ export function useFaqs() {
       .order('sort_order')
       .then(({ data }) => {
         if (data?.length) {
-          setFaqs(data.map((r) => ({ q: r.question, a: r.answer })));
+          setRemote(data.map((r) => ({ q: r.question, a: r.answer })));
         }
       });
   }, []);
 
-  return faqs;
+  if (remote?.length) return remote;
+  return fallback?.length ? fallback : staticFaqs;
 }
 
 // Admin only

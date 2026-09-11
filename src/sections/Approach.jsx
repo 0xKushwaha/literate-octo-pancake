@@ -3,7 +3,6 @@ import { motion, useScroll, useTransform } from 'motion/react';
 import { Reveal, Section, SectionHeading } from '../components/primitives';
 import { useSiteContent } from '../lib/queries/siteContent';
 import Icon from '../components/Icon';
-import { process } from '../data/site';
 
 function Step({ item, index, total }) {
   const ref = useRef(null);
@@ -50,57 +49,37 @@ function Step({ item, index, total }) {
   );
 }
 
-const pillars = [
-  {
-    icon: 'shuffle',
-    title: 'Matched by a person',
-    body: 'A clinician reads every intake. No questionnaire scoring, no algorithm deciding who understands you.',
-  },
-  {
-    icon: 'lock',
-    title: 'Private by construction',
-    body: 'End-to-end encrypted sessions, notes visible only to your care team, and no advertising business to sell data to.',
-  },
-  {
-    icon: 'message',
-    title: 'Care between sessions',
-    body: 'Secure messaging, a plan you can actually see, and a therapist who remembers what you said last week.',
-  },
-];
-
-const APPROACH_DEFAULTS = {
-  headline: 'Four steps. No waiting rooms.',
-};
-
 export default function Approach() {
   // This section's headline is editable from the admin panel (key
   // "approach.headline"). It used to be hard-coded, so the field existed in the
   // CMS but changing it did nothing on the site.
-  const content = useSiteContent('approach', APPROACH_DEFAULTS);
+  const content = useSiteContent('approach');
+  const process = Array.isArray(content.steps) ? content.steps : [];
+  const pillars = Array.isArray(content.pillars) ? content.pillars : [];
 
   return (
     <Section id="approach" className="py-32 sm:py-44 lg:py-56">
       <SectionHeading
-        eyebrow="How it works"
+        eyebrow={content.eyebrow}
         title={content.headline}
-        lead="Most people give up on finding a therapist somewhere between the third voicemail and the second waitlist. We removed that part."
+        lead={content.lead}
       />
 
       <div className="mt-24 grid gap-16 lg:mt-36 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:gap-20">
         <div>
           {process.map((item, i) => (
-            <Step key={item.step} item={item} index={i} total={process.length} />
+            <Step key={`${item.step}-${i}`} item={item} index={i} total={process.length} />
           ))}
         </div>
 
         <div className="lg:sticky lg:top-28 lg:h-fit">
           <div className="glass rounded-4xl p-8 shadow-[var(--shadow-lift)] ring-1 ring-rose-200/30 sm:p-10">
             <p className="font-display text-2xl leading-snug tracking-tight text-ink">
-              What makes it hold together
+              {content.pillars_title}
             </p>
             <ul className="mt-8 flex flex-col gap-8">
               {pillars.map((p, i) => (
-                <Reveal key={p.title} delay={i * 0.1} as="li">
+                <Reveal key={`${p.title}-${i}`} delay={i * 0.1} as="li">
                   <div className="flex gap-4">
                     <span className="mt-0.5 grid size-10 shrink-0 place-items-center rounded-full border border-rose-300 bg-rose-100 text-ink">
                       <Icon name={p.icon} size={18} />

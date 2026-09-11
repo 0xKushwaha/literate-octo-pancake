@@ -1,19 +1,58 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Button, EASE, Magnetic } from './primitives';
 import Icon from './Icon';
-import { brand } from '../data/site';
+import { telHref, useBrand, useSiteContent } from '../lib/queries/siteContent';
+import { onSectionsChanged, sectionExists } from '../lib/sections';
 
-const links = [
-  { href: '#services', label: 'Services' },
-  { href: '#therapists', label: 'Therapists' },
-  { href: '#breathing', label: 'Breathe' },
-  { href: '#pricing', label: 'Pricing' },
-  { href: '#faq', label: 'FAQ' },
-  { href: '#blog', label: 'Blog' },
+/**
+ * Links in the order the sections appear on the page, top to bottom. Labels
+ * are editable in the admin (section "nav"). The blog and video sections only
+ * render when they have content, so those links are shown only while the
+ * section is actually in the document.
+ */
+const ALL_LINKS = [
+  { id: 'breathing', labelKey: 'breathing_label', optional: false },
+  { id: 'services', labelKey: 'services_label', optional: false },
+  { id: 'therapists', labelKey: 'therapists_label', optional: false },
+  { id: 'resources', labelKey: 'resources_label', optional: true },
+  { id: 'blog', labelKey: 'blog_label', optional: true },
+  { id: 'pricing', labelKey: 'pricing_label', optional: false },
+  { id: 'faq', labelKey: 'faq_label', optional: false },
 ];
 
+function usePresentSections() {
+  const [present, setPresent] = useState(() => new Set());
+  useEffect(() => {
+    const check = () => {
+      setPresent((prev) => {
+        const next = new Set(ALL_LINKS.filter((l) => !l.optional || sectionExists(l.id)).map((l) => l.id));
+        if (next.size === prev.size && [...next].every((id) => prev.has(id))) return prev;
+        return next;
+      });
+    };
+    check();
+    const off = onSectionsChanged(check);
+    // Sections mount asynchronously; a couple of delayed checks cover the
+    // preloader window before any event fires.
+    const t1 = setTimeout(check, 800);
+    const t2 = setTimeout(check, 3000);
+    return () => { off(); clearTimeout(t1); clearTimeout(t2); };
+  }, []);
+  return present;
+}
+
 export default function Nav({ onBook }) {
+  const brand = useBrand();
+  const navContent = useSiteContent('nav');
+  const present = usePresentSections();
+  const links = useMemo(
+    () => ALL_LINKS.filter((l) => present.has(l.id)).map((l) => ({
+      href: `#${l.id}`,
+      label: navContent[l.labelKey] || l.id,
+    })),
+    [present, navContent],
+  );
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState('');
@@ -42,7 +81,7 @@ export default function Nav({ onBook }) {
       if (el) io.observe(el);
     });
     return () => io.disconnect();
-  }, []);
+  }, [links]);
 
   useEffect(() => {
     document.body.style.overflow = open ? 'hidden' : '';
@@ -96,7 +135,7 @@ export default function Nav({ onBook }) {
 
           <div className="flex items-center gap-2">
             <a
-              href={`tel:${brand.phone.replace(/[^\d+]/g, '')}`}
+              href={telHref(brand.phone)}
               className="hidden items-center gap-2 rounded-full px-4 py-2 text-sm text-ink-2 transition-colors hover:text-ink md:inline-flex"
             >
               <Icon name="phone" size={15} />
@@ -104,7 +143,7 @@ export default function Nav({ onBook }) {
             </a>
             <Magnetic strength={0.2} className="hidden sm:block">
               <Button variant="glow" size="sm" icon="arrow" onClick={onBook}>
-                Book a session
+                {navContent.book_label}
               </Button>
             </Magnetic>
             <button
@@ -177,10 +216,10 @@ export default function Nav({ onBook }) {
                     onBook?.();
                   }}
                 >
-                  Book a session
+                  {navContent.book_label}
                 </Button>
                 <a
-                  href={`tel:${brand.phone.replace(/[^\d+]/g, '')}`}
+                  href={telHref(brand.phone)}
                   className="flex items-center justify-center gap-2 py-2 text-sm text-ink-2"
                 >
                   <Icon name="phone" size={15} />

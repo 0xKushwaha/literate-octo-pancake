@@ -5,6 +5,7 @@ import { breathingDefaults } from '../data/breathingDefaults';
 import { Section, SectionHeading, Stagger, staggerItem, EASE } from '../components/primitives';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useReducedMotion } from '../lib/hooks';
+import { useSiteContent } from '../lib/queries/siteContent';
 
 const PHASE_COLORS = {
   // One palette colour per phase, far enough apart to tell apart mid-exercise
@@ -178,6 +179,7 @@ function ExerciseCard({ exercise, onStart }) {
 }
 
 export default function Breathing() {
+  const content = useSiteContent('breathing');
   // Starts with the built-in set, so the section renders on first paint and
   // keeps working when the database is unreachable or has not been seeded.
   const [exercises, setExercises] = useState(breathingDefaults);
@@ -204,9 +206,9 @@ export default function Breathing() {
     <>
       <Section id="breathing" className="py-32 sm:py-44 lg:py-56">
         <SectionHeading
-          eyebrow="Breathe"
-          title="A moment, right now."
-          lead="Guided breathing exercises from our clinical team. Each session takes under five minutes."
+          eyebrow={content.eyebrow}
+          title={content.headline}
+          lead={content.lead}
         />
 
         <Stagger className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

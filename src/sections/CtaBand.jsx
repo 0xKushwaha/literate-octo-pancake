@@ -2,9 +2,12 @@ import { useRef } from 'react';
 import { motion, useScroll, useTransform } from 'motion/react';
 import { Button, Magnetic, Section, SplitWords } from '../components/primitives';
 import Icon from '../components/Icon';
-import { brand } from '../data/site';
+import { telHref, useBrand, useSiteContent } from '../lib/queries/siteContent';
 
 export default function CtaBand({ onBook }) {
+  const content = useSiteContent('cta');
+  const brand = useBrand();
+  const reassurances = Array.isArray(content.reassurances) ? content.reassurances : [];
   const ref = useRef(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] });
   const glowY = useTransform(scrollYProgress, [0, 1], ['30%', '-30%']);
@@ -27,46 +30,39 @@ export default function CtaBand({ onBook }) {
 
         <div className="relative">
           <h2 className="mx-auto max-w-[18ch] font-display text-[clamp(2.75rem,7vw,5.5rem)] leading-[1.02] tracking-[-0.03em]">
-            <SplitWords text="The hardest part is" />{' '}
+            <SplitWords text={content.headline} />{' '}
             <span className="text-aurora">
-              <SplitWords text="starting." delay={0.25} />
+              <SplitWords text={content.headline_accent} delay={0.25} />
             </span>
           </h2>
           <p className="mx-auto mt-7 max-w-[46ch] text-[17px] leading-relaxed text-ink-2">
-            Two minutes now, a matched therapist by tomorrow, a first session this week. You can
-            change your mind at any point in that sequence.
+            {content.body}
           </p>
 
           <div className="mt-11 flex flex-wrap items-center justify-center gap-3">
             <Magnetic strength={0.3}>
               <Button variant="glow" size="lg" icon="arrow" onClick={() => onBook?.()}>
-                Book your first session
+                {content.primary}
               </Button>
             </Magnetic>
             <Button
               variant="ghost"
               size="lg"
               as="a"
-              href={`tel:${brand.phone.replace(/[^\d+]/g, '')}`}
+              href={telHref(brand.phone)}
               iconLeft="phone"
             >
-              Or just call us
+              {content.secondary}
             </Button>
           </div>
 
           <p className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 font-mono text-[10.5px] uppercase tracking-[0.2em] text-ink-4">
-            <span className="flex items-center gap-2">
-              <Icon name="check" size={12} className="text-ink" />
-              Free 15-min intro call
-            </span>
-            <span className="flex items-center gap-2">
-              <Icon name="check" size={12} className="text-ink" />
-              Cancel any time
-            </span>
-            <span className="flex items-center gap-2">
-              <Icon name="check" size={12} className="text-ink" />
-              No card to browse
-            </span>
+            {reassurances.map((r, i) => (
+              <span key={`${r}-${i}`} className="flex items-center gap-2">
+                <Icon name="check" size={12} className="text-ink" />
+                {r}
+              </span>
+            ))}
           </p>
         </div>
       </div>

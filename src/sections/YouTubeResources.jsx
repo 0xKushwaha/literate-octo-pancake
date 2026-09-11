@@ -3,6 +3,8 @@ import { motion } from 'motion/react';
 import { listFeaturedVideos } from '../lib/queries/youtube';
 import { Section, SectionHeading, Stagger, staggerItem } from '../components/primitives';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { useSiteContent } from '../lib/queries/siteContent';
+import { notifySectionsChanged } from '../lib/sections';
 
 function formatDuration(sec) {
   if (!sec) return null;
@@ -66,26 +68,39 @@ function VideoCard({ video, onPlay }) {
 }
 
 export default function YouTubeResources() {
+  const content = useSiteContent('resources');
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [playing, setPlaying] = useState(null);
 
   useEffect(() => {
+    let alive = true;
     listFeaturedVideos(6)
-      .then(setVideos)
-      .catch(() => {})
-      .finally(() => setLoading(false));
+      .then((rows) => { if (alive) setVideos(rows ?? []); })
+      .catch((err) => {
+        if (alive) console.error('[lumen] could not load video resources', err);
+      })
+      .finally(() => {
+        if (!alive) return;
+        setLoading(false);
+        // The nav decides whether to show a "Videos" link based on whether
+        // this section is in the document — tell it once we know.
+        queueMicrotask(notifySectionsChanged);
+      });
+    return () => { alive = false; };
   }, []);
 
+  // No featured videos yet: the section hides itself. Add some from the admin
+  // (YouTube → Add video, tick "Featured") and it appears on the next load.
   if (!loading && videos.length === 0) return null;
 
   return (
     <>
       <Section id="resources" className="py-32 sm:py-44 lg:py-56">
         <SectionHeading
-          eyebrow="Watch"
-          title="Resources worth your time."
-          lead="Curated videos reviewed by our clinical team — on anxiety, sleep, relationships, and more."
+          eyebrow={content.eyebrow}
+          title={content.headline}
+          lead={content.lead}
         />
 
         {loading ? (

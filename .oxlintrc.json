@@ -18,5 +18,13 @@
   "env": {
     "browser": true,
     "es2024": true
-  }
+  },
+  "overrides": [
+    {
+      "files": ["api/**/*.js", "scripts/**/*.js", "vite.config.js", "vitest.config.js", "security.config.js", "seo.config.js"],
+      "env": {
+        "node": true
+      }
+    }
+  ]
 }

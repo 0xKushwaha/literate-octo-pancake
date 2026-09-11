@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { EASE } from './primitives';
-import { brand } from '../data/site';
+import { useBrand } from '../lib/queries/siteContent';
 
 /**
  * Holds the first paint just long enough for the WebGL scene to warm up,
@@ -9,6 +9,7 @@ import { brand } from '../data/site';
  * eases the remainder so it never stalls on a slow asset.
  */
 export default function Preloader({ onDone }) {
+  const brand = useBrand();
   const [progress, setProgress] = useState(0);
   const [gone, setGone] = useState(false);
 

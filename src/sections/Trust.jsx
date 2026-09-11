@@ -1,7 +1,11 @@
 import { Counter, Reveal, Section } from '../components/primitives';
-import { credentials, stats } from '../data/site';
+import { useBrand, useSiteContent } from '../lib/queries/siteContent';
 
 export default function Trust() {
+  const brand = useBrand();
+  const trust = useSiteContent('trust');
+  const credentials = Array.isArray(brand.credentials) ? brand.credentials : [];
+  const stats = Array.isArray(trust.stats) ? trust.stats : [];
   return (
     <div className="relative border-y border-line py-20 sm:py-28">
       {/* credential ticker */}
@@ -29,7 +33,7 @@ export default function Trust() {
                   className="absolute -left-4 top-0 hidden h-16 w-px bg-gradient-to-b from-rose-300/60 via-rose-400/30 to-transparent lg:block"
                 />
                 <dd className="font-display text-[clamp(2.75rem,5vw,4.25rem)] leading-none tracking-tight text-ink">
-                  <Counter value={s.value} decimals={s.decimals ?? 0} suffix={s.suffix} />
+                  <Counter value={Number(s.value) || 0} decimals={s.decimals ?? 0} suffix={s.suffix ?? ''} />
                 </dd>
                 <dt className="mt-3 max-w-[22ch] text-[13.5px] leading-snug text-ink-3">
                   {s.label}

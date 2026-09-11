@@ -2,13 +2,15 @@ import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Button, EASE } from './primitives';
 import Icon from './Icon';
-import { brand } from '../data/site';
+import { telHref, useBrand, useSiteContent } from '../lib/queries/siteContent';
 
 /**
  * Booking is the point of the site; on a phone the nav CTA is hidden behind a
  * menu, so surface it permanently once the hero has scrolled past.
  */
 export default function MobileBookBar({ onBook }) {
+  const brand = useBrand();
+  const booking = useSiteContent('booking');
   const [show, setShow] = useState(false);
 
   useEffect(() => {
@@ -36,14 +38,14 @@ export default function MobileBookBar({ onBook }) {
         >
           <div className="glass flex items-center gap-3 rounded-full p-2 pl-5 shadow-[var(--shadow-float)]">
             <a
-              href={`tel:${brand.phone.replace(/[^\d+]/g, '')}`}
+              href={telHref(brand.phone)}
               className="grid size-10 shrink-0 place-items-center rounded-full border border-line text-ink-2"
               aria-label={`Call ${brand.name}`}
             >
               <Icon name="phone" size={17} />
             </a>
             <Button variant="glow" size="md" icon="arrow" className="flex-1" onClick={onBook}>
-              Book a session
+              {booking.mobile_bar_label}
             </Button>
           </div>
         </motion.div>

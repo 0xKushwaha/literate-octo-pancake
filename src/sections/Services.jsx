@@ -1,6 +1,5 @@
 import { Pill, Section, SectionHeading, Stagger, StaggerItem, TiltCard } from '../components/primitives';
 import Icon from '../components/Icon';
-import { services as staticServices } from '../data/site';
 import { useSiteContent } from '../lib/queries/siteContent';
 
 const accentRing = {
@@ -18,25 +17,25 @@ const accentText = {
 };
 
 export default function Services({ onBook }) {
-  // Merge admin-editable blurbs over static defaults
-  const blurbs = useSiteContent('services', Object.fromEntries(
-    staticServices.map((s) => [`${s.id}_blurb`, s.blurb]),
-  ));
-  const services = staticServices.map((s) => ({
+  const content = useSiteContent('services');
+  // The card list itself is editable ("services.items"); the older per-card
+  // "<id>_blurb" keys are still honoured so nothing saved before this change
+  // is lost.
+  const services = (Array.isArray(content.items) ? content.items : []).map((s) => ({
     ...s,
-    blurb: blurbs[`${s.id}_blurb`] ?? s.blurb,
+    modalities: Array.isArray(s.modalities) ? s.modalities : [],
+    blurb: content[`${s.id}_blurb`] ?? s.blurb,
   }));
 
   return (
     <Section id="services" className="py-32 sm:py-44 lg:py-56">
       <div className="flex flex-col justify-between gap-10 lg:flex-row lg:items-end">
         <SectionHeading
-          eyebrow="What we treat"
-          title="Care built around the thing you actually came for."
+          eyebrow={content.eyebrow}
+          title={content.headline}
         />
         <p className="max-w-sm text-[15px] leading-relaxed text-ink-3 lg:pb-3">
-          Every clinician here specialises. You will not be handed to whoever happened to have a
-          Tuesday free.
+          {content.aside}
         </p>
       </div>
 
@@ -47,11 +46,11 @@ export default function Services({ onBook }) {
               <button
                 type="button"
                 onClick={() => onBook?.({ service: s.id })}
-                className={`group relative flex h-full w-full flex-col overflow-hidden rounded-4xl border border-line bg-surface p-7 text-left shadow-[var(--shadow-card)] transition-all duration-500 hover:-translate-y-1.5 hover:shadow-[var(--shadow-float)] sm:p-8 ${accentRing[s.accent]}`}
+                className={`group relative flex h-full w-full flex-col overflow-hidden rounded-4xl border border-line bg-surface p-7 text-left shadow-[var(--shadow-card)] transition-all duration-500 hover:-translate-y-1.5 hover:shadow-[var(--shadow-float)] sm:p-8 ${accentRing[s.accent] ?? accentRing.rose}`}
               >
                 <div className="flex items-start justify-between gap-4">
                   <span
-                    className={`grid size-11 place-items-center rounded-2xl border border-line bg-surface ${accentText[s.accent]}`}
+                    className={`grid size-11 place-items-center rounded-2xl border border-line bg-surface ${accentText[s.accent] ?? accentText.rose}`}
                   >
                     <Icon name={s.icon} size={20} />
                   </span>
@@ -67,7 +66,7 @@ export default function Services({ onBook }) {
 
                 <div className="mt-7 flex flex-wrap gap-1.5">
                   {s.modalities.map((m) => (
-                    <Pill key={m} tone={s.accent}>
+                    <Pill key={m} tone={accentRing[s.accent] ? s.accent : 'rose'}>
                       {m}
                     </Pill>
                   ))}

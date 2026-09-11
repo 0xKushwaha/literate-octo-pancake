@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase, isDemo } from '../supabase';
 import { demoSiteContent } from '../demoData';
 import { indexRows, isValidContentKey, mergeContent, sectionOf } from '../contentMerge';
+import { defaultsFor } from '../../data/contentSchema';
 
 export { shortKeyOf, sectionOf } from '../contentMerge';
 
@@ -119,8 +120,10 @@ export async function deleteContent(key) {
  * list in `defaults` — otherwise a field added in the admin panel would be
  * editable but have no effect on the site, which is worse than not offering it.
  */
-export function useSiteContent(section, defaults = {}) {
-  const [content, setContent] = useState(defaults);
+export function useSiteContent(section, overrides = null) {
+  // Defaults come from the shared schema so a component never has to repeat
+  // them; `overrides` is for the rare caller that needs extra ad-hoc keys.
+  const [content, setContent] = useState(() => ({ ...defaultsFor(section), ...(overrides ?? {}) }));
 
   useEffect(() => {
     let active = true;
@@ -146,4 +149,18 @@ export function useSiteContent(section, defaults = {}) {
   }, [section]);
 
   return content;
+}
+
+/**
+ * Brand details (name, phone, email, address, crisis line) merged over the
+ * static defaults — used by every component that shows contact information so
+ * changing the phone number in the admin changes it everywhere at once.
+ */
+export function useBrand() {
+  return useSiteContent('brand');
+}
+
+/** `tel:` href for a display phone number. */
+export function telHref(phone) {
+  return `tel:${String(phone ?? '').replace(/[^\d+]/g, '')}`;
 }
