@@ -656,7 +656,7 @@ function SuccessStep({ reference, form, therapist, onClose }) {
 /* ------------------------------------------------------------------ shell */
 
 export default function BookingDialog({ open, onClose, prefill, openerRef }) {
-  const { copy } = useBookingOptions();
+  const { copy, STEPS } = useBookingOptions();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState(() => ({ ...emptyForm, ...(loadDraft() ?? {}) }));
   const [errors, setErrors] = useState({});
