@@ -9,6 +9,9 @@ import { useBrandTheme } from '../lib/theme';
 
 const CommandPalette = lazy(() => import('../components/CommandPalette'));
 
+/** Height of the sticky nav, so an anchored section is not hidden behind it. */
+const NAV_OFFSET = 88;
+
 /**
  * Shared chrome for every public page: nav, footer, mobile book bar, the
  * booking dialog (via context) and the Cmd-K palette. Pages render in the
@@ -38,6 +41,11 @@ function Shell() {
    * header photo decodes — and puts the page back at the top. So this polls
    * until the target is actually in place (or the window expires), and gives
    * up the moment the visitor scrolls themselves.
+   *
+   * It sets scrollTop directly rather than calling scrollIntoView: `html` has
+   * `scroll-behavior: smooth`, which turns scrollIntoView into an animation
+   * that the next poll restarts and the browser's restoration can cancel
+   * outright — the reason an anchor landed on some pages and not others.
    */
   useEffect(() => {
     const id = hash ? hash.slice(1) : '';
@@ -56,9 +64,9 @@ function Shell() {
       const el = document.getElementById(id);
       if (el) {
         const top = el.getBoundingClientRect().top;
-        // Anything within a nav's height of the top counts as arrived.
-        if (Math.abs(top) < 120) return;
-        el.scrollIntoView({ behavior: 'auto', block: 'start' });
+        // Anything within a few pixels of the sticky nav counts as arrived.
+        if (Math.abs(top - NAV_OFFSET) < 8) return;
+        document.documentElement.scrollTop = Math.max(0, top + window.scrollY - NAV_OFFSET);
       }
       if (performance.now() < deadline) raf = requestAnimationFrame(tick);
     };
