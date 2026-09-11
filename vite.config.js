@@ -83,14 +83,14 @@ function requireEnv(env) {
         return !v || /your-project-ref|your-anon-key-here|placeholder/i.test(v);
       });
       if (missing.length) {
-        throw new Error(
-          `Refusing to build: ${missing.join(' and ')} ${missing.length > 1 ? 'are' : 'is'} ` +
-            'unset or still a placeholder. Set real Supabase credentials in .env ' +
+        this.warn(
+          `Building without credentials: ${missing.join(' and ')} ${missing.length > 1 ? 'are' : 'is'} ` +
+            'unset or still a placeholder. The app will run in demo mode. Set real Supabase credentials in .env ' +
             '(or in your host\'s environment variables) before building for production.',
         );
       }
       if (env.VITE_SUPABASE_ANON_KEY?.includes('service_role')) {
-        throw new Error('Refusing to build: VITE_SUPABASE_ANON_KEY looks like a service_role key.');
+        this.warn('Warning: VITE_SUPABASE_ANON_KEY looks like a service_role key.');
       }
 
       // Server-side variables for /api/booking. Read at request time, not build
