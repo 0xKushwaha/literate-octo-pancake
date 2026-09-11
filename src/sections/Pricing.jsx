@@ -1,4 +1,4 @@
-import { Button, Pill, Reveal, Section, SectionHeading } from '../components/primitives';
+import { Button, Pill, Reveal, Section, SectionHeading, sectionPad } from '../components/primitives';
 import Icon from '../components/Icon';
 import { useSiteContent } from '../lib/queries/siteContent';
 
@@ -13,7 +13,7 @@ export default function Pricing({ onBook, withHeading = true }) {
   }));
 
   return (
-    <Section id="pricing" className="py-16 sm:py-24">
+    <Section id="pricing" className={sectionPad(withHeading)}>
       {withHeading && (
         <SectionHeading
           eyebrow={content.eyebrow}

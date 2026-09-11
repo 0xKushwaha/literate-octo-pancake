@@ -1,4 +1,4 @@
-import { MoreLink, Pill, Section, SectionHeading, Stagger, StaggerItem } from '../components/primitives';
+import { MoreLink, Pill, Section, SectionHeading, Stagger, StaggerItem, sectionPad } from '../components/primitives';
 import Icon from '../components/Icon';
 import { useSiteContent } from '../lib/queries/siteContent';
 
@@ -21,7 +21,7 @@ export default function Services({ onBook, limit, teaser = false, withHeading = 
 
   return (
     <div className={teaser ? '' : 'bg-surface-2/60'}>
-      <Section id="services" className={teaser ? 'py-20 sm:py-24' : 'py-16 sm:py-24'}>
+      <Section id="services" className={teaser ? 'py-20 sm:py-24' : sectionPad(withHeading)}>
         {withHeading && (
           <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
             <SectionHeading eyebrow={content.eyebrow} title={content.headline} />

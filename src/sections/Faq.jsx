@@ -1,4 +1,4 @@
-import { Section, SectionHeading } from '../components/primitives';
+import { Section, SectionHeading, sectionPad } from '../components/primitives';
 import {
   Accordion,
   AccordionContent,
@@ -19,7 +19,7 @@ export default function Faq({ withHeading = true }) {
   const brand = useBrand();
   const faqs = useFaqs(Array.isArray(content.fallback_items) ? content.fallback_items : []);
   return (
-    <Section id="faq" className="py-16 sm:py-24">
+    <Section id="faq" className={sectionPad(withHeading)}>
       <div className="grid gap-10 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-16">
         <div className="lg:sticky lg:top-28 lg:h-fit">
           {withHeading && <SectionHeading eyebrow={content.eyebrow} title={content.headline} />}

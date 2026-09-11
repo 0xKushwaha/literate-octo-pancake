@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { listActiveExercises } from '../lib/queries/breathing';
 import { breathingDefaults } from '../data/breathingDefaults';
-import { Section, SectionHeading, Stagger, StaggerItem } from '../components/primitives';
+import { Section, SectionHeading, Stagger, StaggerItem, sectionPad } from '../components/primitives';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useReducedMotion } from '../lib/hooks';
 import { useSiteContent } from '../lib/queries/siteContent';
@@ -197,7 +197,7 @@ export default function Breathing({ withHeading = true, tinted = true }) {
   return (
     <>
       <div className={tinted ? 'bg-surface-2/60' : ''}>
-      <Section id="breathing" className="py-16 sm:py-24">
+      <Section id="breathing" className={sectionPad(withHeading)}>
         {withHeading && (
           <SectionHeading eyebrow={content.eyebrow} title={content.headline} lead={content.lead} />
         )}

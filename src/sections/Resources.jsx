@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getLatestArticles, getArticleBySlug } from '../lib/queries/articles';
 import { listFeaturedVideos } from '../lib/queries/youtube';
-import { MoreLink, Section, SectionHeading, Stagger, StaggerItem } from '../components/primitives';
+import { MoreLink, Section, SectionHeading, Stagger, StaggerItem, sectionPad } from '../components/primitives';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { sanitizeHtml } from '../lib/sanitizeHtml';
 import { useSiteContent } from '../lib/queries/siteContent';
@@ -180,7 +180,7 @@ export default function Resources({ withHeading = true, videoLimit = 6, articleL
 
   return (
     <>
-      <Section id="resources" className="py-16 sm:py-24">
+      <Section id="resources" className={sectionPad(withHeading)}>
         {withHeading && <SectionHeading eyebrow={content.eyebrow} title={content.headline} lead={content.lead} />}
 
         {loading ? (

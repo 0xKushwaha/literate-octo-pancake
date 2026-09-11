@@ -1,4 +1,4 @@
-import { MoreLink, Section, SectionHeading, Stagger, StaggerItem } from '../components/primitives';
+import { MoreLink, Section, SectionHeading, Stagger, StaggerItem, sectionPad } from '../components/primitives';
 import { useSiteContent } from '../lib/queries/siteContent';
 import Icon from '../components/Icon';
 
@@ -11,7 +11,7 @@ export default function Approach({ teaser = false, withHeading = true }) {
 
   return (
     <div className={teaser ? 'bg-surface-2/60' : ''}>
-      <Section id="approach" className={teaser ? 'py-20 sm:py-24' : 'py-16 sm:py-24'}>
+      <Section id="approach" className={teaser ? 'py-20 sm:py-24' : sectionPad(withHeading)}>
         {withHeading && (
           <SectionHeading eyebrow={content.eyebrow} title={content.headline} lead={content.lead} align="center" />
         )}

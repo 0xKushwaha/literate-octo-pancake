@@ -256,21 +256,30 @@ export function Photo({ src, alt = '', ratio = '4 / 3', className = '', priority
   );
 }
 
-/** Split header for every subpage: copy on the left, photo on the right. */
+/**
+ * Split header for every subpage: copy on the left, photo on the right.
+ * The display size is capped well below the homepage's so a long headline
+ * (they are all CMS fields) wraps to two or three lines, not five.
+ */
 export function PageHeader({ eyebrow, title, lead, image, imageAlt = '', children }) {
   return (
     <div className="backdrop-soft">
-      <Section className="grid items-center gap-10 py-14 sm:py-20 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-16">
+      <Section className="grid items-center gap-10 py-12 sm:py-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-14">
         <div>
           {eyebrow && <Eyebrow>{eyebrow}</Eyebrow>}
-          <h1 className="mt-4 font-display text-[clamp(2.4rem,5.5vw,4.4rem)] leading-[1.04] tracking-[-0.02em] text-ink">{title}</h1>
-          {lead && <p className="mt-5 max-w-[52ch] text-[17px] leading-relaxed text-ink-2">{lead}</p>}
-          {children && <div className="mt-8 flex flex-wrap items-center gap-3">{children}</div>}
+          <h1 className="mt-4 font-display text-[clamp(2.1rem,4.2vw,3.4rem)] leading-[1.06] tracking-[-0.02em] text-ink">{title}</h1>
+          {lead && <p className="mt-5 max-w-[52ch] text-[16.5px] leading-relaxed text-ink-2">{lead}</p>}
+          {children && <div className="mt-7 flex flex-wrap items-center gap-3">{children}</div>}
         </div>
-        <Photo src={image} alt={imageAlt} ratio="5 / 4" priority />
+        <Photo src={image} alt={imageAlt} ratio="4 / 3" priority />
       </Section>
     </div>
   );
+}
+
+/** Vertical rhythm for a section: tighter when a PageHeader sits right above it. */
+export function sectionPad(withHeading) {
+  return withHeading ? 'py-16 sm:py-24' : 'pb-16 pt-10 sm:pb-24 sm:pt-12';
 }
 
 /** "See everything →" link used under each homepage teaser. */

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Button, MoreLink, Pill, Section, SectionHeading } from '../components/primitives';
+import { Button, MoreLink, Pill, Section, SectionHeading, sectionPad } from '../components/primitives';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import Avatar from '../components/Avatar';
 import Icon from '../components/Icon';
@@ -37,7 +37,7 @@ export default function Therapists({ onBook, limit, teaser = false, withHeading 
   }, [filter, therapists, limit]);
 
   return (
-    <Section id="therapists" className={teaser ? 'py-20 sm:py-24' : 'py-16 sm:py-24'}>
+    <Section id="therapists" className={teaser ? 'py-20 sm:py-24' : sectionPad(withHeading)}>
       {withHeading && (
         <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
           <SectionHeading eyebrow={content.eyebrow} title={content.headline} lead={teaser ? null : content.lead} />
