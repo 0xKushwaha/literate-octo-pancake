@@ -175,13 +175,14 @@ export const CONTENT_SCHEMA = [
   f('hero.match_badge', 'Badge on the card over the photo', 'Matched in 1 day'),
 
   // ── Trust / stats ─────────────────────────────────────────────────────────
-  f('trust.stats', 'The four numbers', stats, LIST, 'The strip under the hero. Each number counts up when it scrolls into view.', {
+  f('trust.stats', 'The four numbers', stats, LIST, 'The strip under the hero — 14,200+ Sessions held, 4.9/5 Average client rating, 36h Median wait, 92% Still in care. Each one counts up as it scrolls into view.', {
     itemLabel: 'Number',
+    summaryKey: 'label',
     fields: [
-      { key: 'value', label: 'Number', type: 'number', hint: 'Digits only — 14200, not "14,200"' },
-      { key: 'suffix', label: 'Suffix', type: 'text', hint: 'e.g. +, %, h, /5' },
-      { key: 'decimals', label: 'Decimal places', type: 'number' },
       { key: 'label', label: 'Caption underneath', type: 'text' },
+      { key: 'value', label: 'The number itself', type: 'number', hint: 'Digits only — 14200, not "14,200". The comma is added for you.' },
+      { key: 'suffix', label: 'Suffix', type: 'text', hint: 'e.g. +, %, h, /5' },
+      { key: 'decimals', label: 'Decimal places', type: 'number', hint: '0 for 36, 1 for 4.9' },
     ],
   }),
 
@@ -191,6 +192,7 @@ export const CONTENT_SCHEMA = [
   f('heard.footnote', 'Line under the quotes (homepage only)', 'We built the practice around exactly these. Here is how.'),
   f('heard.items', 'Quotes', HEARD_ITEMS, LIST, 'The homepage shows the first three; the How it works page shows all of them.', {
     itemLabel: 'Quote',
+    summaryKey: 'quote',
     fields: [
       { key: 'quote', label: 'What they said', type: 'richtext' },
       { key: 'name', label: 'Attribution', type: 'text', hint: 'e.g. "R., 31"' },
@@ -206,6 +208,7 @@ export const CONTENT_SCHEMA = [
   f('approach.header_cta', 'Button in the page header', 'Start the intake'),
   f('approach.steps', 'Steps', process, LIST, 'Four cards in a row. Add or remove and the row re-flows.', {
     itemLabel: 'Step',
+    summaryKey: 'title',
     fields: [
       { key: 'step', label: 'Number', type: 'text', hint: 'e.g. 01' },
       { key: 'title', label: 'Title', type: 'text' },
@@ -219,6 +222,7 @@ export const CONTENT_SCHEMA = [
   f('why.headline', 'Headline', 'What makes it hold together.'),
   f('why.items', 'Cards', WHY_ITEMS, LIST, null, {
     itemLabel: 'Card',
+    summaryKey: 'title',
     fields: [
       { key: 'icon', label: 'Icon', type: 'icon' },
       { key: 'title', label: 'Title', type: 'text' },
@@ -249,6 +253,7 @@ export const CONTENT_SCHEMA = [
   f('services.aside', 'Side note', 'Every clinician here specialises. You will not be handed to whoever happened to have a Tuesday free.', 'richtext'),
   f('services.items', 'Service cards', services, LIST, 'These also fill the Care menu in the navigation and the booking form.', {
     itemLabel: 'Service',
+    summaryKey: 'name',
     fields: [
       { key: 'name', label: 'Name', type: 'text' },
       { key: 'blurb', label: 'Description', type: 'richtext' },
@@ -268,6 +273,7 @@ export const CONTENT_SCHEMA = [
   f('therapists.home_cta', 'Homepage "meet everyone" link', 'Meet the whole team'),
   f('therapists.items', 'Therapist cards', therapists, LIST, null, {
     itemLabel: 'Therapist',
+    summaryKey: 'name',
     fields: [
       { key: 'name', label: 'Name', type: 'text' },
       { key: 'credentials', label: 'Credentials', type: 'text', hint: 'e.g. PsyD, Clinical Psychologist' },
@@ -309,6 +315,7 @@ export const CONTENT_SCHEMA = [
   f('testimonials.headline', 'Headline', 'The part that is hard to put in a brochure.'),
   f('testimonials.items', 'Quotes', testimonials, LIST, null, {
     itemLabel: 'Testimonial',
+    summaryKey: 'quote',
     fields: [
       { key: 'quote', label: 'Quote', type: 'richtext' },
       { key: 'name', label: 'Name', type: 'text' },
@@ -340,6 +347,7 @@ export const CONTENT_SCHEMA = [
   f('pricing.image_url', 'Pricing page photo (URL)', IMAGES.pricing),
   f('pricing.plans', 'Plans', plans, LIST, null, {
     itemLabel: 'Plan',
+    summaryKey: 'name',
     fields: [
       { key: 'name', label: 'Plan name', type: 'text' },
       { key: 'blurb', label: 'One-line description', type: 'text' },
@@ -360,6 +368,7 @@ export const CONTENT_SCHEMA = [
   f('faq.aside', 'Side card text', 'Still unsure? Talk to a real person — no intake form, no obligation.', 'richtext'),
   f('faq.fallback_items', 'Fallback questions', faqs, LIST, 'Only shown while nothing is published under FAQs in the sidebar — use that page instead for day-to-day edits.', {
     itemLabel: 'Question',
+    summaryKey: 'q',
     fields: [
       { key: 'q', label: 'Question', type: 'text' },
       { key: 'a', label: 'Answer', type: 'richtext' },
@@ -396,6 +405,7 @@ export const CONTENT_SCHEMA = [
   f('booking.submit', 'Final submit button', 'Confirm booking'),
   f('booking.formats', 'How they can meet', BOOKING_FORMATS, LIST, 'The three options on the Format step.', {
     itemLabel: 'Format',
+    summaryKey: 'label',
     fields: [
       { key: 'label', label: 'Label', type: 'text' },
       { key: 'note', label: 'Note underneath', type: 'text' },
@@ -405,6 +415,7 @@ export const CONTENT_SCHEMA = [
   }),
   f('booking.who', 'Who the session is for', BOOKING_WHO, LIST, null, {
     itemLabel: 'Option',
+    summaryKey: 'label',
     fields: [
       { key: 'label', label: 'Label', type: 'text' },
       { key: 'id', label: 'Internal id', type: 'text', advanced: true },
@@ -412,6 +423,7 @@ export const CONTENT_SCHEMA = [
   }),
   f('booking.cadence', 'How often, to start', BOOKING_CADENCE, LIST, null, {
     itemLabel: 'Option',
+    summaryKey: 'label',
     fields: [
       { key: 'label', label: 'Label', type: 'text' },
       { key: 'note', label: 'Note underneath', type: 'text' },
@@ -422,6 +434,7 @@ export const CONTENT_SCHEMA = [
   f('booking.insurers', 'Insurers in the dropdown', INSURERS, LIST, null, strings('Insurer')),
   f('booking.steps', 'The six steps', BOOKING_STEPS, LIST, 'The heading and the line under it on each step of the form.', {
     itemLabel: 'Step',
+    summaryKey: 'title',
     fields: [
       { key: 'label', label: 'Name in the progress line', type: 'text' },
       { key: 'title', label: 'Heading', type: 'text' },

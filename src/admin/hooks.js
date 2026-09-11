@@ -81,9 +81,21 @@ export function useEscape(onEscape, enabled = true) {
 }
 
 /**
+ * Strips the punctuation that separates what someone reads from what is
+ * stored. The site shows "14,200+" because the number is formatted for
+ * display; the stored value is 14200, so a literal search for what is on
+ * screen would find nothing.
+ */
+const loosen = (s) => String(s).toLowerCase().replace(/[\s,.\-_/+%$'"“”’]/g, '');
+
+/**
  * Client-side search across the given fields. Every admin list is small enough
  * (tens to low hundreds of rows) that filtering in memory beats a round trip,
  * and it stays responsive while typing.
+ *
+ * Two passes: an exact substring match, and — only if that finds nothing — a
+ * punctuation-insensitive one, so searching for text copied off the site still
+ * lands on the field that produces it.
  */
 export function useSearch(rows, fields) {
   const [query, setQuery] = useState('');
@@ -91,14 +103,21 @@ export function useSearch(rows, fields) {
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return rows;
-    return rows.filter((row) =>
-      fields.some((f) => {
+
+    const haystack = (row) => fields
+      .map((f) => {
         const v = row[f];
-        if (v == null) return false;
-        if (Array.isArray(v)) return v.join(' ').toLowerCase().includes(q);
-        return String(v).toLowerCase().includes(q);
-      }),
-    );
+        if (v == null) return '';
+        return Array.isArray(v) ? v.join(' ') : String(v);
+      })
+      .join(' ');
+
+    const exact = rows.filter((row) => haystack(row).toLowerCase().includes(q));
+    if (exact.length) return exact;
+
+    const loose = loosen(q);
+    if (!loose) return exact;
+    return rows.filter((row) => loosen(haystack(row)).includes(loose));
   }, [rows, fields, query]);
 
   return { query, setQuery, filtered };

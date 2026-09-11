@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 import { deleteContent, getAllContent, upsertContent } from '../../lib/queries/siteContent';
 import { parseJsonValue, stringifyContentValue } from '../../lib/contentMerge';
@@ -29,12 +29,19 @@ function validateJson(text, defaultValue) {
   return null;
 }
 
-/** A one-line summary of a list item, for the collapsed row header. */
+/**
+ * A one-line summary of a list item, for the collapsed row header.
+ *
+ * It prefers the field the schema names as `summaryKey`, so a stat reads
+ * "Sessions held" rather than "14200" — the caption is what someone scanning
+ * the page is looking for, not the number.
+ */
 function itemSummary(item, spec) {
   if (typeof item === 'string') return item;
   if (!item || typeof item !== 'object') return '';
+  const named = spec?.summaryKey && item[spec.summaryKey];
   const first = (spec?.fields ?? []).find((f) => !f.advanced && item[f.key] != null && item[f.key] !== '');
-  const value = first ? item[first.key] : Object.values(item)[0];
+  const value = named || (first ? item[first.key] : Object.values(item)[0]);
   return Array.isArray(value) ? value.join(', ') : String(value ?? '');
 }
 
@@ -50,7 +57,9 @@ function blankItem(spec) {
 /* ------------------------------------------------------------- item fields */
 
 function ItemField({ field, value, onChange }) {
-  const id = `f-${field.key}-${Math.random().toString(36).slice(2, 7)}`;
+  // A stable id per input: a fresh random one on every render would relabel the
+  // field mid-keystroke.
+  const id = useId();
   const common = { id, className: inputBase };
 
   return (
@@ -95,7 +104,7 @@ function ItemField({ field, value, onChange }) {
  * add, remove and reorder, and any key the schema does not describe is carried
  * through untouched so nothing is lost.
  */
-function ListEditor({ spec, items, onChange }) {
+function ListEditor({ spec, items, onChange, expandAll = false }) {
   const [open, setOpen] = useState(() => new Set([0]));
   const isStrings = spec.itemType === 'string';
   const toggle = (i) => setOpen((prev) => {
@@ -135,7 +144,7 @@ function ListEditor({ spec, items, onChange }) {
   return (
     <div className="flex flex-col gap-2">
       {items.map((item, i) => {
-        const isOpen = open.has(i);
+        const isOpen = expandAll || open.has(i);
         return (
           <div key={i} className="rounded-xl border border-gray-200 bg-gray-50/60">
             <div className="flex items-center gap-2 px-3 py-2">
@@ -206,7 +215,7 @@ function AddButton({ onClick, label }) {
 
 /* --------------------------------------------------------------- field row */
 
-function ContentRow({ item, onSave, onReset }) {
+function ContentRow({ item, onSave, onReset, expandAll = false }) {
   const saved = item.value ?? '';
   const [value, setValue] = useState(saved);
   const [seen, setSeen] = useState(saved);
@@ -306,6 +315,7 @@ function ContentRow({ item, onSave, onReset }) {
           <ListEditor
             spec={item}
             items={listItems}
+            expandAll={expandAll}
             onChange={(next) => setValue(JSON.stringify(next, null, 2))}
           />
         )
@@ -412,7 +422,9 @@ export default function AdminContent() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
-  const [openPage, setOpenPage] = useState('everywhere');
+  // Open by default. 187 fields is a long page, but a collapsed group is a
+  // field nobody finds — and the search jumps straight to a match anyway.
+  const [closedPages, setClosedPages] = useState(() => new Set());
 
   useEffect(() => {
     let active = true;
@@ -493,13 +505,17 @@ export default function AdminContent() {
       ) : (
         <div className="space-y-3">
           {grouped.map(([page, sections]) => {
-            const isOpen = searching || openPage === page;
+            const isOpen = searching || !closedPages.has(page);
             const count = sections.reduce((n, [, list]) => n + list.length, 0);
             return (
               <Panel key={page}>
                 <button
                   type="button"
-                  onClick={() => setOpenPage(isOpen && !searching ? null : page)}
+                  onClick={() => setClosedPages((prev) => {
+                    const next = new Set(prev);
+                    if (next.has(page)) next.delete(page); else next.add(page);
+                    return next;
+                  })}
                   aria-expanded={isOpen}
                   className="flex w-full items-center gap-3 px-5 py-4 text-left"
                 >
@@ -523,7 +539,7 @@ export default function AdminContent() {
                         </h3>
                         <div className="px-5">
                           {list.map((item) => (
-                            <ContentRow key={item.key} item={item} onSave={handleSave} onReset={handleReset} />
+                            <ContentRow key={item.key} item={item} onSave={handleSave} onReset={handleReset} expandAll={searching} />
                           ))}
                         </div>
                       </section>
