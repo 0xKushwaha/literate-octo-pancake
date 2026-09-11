@@ -14,16 +14,16 @@ import { useFaqs } from '../lib/queries/faqs';
  * focus with Up/Down/Home/End across the triggers, and wires
  * aria-expanded / aria-controls / role=region for us.
  */
-export default function Faq() {
+export default function Faq({ withHeading = true }) {
   const content = useSiteContent('faq');
   const brand = useBrand();
   const faqs = useFaqs(Array.isArray(content.fallback_items) ? content.fallback_items : []);
   return (
-    <Section id="faq" className="py-24 sm:py-32">
-      <div className="grid gap-14 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-20">
-        <div className="lg:sticky lg:top-24 lg:h-fit">
-          <SectionHeading eyebrow={content.eyebrow} title={content.headline} />
-          <div className="mt-10 rounded-3xl border border-line bg-surface p-6 shadow-[var(--shadow-card)]">
+    <Section id="faq" className="py-16 sm:py-24">
+      <div className="grid gap-10 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-16">
+        <div className="lg:sticky lg:top-28 lg:h-fit">
+          {withHeading && <SectionHeading eyebrow={content.eyebrow} title={content.headline} />}
+          <div className="mt-8 rounded-3xl border border-line bg-surface p-6 shadow-[var(--shadow-card)]">
             <p className="text-[14.5px] leading-relaxed text-ink-3">
               {content.aside}
             </p>
@@ -45,8 +45,8 @@ export default function Faq() {
         >
           {faqs.map((f, i) => (
             <AccordionItem key={`${f.q}-${i}`} value={`faq-${i}`} className="border-b border-line">
-              <AccordionTrigger className="py-7">
-                <span className="font-display text-[clamp(1.15rem,2.2vw,1.6rem)] leading-snug tracking-tight text-ink-2 transition-colors duration-300 group-hover:text-ink group-data-[state=open]:text-ink">
+              <AccordionTrigger className="py-6">
+                <span className="font-display text-[clamp(1.1rem,1.9vw,1.4rem)] leading-snug tracking-tight text-ink-2 transition-colors duration-300 group-hover:text-ink group-data-[state=open]:text-ink">
                   {f.q}
                 </span>
                 <span

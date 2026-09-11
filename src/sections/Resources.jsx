@@ -2,11 +2,10 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getLatestArticles, getArticleBySlug } from '../lib/queries/articles';
 import { listFeaturedVideos } from '../lib/queries/youtube';
-import { Section, SectionHeading, Stagger, StaggerItem } from '../components/primitives';
+import { MoreLink, Section, SectionHeading, Stagger, StaggerItem } from '../components/primitives';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { sanitizeHtml } from '../lib/sanitizeHtml';
 import { useSiteContent } from '../lib/queries/siteContent';
-import { notifySectionsChanged } from '../lib/sections';
 import Icon from '../components/Icon';
 
 function formatDuration(sec) {
@@ -132,11 +131,10 @@ function ArticleReader({ article, onClose }) {
 /* ---------------------------------------------------------------- section */
 
 /**
- * Videos and articles together, so the nav has one "Resources" link instead of
- * two that come and go. Hidden entirely until at least one of the two has
- * something published; the nav is told either way.
+ * Featured videos and the latest articles. Used as a teaser nowhere and as the
+ * body of /resources, which is where the nav's Resources menu points.
  */
-export default function Resources() {
+export default function Resources({ withHeading = true, videoLimit = 6, articleLimit = 3, teaser = false, showEmpty = false }) {
   const content = useSiteContent('resources');
   const blogContent = useSiteContent('blog');
   const [videos, setVideos] = useState([]);
@@ -148,7 +146,7 @@ export default function Resources() {
 
   useEffect(() => {
     let alive = true;
-    Promise.allSettled([listFeaturedVideos(6), getLatestArticles(3)])
+    Promise.allSettled([listFeaturedVideos(videoLimit), getLatestArticles(articleLimit)])
       .then(([v, a]) => {
         if (!alive) return;
         if (v.status === 'fulfilled') setVideos(v.value ?? []);
@@ -156,13 +154,9 @@ export default function Resources() {
         if (a.status === 'fulfilled') setArticles(a.value ?? []);
         else console.error('[lumen] could not load articles', a.reason);
       })
-      .finally(() => {
-        if (!alive) return;
-        setLoading(false);
-        queueMicrotask(notifySectionsChanged);
-      });
+      .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
-  }, []);
+  }, [videoLimit, articleLimit]);
 
   const openArticle = async (article) => {
     if (article.content) { setActiveArticle(article); return; }
@@ -180,12 +174,14 @@ export default function Resources() {
 
   const hasVideos = videos.length > 0;
   const hasArticles = articles.length > 0;
-  if (!loading && !hasVideos && !hasArticles) return null;
+  // The homepage hides itself when there is nothing; the Resources page says
+  // so instead, because an empty page with no explanation looks broken.
+  if (!loading && !hasVideos && !hasArticles && !showEmpty) return null;
 
   return (
     <>
-      <Section id="resources" className="py-24 sm:py-32">
-        <SectionHeading eyebrow={content.eyebrow} title={content.headline} lead={content.lead} />
+      <Section id="resources" className="py-16 sm:py-24">
+        {withHeading && <SectionHeading eyebrow={content.eyebrow} title={content.headline} lead={content.lead} />}
 
         {loading ? (
           <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -195,24 +191,28 @@ export default function Resources() {
           </div>
         ) : (
           <>
-            {hasVideos && (
-              <div className="mt-12">
-                <h3 className="flex items-center gap-2 text-[13px] font-medium uppercase tracking-[0.18em] text-ink-3">
+            {(hasVideos || showEmpty) && (
+              <div id="videos" className={`scroll-mt-28 ${withHeading ? 'mt-12' : ''}`}>
+                <h3 className="flex items-center gap-2 text-[13px] font-semibold uppercase tracking-[0.12em] text-ink-3">
                   <Icon name="play" size={13} />
                   {content.videos_title}
                 </h3>
-                <Stagger className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {videos.map((v) => (
-                    <VideoCard key={v.id} video={v} onPlay={setPlaying} />
-                  ))}
-                </Stagger>
+                {hasVideos ? (
+                  <Stagger className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {videos.map((v) => (
+                      <VideoCard key={v.id} video={v} onPlay={setPlaying} />
+                    ))}
+                  </Stagger>
+                ) : (
+                  <p className="mt-4 text-[15px] text-ink-3">{content.videos_empty}</p>
+                )}
               </div>
             )}
 
-            {hasArticles && (
-              <div className="mt-14">
+            {(hasArticles || showEmpty) && (
+              <div id="articles" className="mt-14 scroll-mt-28">
                 <div className="flex items-end justify-between gap-4">
-                  <h3 className="flex items-center gap-2 text-[13px] font-medium uppercase tracking-[0.18em] text-ink-3">
+                  <h3 className="flex items-center gap-2 text-[13px] font-semibold uppercase tracking-[0.12em] text-ink-3">
                     <Icon name="message" size={13} />
                     {content.articles_title}
                   </h3>
@@ -221,14 +221,24 @@ export default function Resources() {
                     <Icon name="arrow" size={13} />
                   </Link>
                 </div>
-                <Stagger className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {articles.map((a) => (
-                    <ArticleCard key={a.id} article={a} onClick={openArticle} />
-                  ))}
-                </Stagger>
+                {hasArticles ? (
+                  <Stagger className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {articles.map((a) => (
+                      <ArticleCard key={a.id} article={a} onClick={openArticle} />
+                    ))}
+                  </Stagger>
+                ) : (
+                  <p className="mt-4 text-[15px] text-ink-3">{content.articles_empty}</p>
+                )}
               </div>
             )}
           </>
+        )}
+
+        {teaser && (hasVideos || hasArticles) && (
+          <div className="mt-10 flex justify-center">
+            <MoreLink to="/resources">All videos and articles</MoreLink>
+          </div>
         )}
       </Section>
 

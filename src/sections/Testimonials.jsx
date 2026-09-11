@@ -2,18 +2,18 @@ import { Section, SectionHeading, Stagger, StaggerItem } from '../components/pri
 import Icon from '../components/Icon';
 import { useSiteContent } from '../lib/queries/siteContent';
 
-export default function Testimonials() {
+export default function Testimonials({ limit = 6 }) {
   const content = useSiteContent('testimonials');
   const testimonials = Array.isArray(content.items) ? content.items : [];
   if (testimonials.length === 0) return null;
 
   return (
     <div className="bg-surface-2/60">
-      <Section id="testimonials" className="py-24 sm:py-32">
+      <Section id="testimonials" className="py-20 sm:py-24">
         <SectionHeading eyebrow={content.eyebrow} title={content.headline} align="center" />
 
         <Stagger className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" step={0.06}>
-          {testimonials.slice(0, 6).map((t, i) => (
+          {testimonials.slice(0, limit).map((t, i) => (
             <StaggerItem
               key={`${t.name}-${i}`}
               as="figure"

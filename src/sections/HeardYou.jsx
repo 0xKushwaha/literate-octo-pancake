@@ -2,19 +2,20 @@ import { Reveal, Section, SectionHeading, Stagger, StaggerItem } from '../compon
 import { useSiteContent } from '../lib/queries/siteContent';
 
 const TILTS = ['-rotate-1', 'rotate-1', '-rotate-[0.5deg]', 'rotate-[0.75deg]', '-rotate-1'];
-const TONES = ['bg-rose-100', 'bg-surface', 'bg-peach-100', 'bg-surface', 'bg-blush-100'];
+const TONES = ['bg-rose-100', 'bg-surface', 'bg-surface-3', 'bg-surface', 'bg-rose-100'];
 
 /**
  * First-person reasons people delay therapy, in their words. The section
  * that follows (Services) answers them one by one.
  */
-export default function HeardYou() {
+export default function HeardYou({ limit }) {
   const content = useSiteContent('heard');
-  const items = Array.isArray(content.items) ? content.items : [];
+  const all = Array.isArray(content.items) ? content.items : [];
+  const items = limit ? all.slice(0, limit) : all;
   if (items.length === 0) return null;
 
   return (
-    <Section id="heard" className="py-24 sm:py-32">
+    <Section id="heard" className="py-20 sm:py-24">
       <SectionHeading eyebrow={content.eyebrow} title={content.headline} align="center" />
 
       <Stagger className="mt-14 flex flex-wrap justify-center gap-4" step={0.06}>
@@ -24,7 +25,7 @@ export default function HeardYou() {
             as="figure"
             className={`w-full max-w-[340px] rounded-3xl border border-line p-6 shadow-[var(--shadow-card)] transition-transform duration-300 hover:rotate-0 sm:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.7rem)] ${TONES[i % TONES.length]} ${TILTS[i % TILTS.length]}`}
           >
-            <blockquote className="font-display text-[19px] leading-snug tracking-tight text-ink">
+            <blockquote className="font-display text-[19px] font-medium leading-snug tracking-tight text-ink">
               “{q.quote}”
             </blockquote>
             <figcaption className="mt-4 text-[12.5px] text-ink-4">{q.name}</figcaption>
@@ -32,9 +33,11 @@ export default function HeardYou() {
         ))}
       </Stagger>
 
-      <Reveal delay={0.2} className="mt-12 text-center">
-        <p className="text-[15px] text-ink-3">We built the practice around exactly these. Here is how.</p>
-      </Reveal>
+      {limit && (
+        <Reveal delay={0.2} className="mt-10 text-center">
+          <p className="text-[15px] text-ink-3">We built the practice around exactly these. Here is how.</p>
+        </Reveal>
+      )}
     </Section>
   );
 }

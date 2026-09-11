@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { getArticleBySlug, getRelatedArticles } from '../lib/queries/articles';
 import { Button, Pill, Section } from '../components/primitives';
-import { useBrand } from '../lib/queries/siteContent';
+import { useBooking } from '../lib/booking';
 import { sanitizeHtml } from '../lib/sanitizeHtml';
 
 function estimateReadTime(content) {
@@ -12,7 +12,7 @@ function estimateReadTime(content) {
 }
 
 export default function BlogPostPage() {
-  const brand = useBrand();
+  const openBooking = useBooking();
   const { slug } = useParams();
   const navigate = useNavigate();
   const [article, setArticle] = useState(null);
@@ -41,21 +41,7 @@ export default function BlogPostPage() {
     : null;
 
   return (
-    <div className="min-h-screen bg-bg grain">
-      {/* Nav */}
-      <header className="border-b border-line bg-bg/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
-          <Link to="/" className="flex items-center gap-2.5">
-            <span className="relative grid size-6 place-items-center">
-              <span className="absolute inset-0 rounded-full bg-gradient-to-br from-rose-300 to-amber-500 opacity-90 blur-[5px]" />
-              <span className="relative size-2 rounded-full bg-ink" />
-            </span>
-            <span className="font-display text-[22px] leading-none tracking-tight">{brand.name}</span>
-          </Link>
-          <Link to="/blog" className="text-[14px] text-ink-3 hover:text-ink transition-colors">← All articles</Link>
-        </div>
-      </header>
-
+    <>
       {loading ? (
         <Section className="py-20">
           <div className="mx-auto max-w-2xl space-y-4">
@@ -69,11 +55,15 @@ export default function BlogPostPage() {
         </Section>
       ) : article ? (
         <>
-          <Section className="py-16">
+          <Section className="py-12 sm:py-16">
             <div className="mx-auto max-w-2xl">
+              <Link to="/blog" className="mb-8 inline-flex items-center gap-1.5 text-[14px] text-ink-3 transition-colors hover:text-ink">
+                ← All articles
+              </Link>
+
               {/* Meta */}
               <div className="flex flex-wrap items-center gap-3">
-                {article.category && <Pill accent="rose" size="sm">{article.category}</Pill>}
+                {article.category && <Pill tone="rose">{article.category}</Pill>}
                 {date && <span className="text-[13px] text-ink-4">{date}</span>}
                 <span className="text-[13px] text-ink-4">·</span>
                 <span className="text-[13px] text-ink-4">{estimateReadTime(article.content)} min read</span>
@@ -101,9 +91,9 @@ export default function BlogPostPage() {
               <div className="mt-10 rounded-3xl border border-line bg-surface-2 p-8 text-center">
                 <p className="font-display text-2xl tracking-tight text-ink">Ready to talk to someone?</p>
                 <p className="mt-3 text-[14.5px] text-ink-3">Our therapists are accepting new clients.</p>
-                <Link to="/" className="mt-6 inline-block">
-                  <Button variant="glow" icon="arrow">Book a session</Button>
-                </Link>
+                <Button variant="primary" icon="arrow" className="mt-6" onClick={openBooking}>
+                  Book a session
+                </Button>
               </div>
             </div>
           </Section>
@@ -120,7 +110,7 @@ export default function BlogPostPage() {
                       to={`/blog/${a.slug}`}
                       className="group rounded-2xl border border-line bg-surface p-5 transition-all hover:shadow-[var(--shadow-card)]"
                     >
-                      {a.category && <Pill accent="rose" size="sm">{a.category}</Pill>}
+                      {a.category && <Pill tone="rose">{a.category}</Pill>}
                       <h3 className="mt-3 font-display text-[17px] leading-snug tracking-tight text-ink group-hover:text-ink transition-colors">
                         {a.title}
                       </h3>
@@ -132,6 +122,6 @@ export default function BlogPostPage() {
           )}
         </>
       ) : null}
-    </div>
+    </>
   );
 }

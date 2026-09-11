@@ -8,8 +8,8 @@ export default function CtaBand({ onBook }) {
   const reassurances = Array.isArray(content.reassurances) ? content.reassurances : [];
 
   return (
-    <Section className="pb-24 pt-6 sm:pb-32">
-      <Reveal className="relative overflow-hidden rounded-4xl border border-line bg-surface px-6 py-20 text-center shadow-[var(--shadow-card)] sm:px-14 sm:py-28">
+    <Section className="pb-20 pt-6 sm:pb-28">
+      <Reveal className="relative overflow-hidden rounded-[2rem] border border-line bg-surface px-6 py-16 text-center shadow-[var(--shadow-card)] sm:px-14 sm:py-20">
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0"
@@ -19,7 +19,7 @@ export default function CtaBand({ onBook }) {
           }}
         />
         <div className="relative">
-          <h2 className="mx-auto max-w-[20ch] font-display text-[clamp(2.4rem,5.5vw,4.5rem)] leading-[1.04] tracking-[-0.025em]">
+          <h2 className="mx-auto max-w-[20ch] font-display text-[clamp(2.2rem,4.6vw,3.6rem)] leading-[1.06] tracking-[-0.02em]">
             {content.headline} <span className="text-aurora italic">{content.headline_accent}</span>
           </h2>
           <p className="mx-auto mt-6 max-w-[46ch] text-[16.5px] leading-relaxed text-ink-2">{content.body}</p>

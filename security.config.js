@@ -33,9 +33,10 @@ export const csp = {
   'style-src': ["'self'"],
   'style-src-elem': ["'self'", "'unsafe-inline'"],
   'style-src-attr': ["'none'"],
-  // data: is needed for the film-grain SVG in index.css.
-  // img.youtube.com serves thumbnails without tracking cookies.
-  'img-src': ["'self'", 'data:', 'https://img.youtube.com'],
+  // Photos are admin-editable fields holding any https URL (the defaults are
+  // Unsplash), so the host cannot be enumerated here. Images are inert — they
+  // cannot execute — and every other directive stays locked down.
+  'img-src': ["'self'", 'data:', 'https:'],
   'font-src': ["'self'"],
   // Supabase API calls from the browser.
   'connect-src': ["'self'", 'https://*.supabase.co'],

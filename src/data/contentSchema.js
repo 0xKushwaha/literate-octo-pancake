@@ -17,6 +17,22 @@ import {
   brand, credentials, faqs, plans, process, services, stats, testimonials, therapists,
 } from './site';
 
+/**
+ * Photos are free-to-use under the Unsplash License (no attribution required,
+ * credit appreciated). Every one is an admin field, so they can be swapped for
+ * the practice's own photography without a deploy.
+ */
+const U = (id, w = 1400) => `https://images.unsplash.com/${id}?w=${w}&q=80&auto=format&fit=crop`;
+export const IMAGES = {
+  hero: U('photo-1714976694810-85add1a29c96'),            // two women talking on a couch — Vitaly Gariev
+  services: U('photo-1604881991720-f91add269bed'),        // two people holding hands — Priscilla Du Preez
+  approach: U('photo-1758521541409-256fa9e24fe4'),        // woman smiling at a laptop — Vitaly Gariev
+  therapists: U('photo-1637245048732-adf1a547835e'),      // therapy room, two chairs — Leuchtturm Entertainment
+  breathing: U('photo-1518708909080-704599b19972'),       // hand on chest, eyes closed — Darius Bashar
+  resources: U('photo-1604881991664-593b31b88488'),       // woman with a mug — Priscilla Du Preez
+  pricing: U('uploads/14122810486321888a497/1b0cc699'),   // stone labyrinth by the sea — Ashley Batz
+};
+
 export const HERO_WORDS = ['anxiety', 'burnout', 'relationships', 'grief', 'getting unstuck', 'the 3am spiral'];
 
 export const HEARD_ITEMS = [
@@ -77,18 +93,25 @@ export const CONTENT_SCHEMA = [
   f('brand.email', 'Contact email', brand.email),
   f('brand.address', 'Address', brand.address),
   f('brand.crisis_line', 'Crisis banner text', 'Call or text 988 — Suicide & Crisis Lifeline, 24/7. If someone is in danger right now, call 911.', 'richtext'),
-  f('brand.credentials', 'Credential badges (ticker + hero)', credentials, LIST, 'A list of short strings, e.g. ["HIPAA compliant", "APA member practice"]'),
+  f('brand.credentials', 'Credential badges (hero)', credentials, LIST, 'A list of short strings, e.g. ["HIPAA compliant", "APA member practice"]'),
+  f('brand.accent_color', 'Accent colour (hex)', '#FFB0B5', 'text', 'One colour for highlights, pills and hover states, e.g. #FFB0B5. Buttons stay black so the accent can be anything.'),
+  f('brand.button_color', 'Button colour (hex)', '#000000', 'text', 'Primary button background. Keep it dark enough for white text.'),
 
   // ── Navigation ────────────────────────────────────────────────────────────
   f('nav.book_label', 'Book button label', 'Book a session'),
-  f('nav.services_label', 'Nav: Services', 'Services'),
-  f('nav.approach_label', 'Nav: How it works', 'How it works'),
-  f('nav.therapists_label', 'Nav: Therapists', 'Therapists'),
-  f('nav.breathing_label', 'Nav: Breathe', 'Breathe'),
-  f('nav.resources_label', 'Nav: Resources (videos + blog)', 'Resources'),
-  f('nav.pricing_label', 'Nav: Pricing', 'Pricing'),
-  f('nav.faq_label', 'Nav: FAQ', 'FAQ'),
-  f('nav.blog_label', 'Footer: Blog link label', 'Blog'),
+  f('nav.services_label', 'Menu: Care (dropdown of services)', 'Care'),
+  f('nav.services_all_label', 'Care dropdown: "all services" link', 'All services'),
+  f('nav.therapists_label', 'Menu: Therapists', 'Therapists'),
+  f('nav.approach_label', 'Menu: How it works (dropdown)', 'How it works'),
+  f('nav.why_label', 'How it works dropdown: Why Lumen', 'Why Lumen'),
+  f('nav.faq_label', 'How it works dropdown: FAQ', 'Questions'),
+  f('nav.resources_label', 'Menu: Resources (dropdown)', 'Resources'),
+  f('nav.breathing_label', 'Resources dropdown: Breathe', 'Breathing exercises'),
+  f('nav.videos_label', 'Resources dropdown: Videos', 'Videos'),
+  f('nav.blog_label', 'Resources dropdown: Blog', 'Blog'),
+  f('nav.pricing_label', 'Menu: Pricing', 'Pricing'),
+  f('nav.badge_text', 'Small badge above a menu item', 'New'),
+  f('nav.badge_item', 'Which menu item gets the badge', 'resources', 'text', 'One of: services, therapists, approach, resources, pricing. Leave blank for none.'),
 
   // ── Hero ──────────────────────────────────────────────────────────────────
   f('hero.status_pill', 'Status pill', 'Accepting new clients'),
@@ -98,7 +121,8 @@ export const CONTENT_SCHEMA = [
   f('hero.primary_cta', 'Primary button', 'Book your first session'),
   f('hero.secondary_cta', 'Secondary button', 'See how it works'),
   f('hero.location_note', 'Location note', 'San Francisco · Telehealth in 14 states'),
-  f('hero.stats_title', 'Small title above the numbers', 'Since 2019'),
+  f('hero.image_url', 'Hero photo (URL)', IMAGES.hero, 'text', 'Paste any https image URL. Landscape works best.'),
+  f('hero.image_alt', 'Hero photo description (for screen readers)', 'Two people talking on a couch in a bright room'),
 
   // ── Trust / stats ─────────────────────────────────────────────────────────
   f('trust.stats', 'Stats (four numbers)', stats, LIST, 'Each item: { "value": 14200, "suffix": "+", "decimals": 0, "label": "Sessions held" }'),
@@ -106,12 +130,14 @@ export const CONTENT_SCHEMA = [
   // ── We heard you ──────────────────────────────────────────────────────────
   f('heard.eyebrow', 'Eyebrow', 'We heard you'),
   f('heard.headline', 'Headline', 'The reasons people put this off.'),
-  f('heard.items', 'Quotes', HEARD_ITEMS, LIST, 'Each item: { "quote": "...", "name": "R., 31" }'),
+  f('heard.items', 'Quotes', HEARD_ITEMS, LIST, 'Each item: { "quote": "...", "name": "R., 31" }. The homepage shows the first three; the How it works page shows all.'),
 
   // ── Approach ──────────────────────────────────────────────────────────────
   f('approach.eyebrow', 'Eyebrow', 'How it works'),
   f('approach.headline', 'Headline', 'Four steps. No waiting rooms.'),
   f('approach.lead', 'Lead paragraph', 'Most people give up on finding a therapist somewhere between the third voicemail and the second waitlist. We removed that part.', 'richtext'),
+  f('approach.image_url', 'How it works page photo (URL)', IMAGES.approach),
+  f('approach.home_cta', 'Homepage "learn more" link', 'How matching works'),
   f('approach.steps', 'Steps', process, LIST, 'Each item: { "step": "01", "title": "...", "body": "...", "detail": "Avg. 1m 50s" }'),
 
   // ── Why Lumen ─────────────────────────────────────────────────────────────
@@ -123,10 +149,13 @@ export const CONTENT_SCHEMA = [
   f('breathing.eyebrow', 'Eyebrow', 'Breathe'),
   f('breathing.headline', 'Headline', 'A moment, right now.'),
   f('breathing.lead', 'Lead paragraph', 'Guided breathing exercises from our clinical team. Each session takes under five minutes.', 'richtext'),
+  f('breathing.image_url', 'Breathe page photo (URL)', IMAGES.breathing),
 
   // ── Services ──────────────────────────────────────────────────────────────
   f('services.eyebrow', 'Eyebrow', 'What we treat'),
   f('services.headline', 'Headline', 'Care built around the thing you actually came for.'),
+  f('services.image_url', 'Services page photo (URL)', IMAGES.services),
+  f('services.home_cta', 'Homepage "see all" link', 'See every service'),
   f('services.aside', 'Side note', 'Every clinician here specialises. You will not be handed to whoever happened to have a Tuesday free.', 'richtext'),
   f('services.items', 'Service cards', services, LIST,
     'Each item: { "id": "individual", "name": "...", "blurb": "...", "modalities": ["CBT"], "duration": "50 min", "price": 165, "accent": "rose|blush|peach|amber", "icon": "person|hearts|wave|pulse|sprout|shield" }'),
@@ -135,6 +164,8 @@ export const CONTENT_SCHEMA = [
   f('therapists.eyebrow', 'Eyebrow', 'The practice'),
   f('therapists.headline', 'Headline', 'People, not profiles.'),
   f('therapists.lead', 'Lead paragraph', 'Read them properly before you choose. Every therapist here offers a free fifteen-minute intro call, because fit is not something you can tell from a headshot.', 'richtext'),
+  f('therapists.image_url', 'Therapists page photo (URL)', IMAGES.therapists),
+  f('therapists.home_cta', 'Homepage "meet everyone" link', 'Meet the whole team'),
   f('therapists.items', 'Therapist cards', therapists, LIST,
     'Each item: { "id": "slug", "name": "...", "credentials": "...", "pronouns": "she/her", "years": 12, "focus": ["Trauma"], "languages": ["English"], "formats": ["Video"], "services": ["trauma", "individual"], "bio": "...", "hue": [357, 45], "nextAvailable": 2 }'),
   f('therapists.empty_note', 'Empty filter note', 'Nobody listed for that yet — but we almost certainly have someone.'),
@@ -143,7 +174,10 @@ export const CONTENT_SCHEMA = [
   f('resources.eyebrow', 'Eyebrow', 'Resources'),
   f('resources.headline', 'Headline', 'Worth your time between sessions.'),
   f('resources.lead', 'Lead paragraph', 'Videos and articles reviewed by our clinical team, on anxiety, sleep, relationships and more.', 'richtext'),
+  f('resources.image_url', 'Resources page photo (URL)', IMAGES.resources),
   f('resources.videos_title', 'Videos sub-heading', 'Watch'),
+  f('resources.videos_empty', 'Shown when no videos are featured', 'No videos yet. Feature one from the admin and it appears here.'),
+  f('resources.articles_empty', 'Shown when no articles are published', 'No articles yet.'),
   f('resources.articles_title', 'Articles sub-heading', 'Read'),
 
   // ── Testimonials ──────────────────────────────────────────────────────────
@@ -161,6 +195,7 @@ export const CONTENT_SCHEMA = [
   f('pricing.eyebrow', 'Eyebrow', 'Cost'),
   f('pricing.headline', 'Headline', 'Priced plainly, before you book.'),
   f('pricing.lead', 'Lead paragraph', 'You see your exact out-of-pocket cost on the booking screen — insurance applied, nothing surfacing on a statement three weeks later.', 'richtext'),
+  f('pricing.image_url', 'Pricing page photo (URL)', IMAGES.pricing),
   f('pricing.plans', 'Plans', plans, LIST,
     'Each item: { "id": "weekly", "name": "...", "price": 139, "cadence": "...", "blurb": "...", "features": ["..."], "cta": "...", "featured": true }'),
   f('pricing.footnote', 'Footnote', 'In-network with Aetna, Cigna, United and Blue Shield of California. Out-of-network claims filed for you. Sliding-scale places are always held open — ask during intake, and no, you will not be asked to prove it.', 'richtext'),
@@ -177,6 +212,7 @@ export const CONTENT_SCHEMA = [
   f('cta.body', 'Body', 'Two minutes now, a matched therapist by tomorrow, a first session this week. You can change your mind at any point in that sequence.', 'richtext'),
   f('cta.primary', 'Primary button', 'Book your first session'),
   f('cta.secondary', 'Secondary button', 'Or just call us'),
+  f('cta.image_url', 'Call-to-action photo (URL)', IMAGES.services, 'text', 'Leave blank for a plain card.'),
   f('cta.reassurances', 'Reassurance chips', ['Free 15-min intro call', 'Cancel any time', 'No card to browse'], LIST, 'A list of short strings'),
 
   // ── Footer ────────────────────────────────────────────────────────────────

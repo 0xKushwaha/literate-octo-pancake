@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { Button, Section } from './primitives';
 import Icon from './Icon';
 import { telHref, useBrand, useSiteContent } from '../lib/queries/siteContent';
@@ -6,19 +7,19 @@ const staticColumns = [
   {
     title: 'Practice',
     links: [
-      { label: 'Our services', href: '#services' },
-      { label: 'How it works', href: '#approach' },
-      { label: 'Our therapists', href: '#therapists' },
-      { label: 'Breathing exercises', href: '#breathing' },
+      { label: 'Our services', to: '/services' },
+      { label: 'How it works', to: '/how-it-works' },
+      { label: 'Our therapists', to: '/therapists' },
+      { label: 'Pricing & insurance', to: '/pricing' },
     ],
   },
   {
     title: 'Resources',
     links: [
-      { label: 'Blog', href: '/blog' },
-      { label: 'Videos & articles', href: '#resources' },
-      { label: 'Pricing & insurance', href: '#pricing' },
-      { label: 'Questions', href: '#faq' },
+      { label: 'Videos & articles', to: '/resources' },
+      { label: 'Breathing exercises', to: '/breathe' },
+      { label: 'Blog', to: '/blog' },
+      { label: 'Questions', to: '/how-it-works#faq' },
     ],
   },
   {
@@ -52,14 +53,14 @@ export default function Footer({ onBook }) {
       <Section className="py-20">
         <div className="grid gap-14 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,2fr)]">
           <div>
-            <a href="#top" className="flex items-center gap-2.5">
-              <span className="grid size-7 place-items-center rounded-full bg-gradient-to-br from-rose-300 to-amber-500">
-                <span className="size-2.5 rounded-full bg-ink" />
+            <Link to="/" className="flex items-center gap-2.5">
+              <span className="grid size-8 place-items-center rounded-full bg-rose-300">
+                <span className="size-3 rounded-full bg-ink" />
               </span>
-              <span className="font-display text-[26px] leading-none tracking-tight">
+              <span className="font-display text-[25px] font-semibold leading-none tracking-tight">
                 {brand.name}
               </span>
-            </a>
+            </Link>
             <p className="mt-6 max-w-[34ch] text-[15px] leading-relaxed text-ink-3">
               {brand.tagline} {footerContent.blurb}
             </p>
@@ -85,7 +86,7 @@ export default function Footer({ onBook }) {
               </span>
             </div>
 
-            <Button className="mt-9" variant="outline" icon="arrow" onClick={() => onBook?.()}>
+            <Button className="mt-8" variant="secondary" icon="arrow" onClick={() => onBook?.()}>
               Book a session
             </Button>
           </div>
@@ -97,9 +98,15 @@ export default function Footer({ onBook }) {
                 <ul className="mt-5 flex flex-col gap-3">
                   {col.links.map((l) => (
                     <li key={l.label}>
-                      <a href={l.href} className="text-[14.5px] text-ink-3 transition-colors duration-300 hover:text-ink">
-                        {l.label}
-                      </a>
+                      {l.to ? (
+                        <Link to={l.to} className="text-[14.5px] text-ink-3 transition-colors duration-200 hover:text-ink">
+                          {l.label}
+                        </Link>
+                      ) : (
+                        <a href={l.href} className="text-[14.5px] text-ink-3 transition-colors duration-200 hover:text-ink">
+                          {l.label}
+                        </a>
+                      )}
                     </li>
                   ))}
                 </ul>

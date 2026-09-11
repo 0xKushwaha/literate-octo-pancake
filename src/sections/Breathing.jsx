@@ -107,7 +107,7 @@ function BreathingGuide({ exercise, onClose }) {
             </p>
           </div>
 
-          <p className="mt-6 text-[13px] font-mono text-ink-4 tracking-widest uppercase">
+          <p className="mt-6 text-[12px] font-semibold uppercase tracking-[0.14em] text-ink-4">
             Cycle {cycleNum} of {exercise.cycles}
           </p>
           <p className="mt-2 text-[13px] text-ink-4">{exercise.name}</p>
@@ -132,7 +132,7 @@ function ExerciseCard({ exercise, onStart }) {
         className="group flex h-full w-full flex-col items-start rounded-3xl border border-line bg-surface p-6 text-left shadow-[var(--shadow-card)] transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-lift)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
       >
         <div className="flex w-full items-center justify-between gap-3">
-          <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-4">
+          <span className="text-[12px] font-semibold uppercase tracking-[0.1em] text-ink-4">
             {exercise.technique}
           </span>
           <span className="inline-flex size-9 items-center justify-center rounded-full border border-line text-ink-3 transition-all group-hover:border-rose-300 group-hover:bg-rose-100 group-hover:text-ink">
@@ -158,7 +158,7 @@ function ExerciseCard({ exercise, onStart }) {
           ))}
         </div>
 
-        <div className="mt-5 font-mono text-[11px] text-ink tracking-wide">
+        <div className="mt-5 text-[12px] font-medium text-ink-2">
           {exercise.inhale_sec}s in
           {exercise.hold_in_sec > 0 ? ` · ${exercise.hold_in_sec}s hold` : ''}
           {` · ${exercise.exhale_sec}s out`}
@@ -170,7 +170,7 @@ function ExerciseCard({ exercise, onStart }) {
   );
 }
 
-export default function Breathing() {
+export default function Breathing({ withHeading = true, tinted = true }) {
   const content = useSiteContent('breathing');
   // Starts with the built-in set, so the section renders on first paint and
   // keeps working when the database is unreachable or has not been seeded.
@@ -196,15 +196,13 @@ export default function Breathing() {
 
   return (
     <>
-      <div className="bg-surface-2/60">
-      <Section id="breathing" className="py-24 sm:py-32">
-        <SectionHeading
-          eyebrow={content.eyebrow}
-          title={content.headline}
-          lead={content.lead}
-        />
+      <div className={tinted ? 'bg-surface-2/60' : ''}>
+      <Section id="breathing" className="py-16 sm:py-24">
+        {withHeading && (
+          <SectionHeading eyebrow={content.eyebrow} title={content.headline} lead={content.lead} />
+        )}
 
-        <Stagger className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <Stagger className={`grid gap-4 sm:grid-cols-2 lg:grid-cols-3 ${withHeading ? 'mt-12' : ''}`}>
           {exercises.map((ex) => (
             <ExerciseCard key={ex.id ?? ex.slug} exercise={ex} onStart={setActive} />
           ))}

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Button, Pill, Section, SectionHeading } from '../components/primitives';
+import { Button, MoreLink, Pill, Section, SectionHeading } from '../components/primitives';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import Avatar from '../components/Avatar';
 import Icon from '../components/Icon';
@@ -10,7 +10,7 @@ function availabilityLabel(days) {
   return `Available in ${days} days`;
 }
 
-export default function Therapists({ onBook }) {
+export default function Therapists({ onBook, limit, teaser = false, withHeading = true }) {
   const content = useSiteContent('therapists');
   const servicesContent = useSiteContent('services');
   const [filter, setFilter] = useState('all');
@@ -31,25 +31,27 @@ export default function Therapists({ onBook }) {
     return [{ id: 'all', label: 'Everyone' }, ...services.map((s) => ({ id: s.id, label: String(s.name ?? '').split(' ')[0] }))];
   }, [servicesContent.items]);
 
-  const shown = useMemo(
-    () => (filter === 'all' ? therapists : therapists.filter((t) => t.services.includes(filter))),
-    [filter, therapists],
-  );
+  const shown = useMemo(() => {
+    const list = filter === 'all' ? therapists : therapists.filter((t) => t.services.includes(filter));
+    return limit ? list.slice(0, limit) : list;
+  }, [filter, therapists, limit]);
 
   return (
-    <Section id="therapists" className="py-24 sm:py-32">
-      <div className="flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
-        <SectionHeading eyebrow={content.eyebrow} title={content.headline} lead={content.lead} />
-      </div>
+    <Section id="therapists" className={teaser ? 'py-20 sm:py-24' : 'py-16 sm:py-24'}>
+      {withHeading && (
+        <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
+          <SectionHeading eyebrow={content.eyebrow} title={content.headline} lead={teaser ? null : content.lead} />
+        </div>
+      )}
 
       {/* ToggleGroup gives the filter roving focus + arrow-key navigation. */}
-      <ToggleGroup
+      {!teaser && <ToggleGroup
         spacing={2}
         type="single"
         value={filter}
         onValueChange={(v) => v && setFilter(v)}
         aria-label="Filter therapists by speciality"
-        className="mt-10 flex w-full flex-wrap justify-start gap-2"
+        className="mt-8 flex w-full flex-wrap justify-start gap-2"
       >
         {filters.map((f) => (
           <ToggleGroupItem
@@ -65,9 +67,9 @@ export default function Therapists({ onBook }) {
             {f.label}
           </ToggleGroupItem>
         ))}
-      </ToggleGroup>
+      </ToggleGroup>}
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className={`grid gap-4 sm:grid-cols-2 lg:grid-cols-3 ${withHeading ? 'mt-8' : ''}`}>
         {shown.map((t) => (
           <article
             key={t.id}
@@ -117,6 +119,12 @@ export default function Therapists({ onBook }) {
           </article>
         ))}
       </div>
+
+      {teaser && (
+        <div className="mt-10 flex justify-center">
+          <MoreLink to="/therapists">{content.home_cta}</MoreLink>
+        </div>
+      )}
 
       {shown.length === 0 && (
         <p className="mt-8 text-[15px] text-ink-3">

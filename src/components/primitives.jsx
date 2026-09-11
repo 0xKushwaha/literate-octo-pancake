@@ -1,4 +1,5 @@
 import { forwardRef, useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import Icon from './Icon';
 
 /* ---------------------------------------------------------------- Reveal */
@@ -95,20 +96,26 @@ function useInViewOnce(amount = 0.15) {
 
 /* ---------------------------------------------------------------- Button */
 
+/**
+ * Two buttons, on purpose. `primary` is the one action colour (admin:
+ * brand.button_color), everything else is white with a hairline. Older
+ * variant names map onto those two so nothing needs a rename.
+ */
+const PRIMARY = 'bg-[var(--button)] text-white hover:brightness-110 shadow-[var(--shadow-lift)]';
+const SECONDARY = 'border border-line-2 bg-surface text-ink hover:border-ink hover:shadow-[var(--shadow-card)]';
 const variants = {
-  primary: 'bg-ink text-white hover:bg-ink-2 shadow-[var(--shadow-lift)]',
-  // Every colour in this palette is light, so the label is black and the
-  // gradient carries the emphasis on its own.
-  glow: 'text-ink bg-gradient-to-r from-rose-400 via-peach-100 to-amber-500 hover:brightness-105 shadow-[0_14px_36px_-14px_rgba(255,176,181,0.6),0_0_0_1px_rgba(0,0,0,0.08)]',
-  ghost: 'bg-surface text-ink border border-line hover:border-line-2 hover:shadow-[var(--shadow-card)]',
+  primary: PRIMARY,
+  glow: PRIMARY,
+  secondary: SECONDARY,
+  ghost: SECONDARY,
+  outline: SECONDARY,
   quiet: 'text-ink-3 hover:text-ink',
-  outline: 'border border-line-2 bg-surface text-ink hover:border-rose-400',
 };
 
 const sizes = {
   sm: 'h-9 px-4 text-[13px]',
-  md: 'h-11 px-5 text-sm',
-  lg: 'h-[3.5rem] px-7 text-[15.5px]',
+  md: 'h-11 px-5 text-[14px]',
+  lg: 'h-[3.4rem] px-7 text-[15.5px]',
 };
 
 export const Button = forwardRef(function Button(
@@ -118,7 +125,7 @@ export const Button = forwardRef(function Button(
   return (
     <Tag
       ref={ref}
-      className={`group relative inline-flex items-center justify-center gap-2 rounded-full font-medium tracking-tight
+      className={`group relative inline-flex items-center justify-center gap-2 rounded-full font-semibold tracking-tight
         transition-[transform,box-shadow,background-color,border-color,filter] duration-200
         active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40
         ${variants[variant]} ${sizes[size]} ${className}`}
@@ -152,8 +159,8 @@ export function SectionHeading({ eyebrow, title, lead, align = 'left', className
   const centered = align === 'center';
   const titleSize =
     size === 'lg'
-      ? 'text-[clamp(2.5rem,5.5vw,4.5rem)]'
-      : 'text-[clamp(2.1rem,4.2vw,3.4rem)]';
+      ? 'text-[clamp(2.4rem,5vw,4rem)]'
+      : 'text-[clamp(1.9rem,3.6vw,2.9rem)]';
   return (
     <Reveal className={`${centered ? 'mx-auto max-w-3xl text-center' : 'max-w-3xl'} ${className}`}>
       {eyebrow && (
@@ -161,7 +168,7 @@ export function SectionHeading({ eyebrow, title, lead, align = 'left', className
           <Eyebrow>{eyebrow}</Eyebrow>
         </div>
       )}
-      <h2 className={`mt-5 font-display leading-[1.02] tracking-[-0.025em] text-ink ${titleSize}`}>{title}</h2>
+      <h2 className={`mt-4 font-display leading-[1.05] tracking-[-0.02em] text-ink ${titleSize}`}>{title}</h2>
       {lead && (
         <p className={`mt-5 text-[16.5px] leading-relaxed text-ink-3 ${centered ? 'mx-auto max-w-xl' : 'max-w-xl'}`}>
           {lead}
@@ -195,7 +202,7 @@ export function Pill({ children, className = '', tone = 'default' }) {
   };
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 font-mono text-[10.5px] uppercase tracking-[0.14em] ${tones[tone] ?? tones.default} ${className}`}
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium ${tones[tone] ?? tones.default} ${className}`}
     >
       {children}
     </span>
@@ -227,5 +234,51 @@ export function Counter({ value, decimals = 0, suffix = '', duration = 1400 }) {
       {shown.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}
       {suffix}
     </span>
+  );
+}
+
+/* ---------------------------------------------------------------- Pages */
+
+/** Lazy, non-shifting photo. `ratio` is a CSS aspect-ratio string. */
+export function Photo({ src, alt = '', ratio = '4 / 3', className = '', priority = false }) {
+  if (!src) return null;
+  return (
+    <div className={`overflow-hidden rounded-[2rem] bg-surface-2 ${className}`} style={{ aspectRatio: ratio }}>
+      <img
+        src={src}
+        alt={alt}
+        loading={priority ? 'eager' : 'lazy'}
+        fetchPriority={priority ? 'high' : 'auto'}
+        decoding="async"
+        className="h-full w-full object-cover"
+      />
+    </div>
+  );
+}
+
+/** Split header for every subpage: copy on the left, photo on the right. */
+export function PageHeader({ eyebrow, title, lead, image, imageAlt = '', children }) {
+  return (
+    <div className="backdrop-soft">
+      <Section className="grid items-center gap-10 py-14 sm:py-20 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-16">
+        <div>
+          {eyebrow && <Eyebrow>{eyebrow}</Eyebrow>}
+          <h1 className="mt-4 font-display text-[clamp(2.4rem,5.5vw,4.4rem)] leading-[1.04] tracking-[-0.02em] text-ink">{title}</h1>
+          {lead && <p className="mt-5 max-w-[52ch] text-[17px] leading-relaxed text-ink-2">{lead}</p>}
+          {children && <div className="mt-8 flex flex-wrap items-center gap-3">{children}</div>}
+        </div>
+        <Photo src={image} alt={imageAlt} ratio="5 / 4" priority />
+      </Section>
+    </div>
+  );
+}
+
+/** "See everything →" link used under each homepage teaser. */
+export function MoreLink({ to, children, className = '' }) {
+  return (
+    <Link to={to} className={`group inline-flex items-center gap-2 text-[15px] font-semibold text-ink ${className}`}>
+      <span className="underline decoration-rose-300 decoration-2 underline-offset-4 group-hover:decoration-ink">{children}</span>
+      <Icon name="arrow" size={16} className="transition-transform duration-200 group-hover:translate-x-0.5" />
+    </Link>
   );
 }

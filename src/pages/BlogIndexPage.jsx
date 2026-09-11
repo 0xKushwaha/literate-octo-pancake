@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Toaster } from 'react-hot-toast';
 import { listPublishedArticles } from '../lib/queries/articles';
-import { Button, Pill, Section, SectionHeading } from '../components/primitives';
-import { useBrand } from '../lib/queries/siteContent';
+import { Button, PageHeader, Pill, Section } from '../components/primitives';
+import { useSiteContent } from '../lib/queries/siteContent';
 
 const CATEGORIES = ['All', 'Getting Started', 'Anxiety', 'Depression', 'Relationships', 'Mindfulness', 'Trauma', 'Techniques', 'Sleep', 'Psychiatry'];
 
@@ -19,7 +18,7 @@ function ArticleCard({ article }) {
     >
       <div className="flex items-center gap-2">
         {article.category && (
-          <Pill accent="rose" size="sm">{article.category}</Pill>
+          <Pill tone="rose">{article.category}</Pill>
         )}
         {date && <span className="text-[12px] text-ink-4">{date}</span>}
       </div>
@@ -40,7 +39,8 @@ function ArticleCard({ article }) {
 }
 
 export default function BlogIndexPage() {
-  const brand = useBrand();
+  const content = useSiteContent('blog');
+  const resources = useSiteContent('resources');
   const [articles, setArticles] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -65,33 +65,18 @@ export default function BlogIndexPage() {
   const totalPages = Math.ceil(total / pageSize);
 
   return (
-    <div className="min-h-screen bg-bg">
-      <Toaster />
-      {/* Nav */}
-      <header className="border-b border-line bg-bg/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
-          <Link to="/" className="flex items-center gap-2.5 group">
-            <span className="relative grid size-6 place-items-center">
-              <span className="absolute inset-0 rounded-full bg-gradient-to-br from-rose-300 to-amber-500 opacity-90 blur-[5px]" />
-              <span className="relative size-2 rounded-full bg-ink" />
-            </span>
-            <span className="font-display text-[22px] leading-none tracking-tight">{brand.name}</span>
-          </Link>
-          <div className="flex items-center gap-4">
-            <Link to="/" className="text-[14px] text-ink-3 hover:text-ink transition-colors">← Home</Link>
-          </div>
-        </div>
-      </header>
+    <>
+      <PageHeader
+        eyebrow={content.eyebrow}
+        title={content.headline}
+        lead={content.lead}
+        image={resources.image_url}
+        imageAlt="A person holding a warm mug at a table"
+      />
 
-      <Section className="py-20">
-        <SectionHeading
-          eyebrow="Medical blog"
-          title="Mental health, explained."
-          lead="Evidence-based articles written and reviewed by our clinical team."
-        />
-
+      <Section className="py-12 sm:py-16">
         {/* Category filter */}
-        <div className="mt-10 flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2">
           {CATEGORIES.map((cat) => (
             <button
               key={cat}
@@ -138,6 +123,6 @@ export default function BlogIndexPage() {
           </div>
         )}
       </Section>
-    </div>
+    </>
   );
 }

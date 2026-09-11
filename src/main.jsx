@@ -2,10 +2,18 @@ import { StrictMode, Suspense, lazy } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import ErrorBoundary from './components/ErrorBoundary';
+import Layout from './layout/Layout';
 import HomePage from './pages/HomePage';
+import ServicesPage from './pages/ServicesPage';
+import HowItWorksPage from './pages/HowItWorksPage';
+import TherapistsPage from './pages/TherapistsPage';
+import PricingPage from './pages/PricingPage';
 import NotFoundPage from './pages/NotFoundPage';
 import './index.css';
 
+// Split off the pages most visitors never open, so the first load stays small.
+const ResourcesPage = lazy(() => import('./pages/ResourcesPage'));
+const BreathePage = lazy(() => import('./pages/BreathePage'));
 const BlogIndexPage = lazy(() => import('./pages/BlogIndexPage'));
 const BlogPostPage = lazy(() => import('./pages/BlogPostPage'));
 const AdminApp = lazy(() => import('./admin/AdminApp'));
@@ -41,7 +49,7 @@ function Lazy({ children }) {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-[100svh] items-center justify-center bg-bg">
+        <div className="flex min-h-[60svh] items-center justify-center">
           <div className="size-6 animate-spin rounded-full border-2 border-line-2 border-t-ink" />
         </div>
       }
@@ -52,11 +60,23 @@ function Lazy({ children }) {
 }
 
 const router = createBrowserRouter([
-  { path: '/', element: <HomePage />, errorElement: <RouteError /> },
-  { path: '/blog', element: <Lazy><BlogIndexPage /></Lazy>, errorElement: <RouteError /> },
-  { path: '/blog/:slug', element: <Lazy><BlogPostPage /></Lazy>, errorElement: <RouteError /> },
+  {
+    element: <Layout />,
+    errorElement: <RouteError />,
+    children: [
+      { path: '/', element: <HomePage /> },
+      { path: '/services', element: <ServicesPage /> },
+      { path: '/how-it-works', element: <HowItWorksPage /> },
+      { path: '/therapists', element: <TherapistsPage /> },
+      { path: '/pricing', element: <PricingPage /> },
+      { path: '/resources', element: <Lazy><ResourcesPage /></Lazy> },
+      { path: '/breathe', element: <Lazy><BreathePage /></Lazy> },
+      { path: '/blog', element: <Lazy><BlogIndexPage /></Lazy> },
+      { path: '/blog/:slug', element: <Lazy><BlogPostPage /></Lazy> },
+      { path: '*', element: <NotFoundPage /> },
+    ],
+  },
   { path: '/admin/*', element: <Lazy><AdminApp /></Lazy>, errorElement: <RouteError /> },
-  { path: '*', element: <NotFoundPage /> },
 ]);
 
 createRoot(document.getElementById('root')).render(

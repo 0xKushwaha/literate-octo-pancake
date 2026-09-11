@@ -9,49 +9,39 @@
    Declared by hand against the latin files only — the packages' own CSS ships
    Cyrillic/Greek/Vietnamese subsets this site will never render. */
 @font-face {
-  font-family: "Inter Tight Variable";
+  font-family: "Plus Jakarta Sans Variable";
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url("@fontsource-variable/plus-jakarta-sans/files/plus-jakarta-sans-latin-wght-normal.woff2") format("woff2-variations");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Fraunces Variable";
   font-style: normal;
   font-weight: 100 900;
   font-display: swap;
-  src: url("@fontsource-variable/inter-tight/files/inter-tight-latin-wght-normal.woff2") format("woff2-variations");
+  src: url("@fontsource-variable/fraunces/files/fraunces-latin-wght-normal.woff2") format("woff2-variations");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
     U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
 @font-face {
-  font-family: "Instrument Serif";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url("@fontsource/instrument-serif/files/instrument-serif-latin-400-normal.woff2") format("woff2");
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
-    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-
-@font-face {
-  font-family: "Instrument Serif";
+  font-family: "Fraunces Variable";
   font-style: italic;
-  font-weight: 400;
+  font-weight: 100 900;
   font-display: swap;
-  src: url("@fontsource/instrument-serif/files/instrument-serif-latin-400-italic.woff2") format("woff2");
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
-    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-
-@font-face {
-  font-family: "JetBrains Mono Variable";
-  font-style: normal;
-  font-weight: 100 800;
-  font-display: swap;
-  src: url("@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2") format("woff2-variations");
+  src: url("@fontsource-variable/fraunces/files/fraunces-latin-wght-italic.woff2") format("woff2-variations");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
     U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
 @theme {
-  --font-sans: "Inter Tight Variable", ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-display: "Instrument Serif", ui-serif, Georgia, serif;
-  --font-mono: "JetBrains Mono Variable", ui-monospace, SFMono-Regular, monospace;
+  --font-sans: "Plus Jakarta Sans Variable", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: "Fraunces Variable", ui-serif, Georgia, serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
 
   /* ============================================================
      PALETTE — "Malibu Escape" pastels + Amber, from colur/
@@ -74,12 +64,12 @@
      ============================================================ */
 
   /* grounds */
-  --color-bg: #FFFBFA;
-  --color-bg-2: #F9E6E4;
-  --color-bg-3: #FFE5E7;
+  --color-bg: #FFFDFC;
+  --color-bg-2: color-mix(in oklab, var(--accent) 14%, white);
+  --color-bg-3: color-mix(in oklab, var(--accent) 28%, white);
   --color-surface: #ffffff;
-  --color-surface-2: #FBF1EF;
-  --color-surface-3: #FFE5E7;
+  --color-surface-2: color-mix(in oklab, var(--accent) 8%, white);
+  --color-surface-3: color-mix(in oklab, var(--accent) 20%, white);
 
   /* hairlines — black at alpha, so they read on every palette ground */
   --color-line: rgba(0, 0, 0, 0.10);
@@ -94,17 +84,20 @@
   --color-ink-3: rgba(0, 0, 0, 0.68);
   --color-ink-4: rgba(0, 0, 0, 0.62);
 
-  /* rose — the primary accent, used as fill and edge */
-  --color-rose-100: #FFE5E7;
-  --color-rose-200: #FFD3D6;
-  --color-rose-300: #FFC6CA;
-  --color-rose-400: #FFB0B5;
+  /* accent — ONE colour, chosen in the admin (brand.accent_color). The
+     rose-* names are kept for the components; each is the accent mixed with
+     white so the whole family follows a single edit. */
+  --color-rose-100: color-mix(in oklab, var(--accent) 28%, white);
+  --color-rose-200: color-mix(in oklab, var(--accent) 45%, white);
+  --color-rose-300: color-mix(in oklab, var(--accent) 65%, white);
+  --color-rose-400: var(--accent);
+  --color-accent-strong: color-mix(in oklab, var(--accent) 70%, black);
 
   /* blush — the quiet ground tint */
-  --color-blush-100: #F9E6E4;
+  --color-blush-100: color-mix(in oklab, var(--accent) 14%, white);
 
   /* peach — the one warm break from pink */
-  --color-peach-100: #F9DCC0;
+  --color-peach-100: color-mix(in oklab, var(--accent) 22%, #fff8f0);
 
   /* amber — the single saturated colour. Attention, and nothing else:
      primary actions, the crisis banner, error states. Always with black
@@ -141,7 +134,7 @@
   --color-popover: var(--color-surface);
   --color-popover-foreground: var(--color-ink);
 
-  --color-primary: var(--color-ink);
+  --color-primary: var(--button);
   --color-primary-foreground: #ffffff;
   --color-secondary: var(--color-surface-3);
   --color-secondary-foreground: var(--color-ink);
@@ -162,6 +155,13 @@
 }
 
 @layer base {
+  /* Runtime brand colours. The admin's brand.accent_color / brand.button_color
+     are written onto <html> by src/lib/theme.js; these are the fallbacks. */
+  :root {
+    --accent: #FFB0B5;
+    --button: #000000;
+  }
+
   *,
   *::before,
   *::after {
@@ -192,8 +192,10 @@
   }
 
   h1, h2, h3, h4 {
-    font-weight: 400;
-    letter-spacing: -0.02em;
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-variation-settings: "opsz" 144, "SOFT" 30;
+    letter-spacing: -0.015em;
     text-wrap: balance;
   }
 
@@ -232,16 +234,14 @@
 }
 
 @utility text-aurora {
-  background: linear-gradient(100deg, var(--color-ink) 0%, #b8860b 45%, var(--color-ink) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--color-accent-strong);
 }
 
 @utility eyebrow {
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  letter-spacing: 0.24em;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--color-ink-4);
 }
@@ -291,6 +291,25 @@
   100% { transform: scale(1.7); opacity: 0 }
 }
 
+/* route change: the new page fades up once; scrolling is reset by the router */
+.page-enter {
+  animation: page-in 0.4s var(--ease-out-expo) both;
+}
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* nav dropdown */
+.menu-panel {
+  animation: menu-in 0.18s var(--ease-out-expo) both;
+  transform-origin: top center;
+}
+@keyframes menu-in {
+  from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
 /* hero: the rotating word */
 .word-swap {
   display: inline-block;
@@ -304,8 +323,8 @@
 /* soft page backdrop — two blurred blobs, painted once, no script */
 .backdrop-soft {
   background:
-    radial-gradient(60% 45% at 85% 5%, rgba(255,198,202,0.55), transparent 70%),
-    radial-gradient(45% 40% at 5% 25%, rgba(249,220,192,0.5), transparent 70%),
+    radial-gradient(60% 45% at 85% 5%, color-mix(in oklab, var(--accent) 40%, transparent), transparent 70%),
+    radial-gradient(45% 40% at 5% 25%, color-mix(in oklab, var(--accent) 18%, transparent), transparent 70%),
     var(--color-bg);
 }
 
@@ -369,7 +388,7 @@
 }
 
 .prose-lumen h2 {
-  font-family: var(--font-display, 'Instrument Serif', Georgia, serif);
+  font-family: var(--font-display);
   font-size: clamp(1.4rem, 2.5vw, 1.9rem);
   font-weight: 400;
   letter-spacing: -0.02em;
@@ -380,7 +399,7 @@
 }
 
 .prose-lumen h3 {
-  font-family: var(--font-display, 'Instrument Serif', Georgia, serif);
+  font-family: var(--font-display);
   font-size: clamp(1.15rem, 2vw, 1.45rem);
   font-weight: 400;
   letter-spacing: -0.015em;
@@ -444,7 +463,7 @@
 }
 
 .prose-lumen code {
-  font-family: 'JetBrains Mono Variable', monospace;
+  font-family: var(--font-mono);
   font-size: 0.88em;
   background: var(--color-surface-2);
   border: 1px solid var(--color-line);

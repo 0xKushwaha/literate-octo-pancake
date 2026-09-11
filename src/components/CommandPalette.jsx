@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   CommandDialog,
   CommandEmpty,
@@ -13,14 +14,15 @@ import Icon from './Icon';
 import Avatar from './Avatar';
 import { telHref, useBrand, useSiteContent } from '../lib/queries/siteContent';
 
-const SECTIONS = [
-  { id: 'services', label: 'What we treat', icon: 'pulse' },
-  { id: 'approach', label: 'How it works', icon: 'shuffle' },
-  { id: 'therapists', label: 'Our therapists', icon: 'person' },
-  { id: 'breathing', label: 'Breathing exercises', icon: 'spark' },
-  { id: 'resources', label: 'Videos & articles', icon: 'play' },
-  { id: 'pricing', label: 'Pricing & insurance', icon: 'shield' },
-  { id: 'faq', label: 'Questions', icon: 'message' },
+const PAGES = [
+  { to: '/services', label: 'What we treat', icon: 'pulse' },
+  { to: '/how-it-works', label: 'How it works', icon: 'shuffle' },
+  { to: '/therapists', label: 'Our therapists', icon: 'person' },
+  { to: '/breathe', label: 'Breathing exercises', icon: 'spark' },
+  { to: '/resources', label: 'Videos & articles', icon: 'play' },
+  { to: '/pricing', label: 'Pricing & insurance', icon: 'coins' },
+  { to: '/blog', label: 'Blog', icon: 'message' },
+  { to: '/how-it-works#faq', label: 'Questions', icon: 'smile' },
 ];
 
 /**
@@ -34,6 +36,7 @@ export default function CommandPalette({ onBook, initialOpen = false }) {
   const therapistsContent = useSiteContent('therapists');
   const services = Array.isArray(servicesContent.items) ? servicesContent.items : [];
   const therapists = Array.isArray(therapistsContent.items) ? therapistsContent.items : [];
+  const navigate = useNavigate();
   const [open, setOpen] = useState(initialOpen);
   const [isMac] = useState(() => /mac|iphone|ipad/i.test(navigator.platform || navigator.userAgent));
 
@@ -54,8 +57,7 @@ export default function CommandPalette({ onBook, initialOpen = false }) {
     setTimeout(fn, 120);
   };
 
-  const goTo = (id) =>
-    run(() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  const goTo = (to) => run(() => navigate(to));
 
   return (
     <>
@@ -121,10 +123,10 @@ export default function CommandPalette({ onBook, initialOpen = false }) {
           <CommandSeparator />
 
           <CommandGroup heading="Go to">
-            {SECTIONS.map((s) => (
-              <CommandItem key={s.id} value={s.label} onSelect={() => goTo(s.id)}>
-                <Icon name={s.icon} size={16} />
-                <span>{s.label}</span>
+            {PAGES.map((p) => (
+              <CommandItem key={p.to} value={p.label} onSelect={() => goTo(p.to)}>
+                <Icon name={p.icon} size={16} />
+                <span>{p.label}</span>
               </CommandItem>
             ))}
           </CommandGroup>

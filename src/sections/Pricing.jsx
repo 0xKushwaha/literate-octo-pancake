@@ -2,7 +2,7 @@ import { Button, Pill, Reveal, Section, SectionHeading } from '../components/pri
 import Icon from '../components/Icon';
 import { useSiteContent } from '../lib/queries/siteContent';
 
-export default function Pricing({ onBook }) {
+export default function Pricing({ onBook, withHeading = true }) {
   const content = useSiteContent('pricing');
   // Plans are a list field ("pricing.plans"); the older "<id>_blurb" keys are
   // still applied on top so earlier edits survive.
@@ -13,15 +13,17 @@ export default function Pricing({ onBook }) {
   }));
 
   return (
-    <Section id="pricing" className="py-24 sm:py-32">
-      <SectionHeading
-        eyebrow={content.eyebrow}
-        title={content.headline}
-        lead={content.lead}
-        align="center"
-      />
+    <Section id="pricing" className="py-16 sm:py-24">
+      {withHeading && (
+        <SectionHeading
+          eyebrow={content.eyebrow}
+          title={content.headline}
+          lead={content.lead}
+          align="center"
+        />
+      )}
 
-      <div className="mt-14 grid gap-4 lg:mt-20 lg:grid-cols-3">
+      <div className={`grid gap-4 lg:grid-cols-3 ${withHeading ? 'mt-12 lg:mt-16' : ''}`}>
         {plans.map((p, i) => (
           <Reveal key={p.id} delay={i * 0.1}>
             <div
@@ -47,17 +49,17 @@ export default function Pricing({ onBook }) {
                 </>
               )}
 
-              <h3 className="relative font-display text-[26px] leading-tight tracking-tight text-ink">
+              <h3 className="relative font-display text-[24px] leading-tight tracking-tight text-ink">
                 {p.name}
               </h3>
               <p className="relative mt-2 text-[14.5px] text-ink-3">{p.blurb}</p>
 
               <div className="relative mt-8 flex items-baseline gap-2">
-                <span className="font-display text-[3.25rem] leading-none tracking-tight text-ink">
+                <span className="font-display text-[3rem] font-medium leading-none tracking-tight text-ink">
                   ${p.price}
                 </span>
               </div>
-              <p className="relative mt-2 font-mono text-[10.5px] uppercase tracking-[0.16em] text-ink-4">
+              <p className="relative mt-2 text-[12px] font-medium uppercase tracking-[0.1em] text-ink-4">
                 {p.cadence}
               </p>
 
@@ -89,7 +91,7 @@ export default function Pricing({ onBook }) {
       </div>
 
       <Reveal delay={0.2}>
-        <p className="mx-auto mt-12 max-w-2xl text-center text-[14px] leading-relaxed text-ink-4">
+        <p className="mx-auto mt-10 max-w-2xl text-center text-[14px] leading-relaxed text-ink-4">
           {content.footnote}
         </p>
       </Reveal>
