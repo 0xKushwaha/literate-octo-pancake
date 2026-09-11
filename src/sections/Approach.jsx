@@ -1,102 +1,65 @@
-import { useRef } from 'react';
-import { motion, useScroll, useTransform } from 'motion/react';
-import { Reveal, Section, SectionHeading } from '../components/primitives';
+import { Section, SectionHeading, Stagger, StaggerItem } from '../components/primitives';
 import { useSiteContent } from '../lib/queries/siteContent';
 import Icon from '../components/Icon';
 
-function Step({ item, index, total }) {
-  const ref = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ['start 0.82', 'start 0.35'],
-  });
-  const opacity = useTransform(scrollYProgress, [0, 1], [0.32, 1]);
-  const x = useTransform(scrollYProgress, [0, 1], [18, 0]);
-  const dot = useTransform(scrollYProgress, [0, 1], [0.4, 1]);
+const STEP_ICONS = ['message', 'shuffle', 'calendar', 'refresh'];
 
-  return (
-    <motion.article
-      ref={ref}
-      style={{ opacity }}
-      className="relative grid grid-cols-[auto_1fr] gap-x-6 pb-16 sm:gap-x-10 lg:pb-24"
-    >
-      {/* rail */}
-      <div className="relative flex flex-col items-center">
-        <motion.span
-          style={{ scale: dot }}
-          className="relative z-10 grid size-12 shrink-0 place-items-center rounded-full border border-line bg-surface font-mono text-[11px] tracking-widest text-ink"
-        >
-          {item.step}
-          <span className="absolute inset-0 rounded-full bg-rose-200 blur-lg" />
-        </motion.span>
-        {index < total - 1 && (
-          <span className="mt-2 w-px flex-1 bg-gradient-to-b from-line via-line to-transparent" />
-        )}
-      </div>
-
-      <motion.div style={{ x }} className="pt-1.5">
-        <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
-          <h3 className="font-display text-[clamp(1.6rem,3vw,2.4rem)] leading-tight tracking-tight text-ink">
-            {item.title}
-          </h3>
-          <span className="font-mono text-[10.5px] uppercase tracking-[0.2em] text-ink">
-            {item.detail}
-          </span>
-        </div>
-        <p className="mt-4 max-w-[54ch] text-[16.5px] leading-relaxed text-ink-3">{item.body}</p>
-      </motion.div>
-    </motion.article>
-  );
-}
-
+/** How it works (four steps in a row) followed by the "Why Lumen" cards. */
 export default function Approach() {
-  // This section's headline is editable from the admin panel (key
-  // "approach.headline"). It used to be hard-coded, so the field existed in the
-  // CMS but changing it did nothing on the site.
   const content = useSiteContent('approach');
-  const process = Array.isArray(content.steps) ? content.steps : [];
-  const pillars = Array.isArray(content.pillars) ? content.pillars : [];
+  const why = useSiteContent('why');
+  const steps = Array.isArray(content.steps) ? content.steps : [];
+  const cards = Array.isArray(why.items) ? why.items : [];
 
   return (
-    <Section id="approach" className="py-32 sm:py-44 lg:py-56">
-      <SectionHeading
-        eyebrow={content.eyebrow}
-        title={content.headline}
-        lead={content.lead}
-      />
+    <Section id="approach" className="py-24 sm:py-32">
+      <SectionHeading eyebrow={content.eyebrow} title={content.headline} lead={content.lead} align="center" />
 
-      <div className="mt-24 grid gap-16 lg:mt-36 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:gap-20">
-        <div>
-          {process.map((item, i) => (
-            <Step key={`${item.step}-${i}`} item={item} index={i} total={process.length} />
-          ))}
-        </div>
+      <Stagger as="ol" className="relative mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" step={0.08}>
+        {steps.map((item, i) => (
+          <StaggerItem key={`${item.step}-${i}`} as="li" className="relative flex flex-col rounded-3xl border border-line bg-surface p-6 shadow-[var(--shadow-card)]">
+            <div className="flex items-center justify-between">
+              <span className="grid size-11 place-items-center rounded-2xl bg-rose-100 text-ink">
+                <Icon name={STEP_ICONS[i % STEP_ICONS.length]} size={20} />
+              </span>
+              <span className="font-mono text-[11px] tracking-[0.2em] text-ink-4">{item.step}</span>
+            </div>
+            <h3 className="mt-6 font-display text-[22px] leading-tight tracking-tight text-ink">{item.title}</h3>
+            <p className="mt-2.5 flex-1 text-[14.5px] leading-relaxed text-ink-3">{item.body}</p>
+            {item.detail && (
+              <p className="mt-5 inline-flex w-fit items-center gap-1.5 rounded-full bg-surface-2 px-2.5 py-1 text-[11.5px] text-ink-2">
+                <Icon name="clock" size={12} />
+                {item.detail}
+              </p>
+            )}
+            {i < steps.length - 1 && (
+              <span aria-hidden className="absolute -right-3 top-1/2 hidden size-6 -translate-y-1/2 place-items-center rounded-full border border-line bg-surface text-ink-4 lg:grid">
+                <Icon name="arrow" size={12} />
+              </span>
+            )}
+          </StaggerItem>
+        ))}
+      </Stagger>
 
-        <div className="lg:sticky lg:top-28 lg:h-fit">
-          <div className="glass rounded-4xl p-8 shadow-[var(--shadow-lift)] ring-1 ring-rose-200/30 sm:p-10">
-            <p className="font-display text-2xl leading-snug tracking-tight text-ink">
-              {content.pillars_title}
-            </p>
-            <ul className="mt-8 flex flex-col gap-8">
-              {pillars.map((p, i) => (
-                <Reveal key={`${p.title}-${i}`} delay={i * 0.1} as="li">
-                  <div className="flex gap-4">
-                    <span className="mt-0.5 grid size-10 shrink-0 place-items-center rounded-full border border-rose-300 bg-rose-100 text-ink">
-                      <Icon name={p.icon} size={18} />
-                    </span>
-                    <div>
-                      <h4 className="text-[15px] font-medium tracking-tight text-ink">
-                        {p.title}
-                      </h4>
-                      <p className="mt-2 text-[14.5px] leading-relaxed text-ink-3">{p.body}</p>
-                    </div>
-                  </div>
-                </Reveal>
-              ))}
-            </ul>
-          </div>
+      {cards.length > 0 && (
+        <div className="mt-24 sm:mt-32">
+          <SectionHeading eyebrow={why.eyebrow} title={why.headline} align="center" />
+          <Stagger className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" step={0.06}>
+            {cards.map((c, i) => (
+              <StaggerItem
+                key={`${c.title}-${i}`}
+                className={`rounded-3xl border border-line p-6 ${i % 3 === 1 ? 'bg-rose-100/70' : i % 3 === 2 ? 'bg-peach-100/60' : 'bg-surface'} ${cards.length % 3 === 2 && i === cards.length - 1 ? 'lg:col-start-2' : ''}`}
+              >
+                <span className="grid size-10 place-items-center rounded-full border border-line bg-surface text-ink">
+                  <Icon name={c.icon} size={18} />
+                </span>
+                <h3 className="mt-5 text-[16px] font-medium tracking-tight text-ink">{c.title}</h3>
+                <p className="mt-2 text-[14.5px] leading-relaxed text-ink-3">{c.body}</p>
+              </StaggerItem>
+            ))}
+          </Stagger>
         </div>
-      </div>
+      )}
     </Section>
   );
 }

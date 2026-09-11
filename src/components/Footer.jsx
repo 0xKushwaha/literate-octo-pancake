@@ -7,8 +7,8 @@ const staticColumns = [
     title: 'Practice',
     links: [
       { label: 'Our services', href: '#services' },
-      { label: 'Our therapists', href: '#therapists' },
       { label: 'How it works', href: '#approach' },
+      { label: 'Our therapists', href: '#therapists' },
       { label: 'Breathing exercises', href: '#breathing' },
     ],
   },
@@ -16,7 +16,7 @@ const staticColumns = [
     title: 'Resources',
     links: [
       { label: 'Blog', href: '/blog' },
-      { label: 'Video resources', href: '#resources' },
+      { label: 'Videos & articles', href: '#resources' },
       { label: 'Pricing & insurance', href: '#pricing' },
       { label: 'Questions', href: '#faq' },
     ],
@@ -49,13 +49,12 @@ export default function Footer({ onBook }) {
         </Section>
       </div>
 
-      <Section className="py-24">
+      <Section className="py-20">
         <div className="grid gap-14 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,2fr)]">
           <div>
             <a href="#top" className="flex items-center gap-2.5">
-              <span className="relative grid size-7 place-items-center">
-                <span className="absolute inset-0 rounded-full bg-gradient-to-br from-rose-300 to-amber-500 opacity-90 blur-[6px]" />
-                <span className="relative size-2.5 rounded-full bg-ink" />
+              <span className="grid size-7 place-items-center rounded-full bg-gradient-to-br from-rose-300 to-amber-500">
+                <span className="size-2.5 rounded-full bg-ink" />
               </span>
               <span className="font-display text-[26px] leading-none tracking-tight">
                 {brand.name}

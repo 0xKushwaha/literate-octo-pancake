@@ -1,6 +1,4 @@
-import { useRef } from 'react';
-import { motion, useScroll, useTransform } from 'motion/react';
-import { Button, Magnetic, Section, SplitWords } from '../components/primitives';
+import { Button, Reveal, Section } from '../components/primitives';
 import Icon from '../components/Icon';
 import { telHref, useBrand, useSiteContent } from '../lib/queries/siteContent';
 
@@ -8,55 +6,34 @@ export default function CtaBand({ onBook }) {
   const content = useSiteContent('cta');
   const brand = useBrand();
   const reassurances = Array.isArray(content.reassurances) ? content.reassurances : [];
-  const ref = useRef(null);
-  const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] });
-  const glowY = useTransform(scrollYProgress, [0, 1], ['30%', '-30%']);
 
   return (
-    <Section className="pb-36 pt-10 sm:pb-48">
-      <div
-        ref={ref}
-        className="relative overflow-hidden rounded-5xl border border-line bg-surface px-6 py-28 text-center sm:px-14 sm:py-40"
-      >
-        <motion.div
+    <Section className="pb-24 pt-6 sm:pb-32">
+      <Reveal className="relative overflow-hidden rounded-4xl border border-line bg-surface px-6 py-20 text-center shadow-[var(--shadow-card)] sm:px-14 sm:py-28">
+        <div
           aria-hidden
-          style={{ y: glowY }}
-          className="pointer-events-none absolute inset-x-0 top-1/2 h-[520px] -translate-y-1/2"
-        >
-          <div className="absolute left-1/2 top-1/2 size-[560px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(255,176,181,0.35),transparent_62%)]" />
-          <div className="absolute left-[62%] top-[46%] size-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(255,191,0,0.30),transparent_62%)]" />
-        </motion.div>
-        <div aria-hidden className="pointer-events-none absolute inset-0 grid-lines opacity-40" />
-
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              'radial-gradient(50% 60% at 30% 100%, rgba(255,198,202,0.6), transparent 70%), radial-gradient(45% 55% at 80% 0%, rgba(249,220,192,0.7), transparent 70%)',
+          }}
+        />
         <div className="relative">
-          <h2 className="mx-auto max-w-[18ch] font-display text-[clamp(2.75rem,7vw,5.5rem)] leading-[1.02] tracking-[-0.03em]">
-            <SplitWords text={content.headline} />{' '}
-            <span className="text-aurora">
-              <SplitWords text={content.headline_accent} delay={0.25} />
-            </span>
+          <h2 className="mx-auto max-w-[20ch] font-display text-[clamp(2.4rem,5.5vw,4.5rem)] leading-[1.04] tracking-[-0.025em]">
+            {content.headline} <span className="text-aurora italic">{content.headline_accent}</span>
           </h2>
-          <p className="mx-auto mt-7 max-w-[46ch] text-[17px] leading-relaxed text-ink-2">
-            {content.body}
-          </p>
+          <p className="mx-auto mt-6 max-w-[46ch] text-[16.5px] leading-relaxed text-ink-2">{content.body}</p>
 
-          <div className="mt-11 flex flex-wrap items-center justify-center gap-3">
-            <Magnetic strength={0.3}>
-              <Button variant="glow" size="lg" icon="arrow" onClick={() => onBook?.()}>
-                {content.primary}
-              </Button>
-            </Magnetic>
-            <Button
-              variant="ghost"
-              size="lg"
-              as="a"
-              href={telHref(brand.phone)}
-              iconLeft="phone"
-            >
+          <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
+            <Button variant="primary" size="lg" icon="arrow" onClick={() => onBook?.()}>
+              {content.primary}
+            </Button>
+            <Button variant="ghost" size="lg" as="a" href={telHref(brand.phone)} iconLeft="phone">
               {content.secondary}
             </Button>
           </div>
 
-          <p className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 font-mono text-[10.5px] uppercase tracking-[0.2em] text-ink-4">
+          <p className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[12.5px] text-ink-3">
             {reassurances.map((r, i) => (
               <span key={`${r}-${i}`} className="flex items-center gap-2">
                 <Icon name="check" size={12} className="text-ink" />
@@ -65,7 +42,7 @@ export default function CtaBand({ onBook }) {
             ))}
           </p>
         </div>
-      </div>
+      </Reveal>
     </Section>
   );
 }

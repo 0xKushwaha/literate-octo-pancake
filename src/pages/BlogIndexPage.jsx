@@ -65,7 +65,7 @@ export default function BlogIndexPage() {
   const totalPages = Math.ceil(total / pageSize);
 
   return (
-    <div className="min-h-screen bg-bg grain">
+    <div className="min-h-screen bg-bg">
       <Toaster />
       {/* Nav */}
       <header className="border-b border-line bg-bg/80 backdrop-blur-md sticky top-0 z-50">

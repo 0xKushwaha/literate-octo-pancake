@@ -1,177 +1,123 @@
 import { forwardRef, useEffect, useRef, useState } from 'react';
-import { motion, useInView as useMotionInView, useMotionValue, useSpring } from 'motion/react';
 import Icon from './Icon';
 
 /* ---------------------------------------------------------------- Reveal */
 
+/** Shared easing (kept for the booking dialog, which still animates with motion). */
 export const EASE = [0.16, 1, 0.3, 1];
 
-/** Fades + lifts children into view once. */
+/**
+ * Fades + lifts children into view once, with CSS transitions driven by a
+ * single IntersectionObserver. This replaced a motion/react implementation:
+ * the animation library alone was ~45 KB of JavaScript on the homepage and
+ * every reveal was a React re-render, which is a lot of work for "fade in".
+ */
 export function Reveal({
   children,
   delay = 0,
-  y = 22,
-  duration = 0.9,
   className = '',
-  as = 'div',
-  amount = 0.25,
+  as: Tag = 'div',
+  amount = 0.15,
   ...rest
 }) {
-  const MotionTag = motion[as] ?? motion.div;
+  const [ref, inView] = useInViewOnce(amount);
   return (
-    <MotionTag
-      className={className}
-      initial={{ opacity: 0, y }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount }}
-      transition={{ duration, delay, ease: EASE }}
+    <Tag
+      ref={ref}
+      className={`reveal ${inView ? 'is-in' : ''} ${className}`}
+      style={delay ? { transitionDelay: `${delay}s` } : undefined}
       {...rest}
     >
       {children}
-    </MotionTag>
+    </Tag>
   );
 }
 
-/** Staggers direct children on entry. */
-export function Stagger({ children, className = '', delay = 0, step = 0.08, ...rest }) {
+/** Staggers direct children on entry. Children get their own `.reveal`. */
+export function Stagger({ children, className = '', step = 0.07, amount = 0.1, as: Tag = 'div', ...rest }) {
+  const [ref, inView] = useInViewOnce(amount);
   return (
-    <motion.div
-      className={className}
-      initial="hidden"
-      whileInView="show"
-      viewport={{ once: true, amount: 0.2 }}
-      variants={{
-        hidden: {},
-        show: { transition: { staggerChildren: step, delayChildren: delay } },
-      }}
+    <Tag
+      ref={ref}
+      className={`stagger ${inView ? 'is-in' : ''} ${className}`}
+      style={{ '--stagger-step': `${step}s` }}
       {...rest}
     >
       {children}
-    </motion.div>
+    </Tag>
   );
 }
 
-export const staggerItem = {
-  hidden: { opacity: 0, y: 26 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.85, ease: EASE } },
-};
-
-export function StaggerItem({ children, className = '', ...rest }) {
+export function StaggerItem({ children, className = '', as: Tag = 'div', ...rest }) {
   return (
-    <motion.div className={className} variants={staggerItem} {...rest}>
+    <Tag className={`reveal ${className}`} {...rest}>
       {children}
-    </motion.div>
+    </Tag>
   );
 }
 
-/** Word-by-word headline reveal with a soft blur-in. */
-export function SplitWords({ text, className = '', delay = 0, step = 0.055, once = true }) {
-  const words = String(text ?? '').split(' ');
-  return (
-    <span className={className}>
-      {words.map((word, i) => (
-        // The observer has to sit on the UNclipped wrapper: a child parked at
-        // y:110% is clipped away entirely, and a fully clipped element never
-        // reports as intersecting — so the words would never animate in.
-        <motion.span
-          key={`${word}-${i}`}
-          className="inline-block overflow-hidden align-bottom"
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once, amount: 0.1 }}
-        >
-          <motion.span
-            className="inline-block"
-            variants={{
-              hidden: { y: '110%', opacity: 0, filter: 'blur(8px)' },
-              show: { y: '0%', opacity: 1, filter: 'blur(0px)' },
-            }}
-            transition={{ duration: 1, delay: delay + i * step, ease: EASE }}
-          >
-            {word}
-            {i < words.length - 1 ? '\u00A0' : ''}
-          </motion.span>
-        </motion.span>
-      ))}
-    </span>
-  );
+/** Kept for older call sites; a plain span now. */
+export function SplitWords({ text, className = '' }) {
+  return <span className={className}>{text}</span>;
 }
 
-/* ---------------------------------------------------------------- Magnetic */
+/** Passthroughs — the pointer-tracking effects were removed for performance. */
+export function Magnetic({ children, className = '' }) {
+  return <div className={className}>{children}</div>;
+}
+export function TiltCard({ children, className = '' }) {
+  return <div className={`relative ${className}`}>{children}</div>;
+}
 
-/** Element leans toward the cursor. Disabled for coarse pointers. */
-export function Magnetic({ children, strength = 0.35, className = '' }) {
+function useInViewOnce(amount = 0.15) {
   const ref = useRef(null);
-  const x = useSpring(useMotionValue(0), { stiffness: 240, damping: 18, mass: 0.35 });
-  const y = useSpring(useMotionValue(0), { stiffness: 240, damping: 18, mass: 0.35 });
-
+  const [inView, setInView] = useState(false);
   useEffect(() => {
     const el = ref.current;
-    if (!el || !window.matchMedia('(pointer: fine)').matches) return;
-
-    const onMove = (e) => {
-      const r = el.getBoundingClientRect();
-      x.set((e.clientX - (r.left + r.width / 2)) * strength);
-      y.set((e.clientY - (r.top + r.height / 2)) * strength);
-    };
-    const onLeave = () => {
-      x.set(0);
-      y.set(0);
-    };
-
-    el.addEventListener('pointermove', onMove);
-    el.addEventListener('pointerleave', onLeave);
-    return () => {
-      el.removeEventListener('pointermove', onMove);
-      el.removeEventListener('pointerleave', onLeave);
-    };
-  }, [strength, x, y]);
-
-  return (
-    <motion.div ref={ref} style={{ x, y }} className={className}>
-      {children}
-    </motion.div>
-  );
+    if (!el) return;
+    if (!('IntersectionObserver' in window)) { setInView(true); return; }
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setInView(true);
+          io.disconnect();
+        }
+      },
+      { threshold: amount, rootMargin: '0px 0px -8% 0px' },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [amount]);
+  return [ref, inView];
 }
 
 /* ---------------------------------------------------------------- Button */
 
 const variants = {
-  primary:
-    'bg-ink text-white hover:bg-ink-2 shadow-[var(--shadow-lift)]',
-  // Was white type on the gradient. Every colour in this palette is light —
-  // white on #FFBF00 is about 1.6:1 — so the label is black and the gradient
-  // carries the emphasis on its own.
-  glow: 'text-ink bg-gradient-to-r from-rose-400 via-peach-100 to-amber-500 hover:brightness-105 shadow-[0_18px_48px_-16px_rgba(255,176,181,0.55),0_0_0_1px_rgba(0,0,0,0.08)] hover:shadow-[0_22px_56px_-14px_rgba(255,191,0,0.55),0_0_0_1px_rgba(0,0,0,0.12)]',
-  ghost: 'glass text-ink hover:bg-surface hover:shadow-[var(--shadow-card)]',
+  primary: 'bg-ink text-white hover:bg-ink-2 shadow-[var(--shadow-lift)]',
+  // Every colour in this palette is light, so the label is black and the
+  // gradient carries the emphasis on its own.
+  glow: 'text-ink bg-gradient-to-r from-rose-400 via-peach-100 to-amber-500 hover:brightness-105 shadow-[0_14px_36px_-14px_rgba(255,176,181,0.6),0_0_0_1px_rgba(0,0,0,0.08)]',
+  ghost: 'bg-surface text-ink border border-line hover:border-line-2 hover:shadow-[var(--shadow-card)]',
   quiet: 'text-ink-3 hover:text-ink',
-  outline: 'border border-line-2 bg-surface text-ink hover:border-rose-400 hover:text-ink',
+  outline: 'border border-line-2 bg-surface text-ink hover:border-rose-400',
 };
 
 const sizes = {
   sm: 'h-9 px-4 text-[13px]',
   md: 'h-11 px-5 text-sm',
-  lg: 'h-[3.75rem] px-8 text-[15.5px]',
+  lg: 'h-[3.5rem] px-7 text-[15.5px]',
 };
 
 export const Button = forwardRef(function Button(
-  {
-    children,
-    variant = 'primary',
-    size = 'md',
-    icon,
-    iconLeft,
-    className = '',
-    as: Tag = 'button',
-    ...rest
-  },
+  { children, variant = 'primary', size = 'md', icon, iconLeft, className = '', as: Tag = 'button', ...rest },
   ref,
 ) {
   return (
     <Tag
       ref={ref}
       className={`group relative inline-flex items-center justify-center gap-2 rounded-full font-medium tracking-tight
-        transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]
+        transition-[transform,box-shadow,background-color,border-color,filter] duration-200
         active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40
         ${variants[variant]} ${sizes[size]} ${className}`}
       {...rest}
@@ -182,7 +128,7 @@ export const Button = forwardRef(function Button(
         <Icon
           name={icon}
           size={17}
-          className="shrink-0 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-1"
+          className="shrink-0 transition-transform duration-200 group-hover:translate-x-0.5"
         />
       )}
     </Tag>
@@ -194,36 +140,32 @@ export const Button = forwardRef(function Button(
 export function Eyebrow({ children, className = '' }) {
   return (
     <div className={`flex items-center gap-3 ${className}`}>
-      <span className="h-px w-8 bg-gradient-to-r from-rose-300/80 to-transparent" />
+      <span className="size-1.5 rounded-full bg-amber-500" />
       <span className="eyebrow">{children}</span>
     </div>
   );
 }
 
-export function SectionHeading({ eyebrow, title, lead, align = 'left', className = '' }) {
+export function SectionHeading({ eyebrow, title, lead, align = 'left', className = '', size = 'md' }) {
   const centered = align === 'center';
+  const titleSize =
+    size === 'lg'
+      ? 'text-[clamp(2.5rem,5.5vw,4.5rem)]'
+      : 'text-[clamp(2.1rem,4.2vw,3.4rem)]';
   return (
-    <div className={`${centered ? 'mx-auto max-w-3xl text-center' : 'max-w-3xl'} ${className}`}>
+    <Reveal className={`${centered ? 'mx-auto max-w-3xl text-center' : 'max-w-3xl'} ${className}`}>
       {eyebrow && (
-        <Reveal>
-          <div className={centered ? 'flex justify-center' : ''}>
-            <Eyebrow>{eyebrow}</Eyebrow>
-          </div>
-        </Reveal>
+        <div className={centered ? 'flex justify-center' : ''}>
+          <Eyebrow>{eyebrow}</Eyebrow>
+        </div>
       )}
-      <h2 className="mt-6 font-display text-[clamp(2.5rem,6vw,5rem)] leading-[0.98] tracking-[-0.03em] text-ink">
-        <SplitWords text={title} />
-      </h2>
+      <h2 className={`mt-5 font-display leading-[1.02] tracking-[-0.025em] text-ink ${titleSize}`}>{title}</h2>
       {lead && (
-        <Reveal delay={0.15}>
-          <p
-            className={`mt-6 text-[17px] leading-relaxed text-ink-2 ${centered ? 'mx-auto max-w-xl' : 'max-w-xl'}`}
-          >
-            {lead}
-          </p>
-        </Reveal>
+        <p className={`mt-5 text-[16.5px] leading-relaxed text-ink-3 ${centered ? 'mx-auto max-w-xl' : 'max-w-xl'}`}>
+          {lead}
+        </p>
       )}
-    </div>
+    </Reveal>
   );
 }
 
@@ -231,7 +173,7 @@ export function Section({ id, children, className = '', ...rest }) {
   return (
     <section
       id={id}
-      className={`relative mx-auto w-full max-w-[1280px] px-5 sm:px-8 lg:px-12 ${className}`}
+      className={`relative mx-auto w-full max-w-[1200px] scroll-mt-24 px-5 sm:px-8 lg:px-10 ${className}`}
       {...rest}
     >
       {children}
@@ -259,18 +201,17 @@ export function Pill({ children, className = '', tone = 'default' }) {
 }
 
 /** Counts up to `value` when scrolled into view. */
-export function Counter({ value, decimals = 0, suffix = '', duration = 1900 }) {
-  const ref = useRef(null);
-  const inView = useMotionInView(ref, { once: true, amount: 0.5 });
+export function Counter({ value, decimals = 0, suffix = '', duration = 1400 }) {
+  const [ref, inView] = useInViewOnce(0.5);
   const [shown, setShown] = useState(0);
 
   useEffect(() => {
     if (!inView) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { setShown(value); return; }
     let raf;
     const start = performance.now();
     const tick = (now) => {
       const p = Math.min((now - start) / duration, 1);
-      // expo-out
       const eased = p === 1 ? 1 : 1 - Math.pow(2, -10 * p);
       setShown(value * eased);
       if (p < 1) raf = requestAnimationFrame(tick);
@@ -281,58 +222,8 @@ export function Counter({ value, decimals = 0, suffix = '', duration = 1900 }) {
 
   return (
     <span ref={ref} className="tabular-nums">
-      {shown.toLocaleString('en-US', {
-        minimumFractionDigits: decimals,
-        maximumFractionDigits: decimals,
-      })}
+      {shown.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}
       {suffix}
     </span>
-  );
-}
-
-/** Card that tilts subtly toward the pointer, with a light that follows it. */
-export function TiltCard({ children, className = '', max = 6, glow = true }) {
-  const ref = useRef(null);
-  const rx = useSpring(useMotionValue(0), { stiffness: 200, damping: 22 });
-  const ry = useSpring(useMotionValue(0), { stiffness: 200, damping: 22 });
-  const [light, setLight] = useState({ x: 50, y: 50, on: false });
-
-  const onMove = (e) => {
-    const el = ref.current;
-    if (!el || !window.matchMedia('(pointer: fine)').matches) return;
-    const r = el.getBoundingClientRect();
-    const px = (e.clientX - r.left) / r.width;
-    const py = (e.clientY - r.top) / r.height;
-    ry.set((px - 0.5) * max * 2);
-    rx.set(-(py - 0.5) * max * 2);
-    setLight({ x: px * 100, y: py * 100, on: true });
-  };
-
-  const onLeave = () => {
-    rx.set(0);
-    ry.set(0);
-    setLight((l) => ({ ...l, on: false }));
-  };
-
-  return (
-    <motion.div
-      ref={ref}
-      onPointerMove={onMove}
-      onPointerLeave={onLeave}
-      style={{ rotateX: rx, rotateY: ry, transformPerspective: 1000 }}
-      className={`relative ${className}`}
-    >
-      {glow && (
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 rounded-[inherit] opacity-0 transition-opacity duration-500"
-          style={{
-            opacity: light.on ? 1 : 0,
-            background: `radial-gradient(480px circle at ${light.x}% ${light.y}%, color-mix(in oklab, var(--color-amber-500) 20%, transparent), transparent 58%)`,
-          }}
-        />
-      )}
-      {children}
-    </motion.div>
   );
 }

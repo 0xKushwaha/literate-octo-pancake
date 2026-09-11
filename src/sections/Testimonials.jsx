@@ -1,65 +1,38 @@
-import { Section, SectionHeading } from '../components/primitives';
+import { Section, SectionHeading, Stagger, StaggerItem } from '../components/primitives';
 import Icon from '../components/Icon';
 import { useSiteContent } from '../lib/queries/siteContent';
-
-function Card({ t }) {
-  return (
-    <figure className="w-[340px] shrink-0 rounded-4xl border border-line bg-surface p-7 shadow-[var(--shadow-card)] sm:w-[420px]">
-      <div className="flex gap-0.5 text-ink">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <Icon key={i} name="star" size={13} filled />
-        ))}
-      </div>
-      <blockquote className="mt-5 text-[16px] leading-relaxed text-ink-2">“{t.quote}”</blockquote>
-      <figcaption className="mt-6 flex items-center gap-3 border-t border-line pt-5">
-        <span className="text-[14px] text-ink">{t.name}</span>
-        <span className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-ink-4">
-          {t.meta}
-        </span>
-      </figcaption>
-    </figure>
-  );
-}
-
-/** Two rows drifting in opposite directions; paused on hover so quotes are readable. */
-function Row({ items, reverse = false, duration = 58 }) {
-  const doubled = [...items, ...items];
-  return (
-    <div className="group relative overflow-hidden [mask-image:linear-gradient(to_right,transparent,#000_8%,#000_92%,transparent)]">
-      <div
-        className="flex w-max gap-4 group-hover:[animation-play-state:paused]"
-        style={{
-          animation: `marquee-x ${duration}s linear infinite`,
-          animationDirection: reverse ? 'reverse' : 'normal',
-        }}
-      >
-        {doubled.map((t, i) => (
-          <Card key={`${t.name}-${i}`} t={t} />
-        ))}
-      </div>
-    </div>
-  );
-}
 
 export default function Testimonials() {
   const content = useSiteContent('testimonials');
   const testimonials = Array.isArray(content.items) ? content.items : [];
   if (testimonials.length === 0) return null;
-  const half = Math.ceil(testimonials.length / 2);
-  return (
-    <div id="testimonials" className="relative py-32 sm:py-44 lg:py-56">
-      <Section>
-        <SectionHeading
-          eyebrow={content.eyebrow}
-          title={content.headline}
-          align="center"
-        />
-      </Section>
 
-      <div className="mt-16 flex flex-col gap-4">
-        <Row items={testimonials.slice(0, half)} duration={72} />
-        {testimonials.length > 1 && <Row items={testimonials.slice(half)} reverse duration={88} />}
-      </div>
+  return (
+    <div className="bg-surface-2/60">
+      <Section id="testimonials" className="py-24 sm:py-32">
+        <SectionHeading eyebrow={content.eyebrow} title={content.headline} align="center" />
+
+        <Stagger className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" step={0.06}>
+          {testimonials.slice(0, 6).map((t, i) => (
+            <StaggerItem
+              key={`${t.name}-${i}`}
+              as="figure"
+              className="flex h-full flex-col rounded-3xl border border-line bg-surface p-6 shadow-[var(--shadow-card)]"
+            >
+              <div className="flex gap-0.5 text-amber-500">
+                {Array.from({ length: 5 }).map((_, k) => (
+                  <Icon key={k} name="star" size={13} filled />
+                ))}
+              </div>
+              <blockquote className="mt-4 flex-1 text-[15.5px] leading-relaxed text-ink-2">“{t.quote}”</blockquote>
+              <figcaption className="mt-5 flex items-center gap-3 border-t border-line pt-4">
+                <span className="text-[14px] text-ink">{t.name}</span>
+                <span className="text-[12px] text-ink-4">{t.meta}</span>
+              </figcaption>
+            </StaggerItem>
+          ))}
+        </Stagger>
+      </Section>
     </div>
   );
 }

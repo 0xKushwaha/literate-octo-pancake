@@ -19,25 +19,46 @@ function notify() {
 /** Drops cached content so the next read hits the source. */
 export function invalidateSiteContent() {
   cache.clear();
+  allRowsPromise = null;
   notify();
 }
 
+// One request for the whole table, shared by every section on the page.
+// Sixteen components used to fire sixteen queries on every homepage load;
+// the table is a few dozen short rows, so one round trip is the right shape.
+let allRowsPromise = null;
+
+async function loadAllRows() {
+  if (isDemo) return demoSiteContent.getAll();
+  const { data, error } = await supabase
+    .from('site_content')
+    .select('key, value, type, label, section');
+  if (error) throw error;
+  return data ?? [];
+}
+
 export async function getSectionContent(section, { force = false } = {}) {
-  if (!force && cache.has(section)) return cache.get(section);
+  if (force) { cache.clear(); allRowsPromise = null; }
+  if (cache.has(section)) return cache.get(section);
 
-  let rows;
-  if (isDemo) {
-    rows = demoSiteContent.getAllInSection(section);
-  } else {
-    const { data, error } = await supabase
-      .from('site_content')
-      .select('key, value, type, label')
-      .eq('section', section);
-    if (error) throw error;
-    rows = data ?? [];
+  if (!allRowsPromise) {
+    allRowsPromise = loadAllRows().catch((err) => {
+      // Let the next caller retry rather than pinning a failed promise.
+      allRowsPromise = null;
+      throw err;
+    });
   }
+  const rows = await allRowsPromise;
 
-  const result = indexRows(rows);
+  const bySection = new Map();
+  for (const row of rows) {
+    const s = row.section ?? sectionOf(row.key);
+    if (!bySection.has(s)) bySection.set(s, []);
+    bySection.get(s).push(row);
+  }
+  for (const [s, list] of bySection) cache.set(s, indexRows(list));
+
+  const result = cache.get(section) ?? indexRows([]);
   cache.set(section, result);
   return result;
 }

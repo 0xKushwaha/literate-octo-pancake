@@ -17,16 +17,36 @@ import {
   brand, credentials, faqs, plans, process, services, stats, testimonials, therapists,
 } from './site';
 
-export const APPROACH_PILLARS = [
+export const HERO_WORDS = ['anxiety', 'burnout', 'relationships', 'grief', 'getting unstuck', 'the 3am spiral'];
+
+export const HEARD_ITEMS = [
+  { quote: 'I have been meaning to see someone for two years. Every time I look, the first appointment is six weeks away and I give up.', name: 'R., 31' },
+  { quote: 'I do not want to explain my whole life to a receptionist just to find out whether they even treat what I have.', name: 'J., 27' },
+  { quote: 'Last time it took four therapists before one felt right. I cannot afford to do that again.', name: 'M., 44' },
+  { quote: 'I just need to know what it costs before I book. Not after the claim gets rejected.', name: 'A., 36' },
+  { quote: 'Some weeks I cannot get to an office. That should not mean I lose my therapist.', name: 'S., 52' },
+];
+
+export const WHY_ITEMS = [
   {
     icon: 'shuffle',
     title: 'Matched by a person',
     body: 'A clinician reads every intake. No questionnaire scoring, no algorithm deciding who understands you.',
   },
   {
+    icon: 'coins',
+    title: 'Priced before you book',
+    body: 'Your exact out-of-pocket cost, insurance applied, on the booking screen. Nothing surfaces on a statement later.',
+  },
+  {
+    icon: 'globe',
+    title: 'Video, phone or in person',
+    body: 'Switch formats week to week without switching therapists. Telehealth across fourteen states.',
+  },
+  {
     icon: 'lock',
     title: 'Private by construction',
-    body: 'End-to-end encrypted sessions, notes visible only to your care team, and no advertising business to sell data to.',
+    body: 'Encrypted sessions, notes visible only to your care team, and no advertising business to sell data to.',
   },
   {
     icon: 'message',
@@ -34,6 +54,9 @@ export const APPROACH_PILLARS = [
     body: 'Secure messaging, a plan you can actually see, and a therapist who remembers what you said last week.',
   },
 ];
+
+/** Kept for older imports; the side-card pillars became the "Why Lumen" section. */
+export const APPROACH_PILLARS = WHY_ITEMS.slice(0, 3);
 
 const f = (key, label, value, type = 'text', hint = null) => ({
   key,
@@ -58,35 +81,43 @@ export const CONTENT_SCHEMA = [
 
   // ── Navigation ────────────────────────────────────────────────────────────
   f('nav.book_label', 'Book button label', 'Book a session'),
-  f('nav.breathing_label', 'Nav: Breathe', 'Breathe'),
   f('nav.services_label', 'Nav: Services', 'Services'),
+  f('nav.approach_label', 'Nav: How it works', 'How it works'),
   f('nav.therapists_label', 'Nav: Therapists', 'Therapists'),
-  f('nav.resources_label', 'Nav: Videos', 'Videos'),
-  f('nav.blog_label', 'Nav: Blog', 'Blog'),
+  f('nav.breathing_label', 'Nav: Breathe', 'Breathe'),
+  f('nav.resources_label', 'Nav: Resources (videos + blog)', 'Resources'),
   f('nav.pricing_label', 'Nav: Pricing', 'Pricing'),
   f('nav.faq_label', 'Nav: FAQ', 'FAQ'),
+  f('nav.blog_label', 'Footer: Blog link label', 'Blog'),
 
   // ── Hero ──────────────────────────────────────────────────────────────────
   f('hero.status_pill', 'Status pill', 'Accepting new clients'),
-  f('hero.next_opening', 'Next opening note', 'Next opening — tomorrow, 09:30'),
-  f('hero.headline', 'Headline (plain part)', 'Therapy that meets'),
-  f('hero.headline_accent', 'Headline (highlighted part)', 'you where you are.'),
-  f('hero.subheadline', 'Subheadline', 'Licensed clinicians, matched to you by a human in under a day. Video, phone or in person — and a first session this week, not next quarter.', 'richtext'),
+  f('hero.headline', 'Headline (before the rotating word)', 'Therapy for'),
+  f('hero.rotating_words', 'Rotating words', HERO_WORDS, LIST, 'A list of short phrases the headline cycles through, e.g. ["anxiety", "burnout"]'),
+  f('hero.subheadline', 'Subheadline', 'Licensed clinicians, matched to you by a human in under a day. Video, phone or in person, and a first session this week, not next quarter.', 'richtext'),
   f('hero.primary_cta', 'Primary button', 'Book your first session'),
   f('hero.secondary_cta', 'Secondary button', 'See how it works'),
-  f('hero.scroll_hint', 'Scroll hint', 'Scroll to explore'),
-  f('hero.location_note', 'Location note (bottom right)', 'San Francisco · Telehealth in 14 states'),
+  f('hero.location_note', 'Location note', 'San Francisco · Telehealth in 14 states'),
+  f('hero.stats_title', 'Small title above the numbers', 'Since 2019'),
 
   // ── Trust / stats ─────────────────────────────────────────────────────────
   f('trust.stats', 'Stats (four numbers)', stats, LIST, 'Each item: { "value": 14200, "suffix": "+", "decimals": 0, "label": "Sessions held" }'),
+
+  // ── We heard you ──────────────────────────────────────────────────────────
+  f('heard.eyebrow', 'Eyebrow', 'We heard you'),
+  f('heard.headline', 'Headline', 'The reasons people put this off.'),
+  f('heard.items', 'Quotes', HEARD_ITEMS, LIST, 'Each item: { "quote": "...", "name": "R., 31" }'),
 
   // ── Approach ──────────────────────────────────────────────────────────────
   f('approach.eyebrow', 'Eyebrow', 'How it works'),
   f('approach.headline', 'Headline', 'Four steps. No waiting rooms.'),
   f('approach.lead', 'Lead paragraph', 'Most people give up on finding a therapist somewhere between the third voicemail and the second waitlist. We removed that part.', 'richtext'),
   f('approach.steps', 'Steps', process, LIST, 'Each item: { "step": "01", "title": "...", "body": "...", "detail": "Avg. 1m 50s" }'),
-  f('approach.pillars_title', 'Side card title', 'What makes it hold together'),
-  f('approach.pillars', 'Side card pillars', APPROACH_PILLARS, LIST, 'Each item: { "icon": "shuffle|lock|message|shield|spark", "title": "...", "body": "..." }'),
+
+  // ── Why Lumen ─────────────────────────────────────────────────────────────
+  f('why.eyebrow', 'Eyebrow', 'Why Lumen'),
+  f('why.headline', 'Headline', 'What makes it hold together.'),
+  f('why.items', 'Cards', WHY_ITEMS, LIST, 'Each item: { "icon": "shuffle|coins|globe|lock|message|shield|spark|heart|refresh|users", "title": "...", "body": "..." }'),
 
   // ── Breathing ─────────────────────────────────────────────────────────────
   f('breathing.eyebrow', 'Eyebrow', 'Breathe'),
@@ -109,9 +140,11 @@ export const CONTENT_SCHEMA = [
   f('therapists.empty_note', 'Empty filter note', 'Nobody listed for that yet — but we almost certainly have someone.'),
 
   // ── Video resources ───────────────────────────────────────────────────────
-  f('resources.eyebrow', 'Eyebrow', 'Watch'),
-  f('resources.headline', 'Headline', 'Resources worth your time.'),
-  f('resources.lead', 'Lead paragraph', 'Curated videos reviewed by our clinical team — on anxiety, sleep, relationships, and more.', 'richtext'),
+  f('resources.eyebrow', 'Eyebrow', 'Resources'),
+  f('resources.headline', 'Headline', 'Worth your time between sessions.'),
+  f('resources.lead', 'Lead paragraph', 'Videos and articles reviewed by our clinical team, on anxiety, sleep, relationships and more.', 'richtext'),
+  f('resources.videos_title', 'Videos sub-heading', 'Watch'),
+  f('resources.articles_title', 'Articles sub-heading', 'Read'),
 
   // ── Testimonials ──────────────────────────────────────────────────────────
   f('testimonials.eyebrow', 'Eyebrow', 'In their words'),
@@ -119,9 +152,9 @@ export const CONTENT_SCHEMA = [
   f('testimonials.items', 'Quotes', testimonials, LIST, 'Each item: { "quote": "...", "name": "R.K.", "meta": "Client, 14 months" }'),
 
   // ── Blog ──────────────────────────────────────────────────────────────────
-  f('blog.eyebrow', 'Eyebrow', 'Medical blog'),
-  f('blog.headline', 'Headline', 'Insights from our clinical team.'),
-  f('blog.lead', 'Lead paragraph', 'Evidence-based articles written and reviewed by licensed clinicians.', 'richtext'),
+  f('blog.eyebrow', 'Eyebrow (blog page)', 'Medical blog'),
+  f('blog.headline', 'Headline (blog page)', 'Insights from our clinical team.'),
+  f('blog.lead', 'Lead paragraph (blog page)', 'Evidence-based articles written and reviewed by licensed clinicians.', 'richtext'),
   f('blog.view_all', 'View-all link label', 'Read all articles'),
 
   // ── Pricing ───────────────────────────────────────────────────────────────
@@ -173,20 +206,22 @@ export const SCHEMA_BY_KEY = Object.fromEntries(CONTENT_SCHEMA.map((x) => [x.key
 
 /** Section display order in the admin, matching the page from top to bottom. */
 export const SECTION_ORDER = [
-  'brand', 'nav', 'hero', 'trust', 'approach', 'breathing', 'services', 'therapists',
-  'resources', 'testimonials', 'blog', 'pricing', 'faq', 'cta', 'footer', 'booking',
+  'brand', 'nav', 'hero', 'trust', 'heard', 'services', 'approach', 'why', 'therapists',
+  'breathing', 'resources', 'blog', 'testimonials', 'pricing', 'faq', 'cta', 'footer', 'booking',
 ];
 
 export const SECTION_TITLES = {
   brand: 'Brand & contact',
   nav: 'Navigation',
   hero: 'Hero',
-  trust: 'Trust bar',
+  trust: 'Numbers (under the hero)',
+  heard: 'We heard you',
   approach: 'How it works',
+  why: 'Why Lumen',
   breathing: 'Breathing',
   services: 'Services',
   therapists: 'Therapists',
-  resources: 'Video resources',
+  resources: 'Resources (videos + articles)',
   testimonials: 'Testimonials',
   blog: 'Blog',
   pricing: 'Pricing',

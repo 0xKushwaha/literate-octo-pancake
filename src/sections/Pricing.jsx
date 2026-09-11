@@ -13,7 +13,7 @@ export default function Pricing({ onBook }) {
   }));
 
   return (
-    <Section id="pricing" className="py-32 sm:py-44 lg:py-56">
+    <Section id="pricing" className="py-24 sm:py-32">
       <SectionHeading
         eyebrow={content.eyebrow}
         title={content.headline}
@@ -21,13 +21,13 @@ export default function Pricing({ onBook }) {
         align="center"
       />
 
-      <div className="mt-16 grid gap-4 lg:mt-28 lg:grid-cols-3">
+      <div className="mt-14 grid gap-4 lg:mt-20 lg:grid-cols-3">
         {plans.map((p, i) => (
           <Reveal key={p.id} delay={i * 0.1}>
             <div
-              className={`relative flex h-full flex-col rounded-4xl p-8 transition-transform duration-500 sm:p-9 ${
+              className={`relative flex h-full flex-col rounded-4xl p-7 sm:p-8 ${
                 p.featured
-                  ? 'border border-rose-300 bg-surface shadow-[var(--shadow-float)] lg:-translate-y-4'
+                  ? 'border border-rose-300 bg-surface shadow-[var(--shadow-float)] lg:-translate-y-3'
                   : 'border border-line bg-surface shadow-[var(--shadow-card)]'
               }`}
             >
@@ -77,7 +77,7 @@ export default function Pricing({ onBook }) {
               <Button
                 className="relative mt-9 w-full"
                 size="lg"
-                variant={p.featured ? 'glow' : 'outline'}
+                variant={p.featured ? 'primary' : 'outline'}
                 icon="arrow"
                 onClick={() => onBook?.({ plan: p.id })}
               >

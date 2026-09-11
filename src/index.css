@@ -74,12 +74,12 @@
      ============================================================ */
 
   /* grounds */
-  --color-bg: #F9E6E4;
-  --color-bg-2: #FFD3D6;
-  --color-bg-3: #FFC6CA;
+  --color-bg: #FFFBFA;
+  --color-bg-2: #F9E6E4;
+  --color-bg-3: #FFE5E7;
   --color-surface: #ffffff;
-  --color-surface-2: #FFE5E7;
-  --color-surface-3: #FFD3D6;
+  --color-surface-2: #FBF1EF;
+  --color-surface-3: #FFE5E7;
 
   /* hairlines — black at alpha, so they read on every palette ground */
   --color-line: rgba(0, 0, 0, 0.10);
@@ -170,18 +170,9 @@
 
   html {
     -webkit-text-size-adjust: 100%;
-    scroll-behavior: auto;
-  }
-
-  html.lenis,
-  html.lenis body {
-    height: auto;
-  }
-  .lenis.lenis-smooth {
-    scroll-behavior: auto !important;
-  }
-  .lenis.lenis-stopped {
-    overflow: hidden;
+    /* Native smooth scrolling for in-page anchors. It costs nothing and, unlike
+       a JS scroll hijack, never fights the user's trackpad. */
+    scroll-behavior: smooth;
   }
 
   body {
@@ -241,18 +232,10 @@
 }
 
 @utility text-aurora {
-  background: linear-gradient(
-    100deg,
-    var(--color-ink) 0%,
-    var(--color-amber-500) 32%,
-    var(--color-rose-400) 64%,
-    var(--color-ink) 100%
-  );
-  background-size: 220% 100%;
+  background: linear-gradient(100deg, var(--color-ink) 0%, #b8860b 45%, var(--color-ink) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  animation: aurora-pan 9s linear infinite;
 }
 
 @utility eyebrow {
@@ -263,124 +246,70 @@
   color: var(--color-ink-4);
 }
 
-@utility glow-border {
-  position: relative;
-}
-
-@utility text-shimmer {
-  background: linear-gradient(
-    110deg,
-    var(--color-ink) 0%,
-    var(--color-ink) 35%,
-    var(--color-amber-500) 50%,
-    var(--color-ink) 65%,
-    var(--color-ink) 100%
-  );
-  background-size: 300% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  animation: shimmer-pan 5s ease-in-out infinite;
-}
 
 /* ============================================================
    keyframes
    ============================================================ */
-@keyframes aurora-pan {
-  to { background-position: 220% 0; }
+@keyframes marquee-x {
+  from { transform: translate3d(0, 0, 0) }
+  to { transform: translate3d(-50%, 0, 0) }
 }
-@keyframes float-slow {
-  0%, 100% { transform: translateY(0) }
-  50% { transform: translateY(-14px) }
+
+
+
+
+
+.animate-marquee { animation: marquee-x 42s linear infinite; }
+
+/* ============================================================
+   scroll reveals — one IntersectionObserver per element, CSS does the rest
+   ============================================================ */
+.reveal {
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity 0.7s var(--ease-out-expo),
+    transform 0.7s var(--ease-out-expo);
+  will-change: opacity, transform;
 }
+.reveal.is-in,
+.stagger.is-in > .reveal {
+  opacity: 1;
+  transform: none;
+}
+.stagger > .reveal:nth-child(1) { transition-delay: 0s; }
+.stagger > .reveal:nth-child(2) { transition-delay: var(--stagger-step, 0.07s); }
+.stagger > .reveal:nth-child(3) { transition-delay: calc(var(--stagger-step, 0.07s) * 2); }
+.stagger > .reveal:nth-child(4) { transition-delay: calc(var(--stagger-step, 0.07s) * 3); }
+.stagger > .reveal:nth-child(5) { transition-delay: calc(var(--stagger-step, 0.07s) * 4); }
+.stagger > .reveal:nth-child(6) { transition-delay: calc(var(--stagger-step, 0.07s) * 5); }
+.stagger > .reveal:nth-child(n + 7) { transition-delay: calc(var(--stagger-step, 0.07s) * 6); }
+
 @keyframes pulse-ring {
   0% { transform: scale(0.85); opacity: 0.65 }
   70% { transform: scale(1.7); opacity: 0 }
   100% { transform: scale(1.7); opacity: 0 }
 }
-@keyframes marquee-x {
-  from { transform: translate3d(0, 0, 0) }
-  to { transform: translate3d(-50%, 0, 0) }
+
+/* hero: the rotating word */
+.word-swap {
+  display: inline-block;
+  animation: word-in 0.55s var(--ease-out-expo) both;
 }
-@keyframes grain-shift {
-  0%, 100% { transform: translate(0, 0) }
-  10% { transform: translate(-5%, -10%) }
-  30% { transform: translate(3%, -15%) }
-  50% { transform: translate(-8%, 5%) }
-  70% { transform: translate(6%, 8%) }
-  90% { transform: translate(-3%, 6%) }
+@keyframes word-in {
+  from { opacity: 0; transform: translateY(0.35em); filter: blur(6px); }
+  to { opacity: 1; transform: none; filter: blur(0); }
 }
 
-@keyframes shimmer-pan {
-  0%, 100% { background-position: 200% 0; }
-  50% { background-position: -100% 0; }
+/* soft page backdrop — two blurred blobs, painted once, no script */
+.backdrop-soft {
+  background:
+    radial-gradient(60% 45% at 85% 5%, rgba(255,198,202,0.55), transparent 70%),
+    radial-gradient(45% 40% at 5% 25%, rgba(249,220,192,0.5), transparent 70%),
+    var(--color-bg);
 }
 
-@keyframes glow-pulse {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 1; }
-}
 
-@keyframes float-gentle {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  33% { transform: translateY(-8px) rotate(1deg); }
-  66% { transform: translateY(-4px) rotate(-0.5deg); }
-}
-
-@keyframes scale-in {
-  from { transform: scale(0.92); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
-}
-
-.animate-float-slow { animation: float-slow 7s var(--ease-in-out-quint) infinite; }
-.animate-marquee { animation: marquee-x 42s linear infinite; }
-.animate-glow-pulse { animation: glow-pulse 3s ease-in-out infinite; }
-.animate-float-gentle { animation: float-gentle 8s ease-in-out infinite; }
-
-/* Custom cursor. Lives here rather than in an inline <style> so the CSP can
-   keep style-src locked to 'self'. Applied only when the pointer is fine —
-   the component does not mount otherwise. */
-@media (pointer: fine) {
-  body.lumen-cursor,
-  body.lumen-cursor a,
-  body.lumen-cursor button,
-  body.lumen-cursor [role="button"] {
-    cursor: none;
-  }
-}
-
-.lumen-ring {
-  transition:
-    opacity 0.3s,
-    border-color 0.35s,
-    background-color 0.35s;
-}
-.lumen-ring.is-hover {
-  border-color: var(--color-ink);
-  background: color-mix(in oklab, var(--color-amber-500) 22%, transparent);
-}
-
-/* paper grain — multiplied so it darkens rather than fogs */
-.grain::after {
-  content: "";
-  position: fixed;
-  inset: -150%;
-  z-index: 60;
-  pointer-events: none;
-  opacity: 0.04;
-  mix-blend-mode: multiply;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
-  animation: grain-shift 6s steps(6) infinite;
-}
-
-/* blueprint hairlines behind the hero */
-.grid-lines {
-  background-image:
-    linear-gradient(to right, color-mix(in oklab, var(--color-ink) 4%, transparent) 1px, transparent 1px),
-    linear-gradient(to bottom, color-mix(in oklab, var(--color-ink) 4%, transparent) 1px, transparent 1px);
-  background-size: 80px 80px;
-  mask-image: radial-gradient(ellipse 100% 70% at 50% 35%, #000 15%, transparent 72%);
-}
 
 /* ============================================================
    print — someone confirming an appointment may well print it
@@ -389,10 +318,6 @@
   /* Ink-saving, and none of the chrome is meaningful on paper. */
   header,
   footer,
-  canvas,
-  .grain::after,
-  .grid-lines,
-  .lumen-ring,
   [data-slot="dialog-overlay"],
   [data-print-hide] {
     display: none !important;

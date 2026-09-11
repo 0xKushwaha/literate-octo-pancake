@@ -123,22 +123,20 @@ export default defineConfig(({ mode }) => {
       alias: { '@': path.resolve(import.meta.dirname, './src') },
     },
     build: {
-      // three.js + @react-three ship a large amount of code that the homepage
-      // hero needs on first paint; splitting it out keeps the shared vendor
-      // chunk cacheable across deploys instead of invalidating on every change.
-      //
       // Vite 8 bundles with rolldown, which only accepts the FUNCTION form of
-      // manualChunks. The object form is silently ignored with a warning, so
-      // the split would not have happened at all.
+      // manualChunks. Keeping the big, rarely-changing vendors in their own
+      // chunk means a content tweak does not invalidate React for returning
+      // visitors.
       rollupOptions: {
         output: {
           manualChunks(id) {
             if (!id.includes('node_modules')) return;
-            if (/[\\/]node_modules[\\/](three|@react-three)[\\/]/.test(id)) return 'three';
+            if (/[\\/]node_modules[\\/](react|react-dom|react-router|react-router-dom|scheduler)[\\/]/.test(id)) return 'react';
+            if (/[\\/]node_modules[\\/]@supabase[\\/]/.test(id)) return 'supabase';
           },
         },
       },
-      chunkSizeWarningLimit: 900,
+      chunkSizeWarningLimit: 600,
     },
     server: { host: true, port: 5173 },
   };

@@ -1,115 +1,110 @@
-// HomePage — the original App.jsx content, extracted verbatim for the router.
-// This keeps all existing animations, 3D scene, Lenis, and booking dialog intact.
-import { Suspense, lazy, useCallback, useRef, useState } from 'react';
-import StaticBackdrop from '../components/StaticBackdrop';
-
-const HeroScene = lazy(() => import('../three/HeroScene'));
+import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react';
 import Nav from '../components/Nav';
-import Cursor from '../components/Cursor';
-import Preloader from '../components/Preloader';
-import ScrollProgress from '../components/ScrollProgress';
 import MobileBookBar from '../components/MobileBookBar';
-import CommandPalette from '../components/CommandPalette';
 import Footer from '../components/Footer';
 import Hero from '../sections/Hero';
-import Trust from '../sections/Trust';
-import Approach from '../sections/Approach';
-import Breathing from '../sections/Breathing';
+import HeardYou from '../sections/HeardYou';
 import Services from '../sections/Services';
+import Approach from '../sections/Approach';
 import Therapists from '../sections/Therapists';
-import YouTubeResources from '../sections/YouTubeResources';
+import Breathing from '../sections/Breathing';
+import Resources from '../sections/Resources';
 import Testimonials from '../sections/Testimonials';
-import Blog from '../sections/Blog';
 import Pricing from '../sections/Pricing';
 import Faq from '../sections/Faq';
 import CtaBand from '../sections/CtaBand';
-import BookingDialog from '../booking/BookingDialog';
-import useLenis from '../lib/useLenis';
-import { useHeroProgressRef, useQualityTier, useScrollProgressRef } from '../lib/hooks';
 
+// Loaded on first use, not on page load: the booking form (react-hook-form,
+// zod, the animation library) is the single largest piece of client code and
+// nobody needs it to read the page.
+const BookingDialog = lazy(() => import('../booking/BookingDialog'));
+const CommandPalette = lazy(() => import('../components/CommandPalette'));
+
+/**
+ * The homepage. Section order here is the page order, and the nav in
+ * components/Nav.jsx lists its links in the same order — keep the two in sync.
+ *
+ * What is deliberately NOT here any more: the WebGL hero scene, Lenis scroll
+ * hijacking, a preloader, a custom cursor and a film-grain overlay. Together
+ * they shipped ~700 KB of JavaScript and ran a render loop on every frame,
+ * which is what made the site feel heavy to scroll. Everything left is HTML,
+ * CSS and small event handlers.
+ */
 export default function HomePage() {
-  const tier = useQualityTier();
-  const heroRef = useHeroProgressRef();
-  const scrollRef = useScrollProgressRef();
-  const [ready, setReady] = useState(false);
-  const [booking, setBooking] = useState({ open: false, prefill: null });
-
-  useLenis(ready);
+  const [booking, setBooking] = useState({ open: false, prefill: null, mounted: false });
+  const [palette, setPalette] = useState(false);
 
   const openerRef = useRef(null);
   const openBooking = useCallback((prefill = null) => {
     openerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    setBooking({ open: true, prefill });
+    setBooking({ open: true, prefill, mounted: true });
   }, []);
   const closeBooking = useCallback(() => {
     setBooking((b) => ({ ...b, open: false }));
   }, []);
 
+  // Cmd/Ctrl-K mounts the palette on demand; before that it costs nothing.
+  useKeyToMount(setPalette);
+
   return (
-    <div className="grain relative">
+    <div className="relative">
       <a
-        href="#approach"
+        href="#services"
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[95] focus:rounded-full focus:bg-ink focus:px-5 focus:py-3 focus:text-sm focus:text-white"
       >
         Skip to content
       </a>
 
-      <Preloader onDone={() => setReady(true)} />
-      <Cursor />
-      <ScrollProgress />
-
-      <div className="pointer-events-none fixed inset-0 z-0">
-        <div className="absolute inset-0 grid-lines opacity-70" />
-        {tier === 'static' ? (
-          <StaticBackdrop />
-        ) : (
-          <Suspense fallback={<StaticBackdrop />}>
-            <HeroScene
-              tier={tier}
-              heroRef={heroRef}
-              scrollRef={scrollRef}
-              className="!absolute inset-0"
-            />
-          </Suspense>
-        )}
-      </div>
-
       <Nav onBook={openBooking} />
 
-      <main className="relative z-10">
+      <main>
         <Hero onBook={openBooking} />
-
-        <div className="relative">
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-x-0 -top-48 h-48 bg-gradient-to-b from-transparent to-bg"
-          />
-          <div className="relative bg-bg">
-            <Trust />
-            <Approach />
-            <Breathing />
-            <Services onBook={openBooking} />
-            <Therapists onBook={openBooking} />
-            <YouTubeResources />
-            <Testimonials />
-            <Blog />
-            <Pricing onBook={openBooking} />
-            <Faq />
-            <CtaBand onBook={openBooking} />
-            <Footer onBook={openBooking} />
-          </div>
-        </div>
+        <HeardYou />
+        <Services onBook={openBooking} />
+        <Approach />
+        <Therapists onBook={openBooking} />
+        <Breathing />
+        <Resources />
+        <Testimonials />
+        <Pricing onBook={openBooking} />
+        <Faq />
+        <CtaBand onBook={openBooking} />
       </main>
+      <Footer onBook={openBooking} />
 
-      <CommandPalette onBook={openBooking} />
       <MobileBookBar onBook={openBooking} />
 
-      <BookingDialog
-        open={booking.open}
-        onClose={closeBooking}
-        prefill={booking.prefill}
-        openerRef={openerRef}
-      />
+      {palette && (
+        <Suspense fallback={null}>
+          <CommandPalette onBook={openBooking} initialOpen />
+        </Suspense>
+      )}
+
+      {booking.mounted && (
+        <Suspense fallback={null}>
+          <BookingDialog
+            open={booking.open}
+            onClose={closeBooking}
+            prefill={booking.prefill}
+            openerRef={openerRef}
+          />
+        </Suspense>
+      )}
     </div>
   );
+}
+
+/** Listens for Cmd/Ctrl-K until the palette has mounted once; then the palette owns the key. */
+function useKeyToMount(setMounted) {
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key?.toLowerCase() === 'k' && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setMounted(true);
+        window.removeEventListener('keydown', onKey);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [setMounted]);
 }

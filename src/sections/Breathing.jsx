@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
 import { listActiveExercises } from '../lib/queries/breathing';
 import { breathingDefaults } from '../data/breathingDefaults';
-import { Section, SectionHeading, Stagger, staggerItem, EASE } from '../components/primitives';
+import { Section, SectionHeading, Stagger, StaggerItem } from '../components/primitives';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useReducedMotion } from '../lib/hooks';
 import { useSiteContent } from '../lib/queries/siteContent';
@@ -70,11 +69,10 @@ function BreathingGuide({ exercise, onClose }) {
   return (
     <div className="flex flex-col items-center px-6 py-10 text-center">
       {/* Progress bar */}
-      <div className="w-full max-w-xs overflow-hidden rounded-full bg-gray-100 h-1">
-        <motion.div
-          className="h-full bg-gradient-to-r from-rose-300 to-amber-500 rounded-full"
-          animate={{ width: `${progress * 100}%` }}
-          transition={{ duration: 0.6, ease: 'easeOut' }}
+      <div className="h-1 w-full max-w-xs overflow-hidden rounded-full bg-surface-2">
+        <div
+          className="h-full rounded-full bg-gradient-to-r from-rose-300 to-amber-500 transition-[width] duration-500 ease-out"
+          style={{ width: `${progress * 100}%` }}
         />
       </div>
 
@@ -94,25 +92,19 @@ function BreathingGuide({ exercise, onClose }) {
         <>
           {/* Animated circle */}
           <div className="relative mt-10 flex items-center justify-center" style={{ width: 220, height: 220 }}>
-            <motion.div
-              className={`absolute rounded-full border-4 ${colors.ring} ${colors.bg} ${colors.glow} transition-colors duration-700`}
-              animate={prefersReduced ? {} : { scale: phase.scale, opacity: 1 }}
-              initial={{ scale: 0.42, opacity: 0.7 }}
-              transition={{ duration: (phase.duration / 1000) * 0.9, ease: phase.type === 'inhale' ? 'easeIn' : phase.type === 'exhale' ? 'easeOut' : 'linear' }}
-              style={{ width: 180, height: 180 }}
+            <div
+              className={`absolute rounded-full border-4 ${colors.ring} ${colors.bg} ${colors.glow} transition-[transform,background-color,border-color,box-shadow]`}
+              style={{
+                width: 180,
+                height: 180,
+                transform: `scale(${prefersReduced ? 1 : phase.scale})`,
+                transitionDuration: `${Math.max(phase.duration * 0.9, 300)}ms`,
+                transitionTimingFunction: phase.type === 'inhale' ? 'ease-in' : phase.type === 'exhale' ? 'ease-out' : 'linear',
+              }}
             />
-            <AnimatePresence mode="wait">
-              <motion.p
-                key={phase.label}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.35, ease: EASE }}
-                className={`relative z-10 font-display text-xl tracking-tight ${colors.text}`}
-              >
-                {phase.label}
-              </motion.p>
-            </AnimatePresence>
+            <p key={phase.label + phaseIdx} className={`word-swap relative z-10 font-display text-xl tracking-tight ${colors.text}`}>
+              {phase.label}
+            </p>
           </div>
 
           <p className="mt-6 text-[13px] font-mono text-ink-4 tracking-widest uppercase">
@@ -134,10 +126,10 @@ function BreathingGuide({ exercise, onClose }) {
 
 function ExerciseCard({ exercise, onStart }) {
   return (
-    <motion.div variants={staggerItem}>
+    <StaggerItem className="h-full">
       <button
         onClick={() => onStart(exercise)}
-        className="group flex w-full flex-col items-start rounded-3xl border border-line bg-surface p-7 text-left shadow-[var(--shadow-card)] transition-all duration-500 hover:shadow-[var(--shadow-lift)] hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
+        className="group flex h-full w-full flex-col items-start rounded-3xl border border-line bg-surface p-6 text-left shadow-[var(--shadow-card)] transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-lift)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
       >
         <div className="flex w-full items-center justify-between gap-3">
           <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-4">
@@ -174,7 +166,7 @@ function ExerciseCard({ exercise, onStart }) {
           {` · ${exercise.cycles} cycles`}
         </div>
       </button>
-    </motion.div>
+    </StaggerItem>
   );
 }
 
@@ -204,19 +196,21 @@ export default function Breathing() {
 
   return (
     <>
-      <Section id="breathing" className="py-32 sm:py-44 lg:py-56">
+      <div className="bg-surface-2/60">
+      <Section id="breathing" className="py-24 sm:py-32">
         <SectionHeading
           eyebrow={content.eyebrow}
           title={content.headline}
           lead={content.lead}
         />
 
-        <Stagger className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <Stagger className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {exercises.map((ex) => (
             <ExerciseCard key={ex.id ?? ex.slug} exercise={ex} onStart={setActive} />
           ))}
         </Stagger>
       </Section>
+      </div>
 
       <Dialog open={!!active} onOpenChange={(open) => { if (!open) setActive(null); }}>
         <DialogContent className="max-w-sm rounded-4xl border-line bg-surface p-0 overflow-hidden">

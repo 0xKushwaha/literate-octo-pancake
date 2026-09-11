@@ -15,9 +15,10 @@ import { telHref, useBrand, useSiteContent } from '../lib/queries/siteContent';
 
 const SECTIONS = [
   { id: 'services', label: 'What we treat', icon: 'pulse' },
+  { id: 'approach', label: 'How it works', icon: 'shuffle' },
   { id: 'therapists', label: 'Our therapists', icon: 'person' },
   { id: 'breathing', label: 'Breathing exercises', icon: 'spark' },
-  { id: 'resources', label: 'Video resources', icon: 'play' },
+  { id: 'resources', label: 'Videos & articles', icon: 'play' },
   { id: 'pricing', label: 'Pricing & insurance', icon: 'shield' },
   { id: 'faq', label: 'Questions', icon: 'message' },
 ];
@@ -27,13 +28,13 @@ const SECTIONS = [
  * it is the fastest path to the two things someone in distress actually needs:
  * booking, and a phone number.
  */
-export default function CommandPalette({ onBook }) {
+export default function CommandPalette({ onBook, initialOpen = false }) {
   const brand = useBrand();
   const servicesContent = useSiteContent('services');
   const therapistsContent = useSiteContent('therapists');
   const services = Array.isArray(servicesContent.items) ? servicesContent.items : [];
   const therapists = Array.isArray(therapistsContent.items) ? therapistsContent.items : [];
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(initialOpen);
   const [isMac] = useState(() => /mac|iphone|ipad/i.test(navigator.platform || navigator.userAgent));
 
   useEffect(() => {

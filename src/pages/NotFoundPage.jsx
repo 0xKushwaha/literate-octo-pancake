@@ -5,7 +5,7 @@ export default function NotFoundPage() {
   return (
     <div className="grain relative flex min-h-screen flex-col items-center justify-center bg-bg">
       <div className="pointer-events-none fixed inset-0 z-0">
-        <div className="absolute inset-0 grid-lines opacity-40" />
+        <div className="backdrop-soft absolute inset-0" />
       </div>
       <Section className="relative z-10 py-24 text-center">
         <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-ink-4">404</p>

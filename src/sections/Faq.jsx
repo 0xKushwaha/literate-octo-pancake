@@ -19,9 +19,9 @@ export default function Faq() {
   const brand = useBrand();
   const faqs = useFaqs(Array.isArray(content.fallback_items) ? content.fallback_items : []);
   return (
-    <Section id="faq" className="py-32 sm:py-44 lg:py-56">
+    <Section id="faq" className="py-24 sm:py-32">
       <div className="grid gap-14 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-20">
-        <div className="lg:sticky lg:top-28 lg:h-fit">
+        <div className="lg:sticky lg:top-24 lg:h-fit">
           <SectionHeading eyebrow={content.eyebrow} title={content.headline} />
           <div className="mt-10 rounded-3xl border border-line bg-surface p-6 shadow-[var(--shadow-card)]">
             <p className="text-[14.5px] leading-relaxed text-ink-3">

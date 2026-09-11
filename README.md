@@ -179,48 +179,38 @@ npm run test:run    # once, for CI
 |---|---|
 | Build | Vite 8 + React 19 |
 | Styling | Tailwind CSS v4 (`@theme` tokens in `src/index.css`) |
-| 3D | three.js + @react-three/fiber, drei |
 | Primitives | shadcn/ui (Radix) for dialog, accordion, select, toggle-group, form controls |
-| Motion | `motion` (Framer Motion), Lenis for smooth scroll |
+| Motion | CSS transitions driven by one IntersectionObserver (`Reveal` / `Stagger` in `src/components/primitives.jsx`); `motion` is only loaded with the booking dialog |
 
-No image assets: every visual — icons, portraits, the hero — is generated in SVG,
-CSS or GLSL, so there is nothing to optimise and nothing to 404.
+No image assets: every visual, from icons to portraits, is generated in SVG or CSS,
+so there is nothing to optimise and nothing to 404.
 
-## The hero scene
+## Page structure and the nav
 
-`src/three/` holds a custom-shader scene rather than a loaded model.
+`src/pages/HomePage.jsx` lists the sections in page order, and `ALL_LINKS` in
+`src/components/Nav.jsx` lists the nav links in the same order. Keep the two in
+sync. The order is: hero, "we heard you", services, how it works + why Lumen,
+therapists, breathe, resources (featured videos + latest articles), testimonials,
+pricing, FAQ, call to action.
 
-- **`Orb.jsx`** — an icosahedron displaced in the vertex shader by layered simplex
-  noise (large lobes + a travelling ridge + fine grain). Normals are **recomputed**
-  per-vertex by sampling two tangent neighbours and taking their cross product, so
-  the lighting follows the deformed surface instead of the original sphere. It is lit
-  like a studio product shot — key, fill, restrained iridescent rim, grounded
-  underside — and breathes on a 5.5-second cycle, the pace of a guided exhale.
-- **`PointShell.jsx`** — a Fibonacci-sphere point cloud running the *same* noise
-  field, so it reads as a live scan of the surface rather than unrelated decoration.
-  It peels away from the orb as you scroll.
-- **`Particles.jsx`** — sparse ink dust on a flattened shell, with differential
-  rotation (inner particles orbit faster) and curl-ish drift.
-- **`Rings.jsx`** — thin orbital arcs with a comet head chasing around each one.
-- **`glsl.js`** — shared simplex noise / fbm / rotation chunks.
+"Resources" only renders when there is at least one featured video or one
+published article; it tells the nav (`src/lib/sections.js`) so the link appears
+and disappears with it.
 
-### Performance and accessibility
+### Performance
 
-`useQualityTier()` (`src/lib/hooks.js`) picks a tier from pointer type, core count
-and `deviceMemory`, which sets mesh subdivision, particle counts, DPR cap and
-whether post-processing runs at all:
+An earlier version shipped a WebGL hero (three.js), Lenis scroll hijacking, a
+preloader, a custom cursor and an animated film-grain overlay. Together that was
+roughly 700 kB of JavaScript plus a render loop on every frame, and it is what
+made the site feel heavy to scroll. All of it is gone. What remains:
 
-| tier | orb detail | shell pts | dust |
-|---|---|---|---|
-| high | 56 | 6 000 | 1 600 |
-| medium | 42 | 4 000 | 1 100 |
-| low | 28 | 2 000 | 600 |
-| static | — | — | — |
-
-`prefers-reduced-motion: reduce` resolves to `static`, which **does not mount WebGL
-at all** — `StaticBackdrop.jsx` renders a CSS aurora instead, and Lenis is skipped so
-native scrolling is left alone. The whole 3D bundle is behind `React.lazy`, keeping
-the initial JS payload at ~134 kB gzipped against ~239 kB for the scene chunk.
+- No JavaScript animation library on the homepage. Reveals are CSS.
+- Native `scroll-behavior: smooth` with `scroll-margin-top` on sections.
+- One request for the whole `site_content` table, shared by every section
+  (`src/lib/queries/siteContent.js`), instead of one per section.
+- The booking form and the Cmd-K palette load on first use, not on page load.
+- `prefers-reduced-motion: reduce` disables the reveals, the counters and the
+  rotating hero word.
 
 Also handled: focus trap and focus restore in the booking dialog, a skip link,
 `aria-expanded`/`aria-controls` on the FAQ accordion, `aria-pressed` on every
@@ -371,17 +361,16 @@ review), then a confirmation with a reference code.
 
 ```
 src/
-├── three/       hero scene + shaders
-├── sections/    Hero, Trust, Approach, Services, Therapists,
-│                Testimonials, Pricing, Faq, CtaBand
-├── components/  Nav, Footer, Cursor, Preloader, ScrollProgress,
-│   │            MobileBookBar, StaticBackdrop, Avatar, Icon,
-│   │            primitives.jsx (Button, Reveal, SplitWords, TiltCard, …)
+├── sections/    Hero, HeardYou, Services, Approach (+ why), Therapists,
+│                Breathing, Resources (videos + articles), Testimonials,
+│                Pricing, Faq, CtaBand
+├── components/  Nav, Footer, MobileBookBar, CommandPalette, Avatar, Icon,
+│   │            primitives.jsx (Button, Reveal, Stagger, SectionHeading, …)
 │   └── ui/      shadcn components (owned source, edited in place)
 ├── booking/     BookingDialog, slot generation, draft.js (what may be
 │                persisted), validate.js (normalisation), calendar.js (.ics)
-├── lib/         hooks, Lenis setup, cn()
-└── data/        all copy and content in one file
+├── lib/         hooks, queries, cn()
+└── data/        site.js (defaults), contentSchema.js (every CMS field)
 
 security.config.js   the CSP and headers, single source
 seo.config.js        structured data + social meta, generated from site.js
