@@ -86,11 +86,16 @@ const emptyForm = {
  * of buttons, so each group is one tab stop with arrow-key movement inside it,
  * and Radix owns the aria-pressed / roving-tabindex bookkeeping.
  */
+// `whitespace-normal` undoes the shadcn toggle variant's `whitespace-nowrap`.
+// Every label here is a CMS field, so a long one has to wrap inside the chip
+// rather than run out of it.
 const chipCls =
-  'h-auto min-w-0 rounded-full border border-line bg-surface px-4 py-2.5 text-[14px] text-ink-2 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-line-2 hover:bg-surface hover:text-ink active:scale-[0.97] data-[state=on]:border-rose-400 data-[state=on]:bg-rose-100 data-[state=on]:text-ink data-[state=on]:shadow-[0_4px_14px_-6px_rgba(255,191,0,0.45)]';
+  'h-auto min-w-0 max-w-full whitespace-normal break-words rounded-full border border-line bg-surface px-4 py-2.5 text-[14px] text-ink-2 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-line-2 hover:bg-surface hover:text-ink active:scale-[0.97] data-[state=on]:border-rose-400 data-[state=on]:bg-rose-100 data-[state=on]:text-ink data-[state=on]:shadow-[0_4px_14px_-6px_rgba(255,191,0,0.45)]';
 
+// Same fix as chipCls: without `whitespace-normal` the note under "Video call"
+// sets itself on one line and prints straight through the card's edge.
 const cardCls =
-  'h-auto min-w-0 flex-col items-start justify-start gap-3 rounded-3xl border border-line bg-surface p-5 text-left transition-all duration-300 hover:border-line-2 hover:bg-surface data-[state=on]:border-rose-400 data-[state=on]:bg-rose-100';
+  'h-auto min-w-0 max-w-full whitespace-normal break-words flex-col items-start justify-start gap-3 rounded-3xl border border-line bg-surface p-5 text-left transition-all duration-300 hover:border-line-2 hover:bg-surface data-[state=on]:border-rose-400 data-[state=on]:bg-rose-100';
 
 const fieldCls =
   'h-auto w-full rounded-2xl border-line-2 bg-surface-2 px-4 py-3.5 text-[15px] text-ink shadow-none placeholder:text-ink-4 focus-visible:border-rose-400 focus-visible:ring-[3px] focus-visible:ring-rose-400/20 md:text-[15px]';
@@ -813,7 +818,14 @@ export default function BookingDialog({ open, onClose, prefill, openerRef }) {
     <Dialog open={open} onOpenChange={(o) => !o && close()}>
       <DialogContent
         showCloseButton={false}
-        className="gap-0 p-0"
+        // The shadcn shell is a `grid` with no height cap, so a tall step (the
+        // therapist list, the time grid) grew the dialog past the bottom of the
+        // screen and took the Continue button with it — there was nothing to
+        // scroll, because the body's `flex-1 overflow-y-auto` never applied
+        // inside a grid. Flex column + a viewport cap puts the header and the
+        // footer back on screen and gives the scrolling to the middle.
+        // `dvh`, not `vh`: mobile browser chrome eats the difference.
+        className="flex max-h-[90dvh] flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl"
         onOpenAutoFocus={(e) => {
           e.preventDefault();
           e.currentTarget?.focus();

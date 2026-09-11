@@ -184,6 +184,12 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overflow-x: clip;
+    /* A title, a name or a pasted URL with no spaces in it used to set on one
+       line and print straight out of whatever card it was in. Inherited, so it
+       covers every string the CMS and the database supply, not only the ones
+       we remembered to guard. It only ever breaks a word that would otherwise
+       overflow. */
+    overflow-wrap: break-word;
   }
 
   ::selection {

@@ -258,7 +258,7 @@ export default function Resources({ withHeading = true, videoLimit = 12, article
 
       {/* YouTube embed — iframe only exists while open, so nothing preloads. */}
       <Dialog open={!!playing} onOpenChange={(open) => { if (!open) setPlaying(null); }}>
-        <DialogContent className="max-w-3xl overflow-hidden rounded-3xl border-line bg-ink p-0">
+        <DialogContent className="max-h-[90dvh] max-w-3xl overflow-hidden rounded-3xl border-line bg-ink p-0">
           <DialogTitle className="sr-only">{playing?.title ?? 'Video'}</DialogTitle>
           <DialogDescription className="sr-only">YouTube video player</DialogDescription>
           {playing && (
@@ -276,7 +276,7 @@ export default function Resources({ withHeading = true, videoLimit = 12, article
       </Dialog>
 
       <Dialog open={!!activeArticle} onOpenChange={(open) => { if (!open) setActiveArticle(null); }}>
-        <DialogContent className="max-h-[85vh] max-w-3xl overflow-y-auto rounded-3xl border-line bg-surface p-0">
+        <DialogContent className="max-h-[85dvh] max-w-3xl overflow-y-auto rounded-3xl border-line bg-surface p-0">
           <DialogTitle className="sr-only">{activeArticle?.title ?? 'Article'}</DialogTitle>
           <DialogDescription className="sr-only">Full article view</DialogDescription>
           {activeArticle && (

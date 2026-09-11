@@ -217,7 +217,7 @@ export default function Breathing({ withHeading = true, tinted = true }) {
       </div>
 
       <Dialog open={!!active} onOpenChange={(open) => { if (!open) setActive(null); }}>
-        <DialogContent className="max-w-sm rounded-4xl border-line bg-surface p-0 overflow-hidden">
+        <DialogContent className="max-h-[90dvh] max-w-sm overflow-y-auto rounded-4xl border-line bg-surface p-0">
           <DialogTitle className="sr-only">
             {active?.name ?? 'Breathing exercise'}
           </DialogTitle>
