@@ -4,6 +4,7 @@ import Services from '../sections/Services';
 import Approach from '../sections/Approach';
 import Therapists from '../sections/Therapists';
 import Testimonials from '../sections/Testimonials';
+import Explore from '../sections/Explore';
 import CtaBand from '../sections/CtaBand';
 import { useBooking } from '../lib/booking';
 
@@ -24,6 +25,7 @@ export default function HomePage() {
       <Approach teaser />
       <Therapists onBook={openBooking} limit={3} teaser />
       <Testimonials limit={3} />
+      <Explore />
       <CtaBand onBook={openBooking} />
     </>
   );

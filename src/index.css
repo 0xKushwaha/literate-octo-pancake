@@ -261,6 +261,16 @@
 
 .animate-marquee { animation: marquee-x 42s linear infinite; }
 
+/* homepage "explore" cards — a slow drift so the three cards look afloat
+   rather than pinned to a grid. Lives on a wrapper, never on a .reveal
+   element, because both would be animating `transform`. The global
+   prefers-reduced-motion rule below flattens it. */
+@keyframes float-y {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -10px, 0); }
+}
+.float-y { animation: float-y 7.5s ease-in-out infinite; }
+
 /* ============================================================
    scroll reveals — one IntersectionObserver per element, CSS does the rest
    ============================================================ */

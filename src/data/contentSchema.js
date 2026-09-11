@@ -297,6 +297,26 @@ export const CONTENT_SCHEMA = [
   f('therapists.available_tomorrow', 'Availability, next day', 'Available tomorrow'),
   f('therapists.available_days', 'Availability, later', 'Available in {days} days', 'text', 'Use {days} where the number should go.'),
 
+  // ── Explore (homepage cards linking to blog / videos / breathe) ───────────
+  f('explore.eyebrow', 'Eyebrow', 'Between sessions'),
+  f('explore.headline', 'Headline', 'Something to take with you.'),
+  f('explore.lead', 'Lead paragraph', 'The blog, the video library and a one-minute breathing exercise. Free, no account, no appointment.', 'richtext'),
+  f('explore.blog_kicker', 'Card 1: small label', 'Blog'),
+  f('explore.blog_title', 'Card 1: heading', 'Read something useful'),
+  f('explore.blog_body', 'Card 1: body', 'Articles written and reviewed by our clinicians, on the things people actually bring to a first session.', 'richtext'),
+  f('explore.blog_preview', 'Card 1: line showing the newest article', 'Latest: {title}', 'text', 'Use {title} where the article title should go. Hidden when nothing is published.'),
+  f('explore.blog_cta', 'Card 1: link label', 'Read the blog'),
+  f('explore.video_kicker', 'Card 2: small label', 'Video'),
+  f('explore.video_title', 'Card 2: heading', 'Watch a short one'),
+  f('explore.video_body', 'Card 2: body', 'Five-minute explainers on anxiety, sleep and getting started, picked by the clinical team.', 'richtext'),
+  f('explore.video_preview', 'Card 2: line showing the featured video', 'Featured: {title}', 'text', 'Use {title} where the video title should go. Hidden when there are no videos.'),
+  f('explore.video_cta', 'Card 2: link label', 'Watch the videos'),
+  f('explore.breathe_kicker', 'Card 3: small label', 'Breathe'),
+  f('explore.breathe_title', 'Card 3: heading', 'Take one minute now'),
+  f('explore.breathe_body', 'Card 3: body', 'A guided breathing exercise you can do at your desk, before a call, or at three in the morning.', 'richtext'),
+  f('explore.breathe_preview', 'Card 3: line showing the first exercise', 'Try {name} · {n} cycles', 'text', 'Use {name} for the exercise and {n} for the number of cycles.'),
+  f('explore.breathe_cta', 'Card 3: link label', 'Start breathing'),
+
   // ── Video resources ───────────────────────────────────────────────────────
   f('resources.eyebrow', 'Eyebrow', 'Resources'),
   f('resources.headline', 'Headline', 'Worth your time between sessions.'),
@@ -500,7 +520,7 @@ export const SCHEMA_BY_KEY = Object.fromEntries(CONTENT_SCHEMA.map((x) => [x.key
 /** Section display order in the admin, matching the page from top to bottom. */
 export const SECTION_ORDER = [
   'brand', 'nav', 'footer', 'booking', 'ui',
-  'hero', 'trust', 'heard', 'testimonials', 'cta',
+  'hero', 'trust', 'heard', 'testimonials', 'explore', 'cta',
   'services', 'approach', 'why', 'faq', 'therapists', 'pricing', 'resources', 'blog', 'breathing',
 ];
 
@@ -519,6 +539,7 @@ export const SECTION_PAGE = {
   trust: 'home',
   heard: 'home',
   testimonials: 'home',
+  explore: 'home',
   cta: 'home',
   services: 'services',
   approach: 'how',
@@ -557,7 +578,7 @@ export const PAGE_PATHS = {
 
 export const PAGE_BLURBS = {
   everywhere: 'The header, the footer, the booking form and anything shared by every page.',
-  home: 'The short landing page: hero, the numbers, "we heard you", testimonials and the closing call to action.',
+  home: 'The short landing page: hero, the numbers, "we heard you", testimonials, the explore cards and the closing call to action.',
   services: 'The page behind the Care menu.',
   how: 'Steps, "Why Lumen" and the questions people ask before booking.',
   therapists: 'The team, their filters and their cards.',
@@ -580,6 +601,7 @@ export const SECTION_TITLES = {
   therapists: 'Therapists',
   resources: 'Resources (videos + articles)',
   testimonials: 'Testimonials',
+  explore: 'Explore cards (blog, video, breathe)',
   blog: 'Blog',
   pricing: 'Pricing',
   faq: 'FAQ',
