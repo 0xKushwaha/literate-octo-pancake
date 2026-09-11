@@ -23,7 +23,6 @@ export const services = [
     modalities: ['CBT', 'ACT', 'Psychodynamic'],
     duration: '50 min',
     price: 165,
-    accent: 'aqua',
     icon: 'person',
   },
   {
@@ -34,7 +33,6 @@ export const services = [
     modalities: ['Gottman', 'EFT'],
     duration: '80 min',
     price: 240,
-    accent: 'iris',
     icon: 'hearts',
   },
   {
@@ -45,7 +43,6 @@ export const services = [
     modalities: ['EMDR', 'IFS', 'Somatic'],
     duration: '60 min',
     price: 195,
-    accent: 'violet',
     icon: 'wave',
   },
   {
@@ -56,7 +53,6 @@ export const services = [
     modalities: ['CBT', 'ERP'],
     duration: '50 min',
     price: 165,
-    accent: 'aqua',
     icon: 'pulse',
   },
   {
@@ -67,7 +63,6 @@ export const services = [
     modalities: ['DBT-informed', 'Family systems'],
     duration: '50 min',
     price: 150,
-    accent: 'coral',
     icon: 'sprout',
   },
   {
@@ -78,7 +73,6 @@ export const services = [
     modalities: ['Med management', 'Second opinions'],
     duration: '30 min',
     price: 220,
-    accent: 'iris',
     icon: 'shield',
   },
 ];
