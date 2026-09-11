@@ -83,7 +83,9 @@ function useInViewOnce(amount = 0.15) {
           io.disconnect();
         }
       },
-      { threshold: amount, rootMargin: '0px 0px -8% 0px' },
+      // Fire as soon as any part of the element clears the bottom edge: a
+      // section scrolled to quickly should never sit blank while it waits.
+      { threshold: Math.min(amount, 0.05), rootMargin: '0px 0px -4% 0px' },
     );
     io.observe(el);
     return () => io.disconnect();

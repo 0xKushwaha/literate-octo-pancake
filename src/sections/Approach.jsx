@@ -44,11 +44,15 @@ export default function Approach() {
       {cards.length > 0 && (
         <div className="mt-24 sm:mt-32">
           <SectionHeading eyebrow={why.eyebrow} title={why.headline} align="center" />
-          <Stagger className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" step={0.06}>
-            {cards.map((c, i) => (
+          {/* Six columns so a five-card set ends in a row of two wide cards
+              instead of one card and a hole. */}
+          <Stagger className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-6" step={0.06}>
+            {cards.map((c, i) => {
+              const lastTwo = cards.length % 3 === 2 && i >= cards.length - 2;
+              return (
               <StaggerItem
                 key={`${c.title}-${i}`}
-                className={`rounded-3xl border border-line p-6 ${i % 3 === 1 ? 'bg-rose-100/70' : i % 3 === 2 ? 'bg-peach-100/60' : 'bg-surface'} ${cards.length % 3 === 2 && i === cards.length - 1 ? 'lg:col-start-2' : ''}`}
+                className={`rounded-3xl border border-line p-6 ${lastTwo ? 'lg:col-span-3' : 'lg:col-span-2'} ${i % 3 === 1 ? 'bg-rose-100/70' : i % 3 === 2 ? 'bg-peach-100/60' : 'bg-surface'}`}
               >
                 <span className="grid size-10 place-items-center rounded-full border border-line bg-surface text-ink">
                   <Icon name={c.icon} size={18} />
@@ -56,7 +60,8 @@ export default function Approach() {
                 <h3 className="mt-5 text-[16px] font-medium tracking-tight text-ink">{c.title}</h3>
                 <p className="mt-2 text-[14.5px] leading-relaxed text-ink-3">{c.body}</p>
               </StaggerItem>
-            ))}
+              );
+            })}
           </Stagger>
         </div>
       )}
