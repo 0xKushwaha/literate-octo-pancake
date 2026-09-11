@@ -5,6 +5,7 @@ import Approach from '../sections/Approach';
 import Therapists from '../sections/Therapists';
 import Testimonials from '../sections/Testimonials';
 import Explore from '../sections/Explore';
+import BreathePrompt from '../sections/BreathePrompt';
 import CtaBand from '../sections/CtaBand';
 import { useBooking } from '../lib/booking';
 
@@ -26,6 +27,7 @@ export default function HomePage() {
       <Therapists onBook={openBooking} limit={3} teaser />
       <Testimonials limit={3} />
       <Explore />
+      <BreathePrompt />
       <CtaBand onBook={openBooking} />
     </>
   );

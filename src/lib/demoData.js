@@ -142,6 +142,11 @@ export const demoArticles = {
 export const demoExercises = {
   listAll: () => [..._exercises].sort((a, b) => a.sort_order - b.sort_order),
   listActive: () => _exercises.filter((e) => e.is_active).sort((a, b) => a.sort_order - b.sort_order),
+  listHomepage: (limit = 3) => {
+    const active = _exercises.filter((e) => e.is_active).sort((a, b) => a.sort_order - b.sort_order);
+    const picked = active.filter((e) => e.is_featured);
+    return (picked.length ? picked : active).slice(0, limit);
+  },
   upsert: (ex) => {
     const idx = _exercises.findIndex((e) => e.id === ex.id);
     const item = { ...ex, id: ex.id || genId() };

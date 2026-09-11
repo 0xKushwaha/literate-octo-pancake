@@ -2,22 +2,21 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getHomepageArticles } from '../lib/queries/articles';
 import { getHomepageVideos } from '../lib/queries/youtube';
-import { listActiveExercises } from '../lib/queries/breathing';
-import { breathingDefaults } from '../data/breathingDefaults';
 import { MoreLink, Reveal, Section, SectionHeading, Stagger, StaggerItem } from '../components/primitives';
 import { useSiteContent } from '../lib/queries/siteContent';
 import Icon from '../components/Icon';
 
 /**
- * The homepage's shelf of things to take away: articles, videos and a
- * breathing exercise, each card linking to the page it came from.
+ * The homepage's shelf of things to take away: articles and videos, each card
+ * linking to the page it came from. Breathing is deliberately not here — it is
+ * an invitation to stop rather than something to read later, so it has its own
+ * band (src/sections/BreathePrompt.jsx) further down the page.
  *
- * What appears is the admin's decision, not this file's. Articles come from
- * the "Show on homepage" tick, videos from "Featured", exercises from the
- * active list in sort order, and how many of each from three count fields in
- * Admin → Site content → Home. Every list falls back (newest articles, active
- * videos, the built-in exercises) so an untouched database still fills the
- * shelf instead of emptying it.
+ * What appears is the admin's decision, not this file's: articles come from the
+ * "Show on homepage" tick in the blog editor, videos from the same tick in
+ * Videos, and how many of each from two count fields in Admin → Site content →
+ * Home. Both lists fall back (newest articles, first active videos) so an
+ * untouched database still fills the shelf instead of emptying it.
  *
  * They float: each card sits at one of three heights on a wide screen and
  * drifts on its own loop. The drift lives on a wrapper div, never on the
@@ -31,13 +30,6 @@ function count(value, fallback, max) {
   const n = Math.floor(Number(value));
   if (!Number.isFinite(n) || n < 0) return fallback;
   return Math.min(n, max);
-}
-
-function fill(template, values) {
-  return Object.entries(values).reduce(
-    (out, [k, v]) => out.replaceAll(`{${k}}`, v ?? ''),
-    template ?? '',
-  );
 }
 
 function formatDate(iso) {
@@ -83,19 +75,6 @@ function VideoBand({ thumb }) {
   );
 }
 
-function BreatheBand() {
-  return (
-    <div className="relative flex h-28 items-center justify-center overflow-hidden bg-blush-100">
-      {/* One ring is static, so the card still reads as breathing when motion
-          is reduced — or in a screenshot. */}
-      <span className="absolute size-16 rounded-full border border-rose-300" />
-      <span className="absolute size-16 rounded-full border border-rose-400 animate-[pulse-ring_3.6s_var(--ease-out-expo)_infinite]" />
-      <span className="absolute size-16 rounded-full border border-rose-300 animate-[pulse-ring_3.6s_var(--ease-out-expo)_1.8s_infinite]" />
-      <span className="relative size-11 rounded-full bg-rose-200" />
-    </div>
-  );
-}
-
 /* -------------------------------------------------------------------- card */
 
 function FloatCard({ card, index }) {
@@ -134,25 +113,21 @@ export default function Explore() {
   const c = useSiteContent('explore');
   const blogCount = count(c.blog_count, 3, 6);
   const videoCount = count(c.video_count, 2, 6);
-  const breatheCount = count(c.breathe_count, 1, 3);
 
   const [articles, setArticles] = useState([]);
   const [videos, setVideos] = useState([]);
-  const [exercises, setExercises] = useState(breathingDefaults);
 
   useEffect(() => {
     let alive = true;
     Promise.allSettled([
       getHomepageArticles(blogCount),
       getHomepageVideos(videoCount),
-      listActiveExercises(),
-    ]).then(([a, v, e]) => {
+    ]).then(([a, v]) => {
       if (!alive) return;
       if (a.status === 'fulfilled') setArticles(a.value ?? []);
       else console.error('[lumen] could not load homepage articles', a.reason);
       if (v.status === 'fulfilled') setVideos(v.value ?? []);
       else console.error('[lumen] could not load homepage videos', v.reason);
-      if (e.status === 'fulfilled' && e.value?.length) setExercises(e.value);
     });
     return () => { alive = false; };
   }, [blogCount, videoCount]);
@@ -203,21 +178,7 @@ export default function Explore() {
     });
   }
 
-  for (const e of exercises.slice(0, breatheCount)) {
-    cards.push({
-      key: `e-${e.id}`,
-      to: '/breathe',
-      icon: 'wave',
-      kicker: c.breathe_kicker,
-      title: e.name,
-      body: e.description,
-      meta: fill(c.breathe_meta, { n: e.cycles }),
-      cta: c.breathe_cta,
-      band: <BreatheBand />,
-    });
-  }
-
-  // Every count set to zero is a deliberate "hide this section".
+  // Both counts set to zero is a deliberate "hide this section".
   if (cards.length === 0) return null;
 
   return (

@@ -115,7 +115,7 @@ function VideoForm({ initial, onSave, onCancel }) {
         <div className="flex flex-col gap-2 justify-center pt-4">
           <label className="flex items-center gap-2 cursor-pointer">
             <input type="checkbox" checked={form.is_featured} onChange={(e) => set('is_featured', e.target.checked)} className="rounded" />
-            <span className="text-sm text-gray-700">Featured (shown first on the Resources page)</span>
+            <span className="text-sm text-gray-700">Show on homepage (also shown first on the Resources page)</span>
           </label>
           <label className="flex items-center gap-2 cursor-pointer">
             <input type="checkbox" checked={form.is_active} onChange={(e) => set('is_active', e.target.checked)} className="rounded" />
@@ -213,7 +213,7 @@ export default function AdminYouTube() {
                   <Th className="w-24">Thumb</Th>
                   <Th sortKey="title" sort={sort} onSort={toggle}>Title</Th>
                   <Th sortKey="category" sort={sort} onSort={toggle}>Category</Th>
-                  <Th sortKey="is_featured" sort={sort} onSort={toggle}>Featured</Th>
+                  <Th sortKey="is_featured" sort={sort} onSort={toggle}>Homepage</Th>
                   <Th sortKey="is_active" sort={sort} onSort={toggle}>Status</Th>
                   <Th align="right">Actions</Th>
                 </tr>
@@ -234,7 +234,7 @@ export default function AdminYouTube() {
                     <td className="max-w-xs truncate px-5 py-3 font-medium text-gray-900">{v.title}</td>
                     <td className="px-5 py-3 text-gray-500">{v.category || '\u2014'}</td>
                     <td className="px-5 py-3 text-gray-500">
-                      {v.is_featured ? <span title="Shown first on the Resources page">★</span> : '\u2014'}
+                      {v.is_featured ? <span title="On the homepage, and first on the Resources page">★</span> : '\u2014'}
                     </td>
                     <td className="px-5 py-3"><StatusBadge status={v.is_active ? 'active' : 'inactive'} /></td>
                     <td className="px-5 py-3 text-right">

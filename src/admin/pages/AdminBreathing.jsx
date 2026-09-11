@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import toast from 'react-hot-toast';
-import { listAllExercises, upsertExercise, deleteExercise } from '../../lib/queries/breathing';
+import { listAllExercises, saveExercise, deleteExercise } from '../../lib/queries/breathing';
 import StatusBadge from '../components/StatusBadge';
 import { useEscape, useList, useSaveShortcut, useSearch, useSort, useUnsavedChanges } from '../hooks';
 import {
@@ -13,7 +13,7 @@ const EMPTY = {
   name: '', slug: '', description: '', technique: '',
   inhale_sec: 4, hold_in_sec: 0, exhale_sec: 4, hold_out_sec: 0,
   cycles: 4, benefits: [], suitable_for: [], difficulty: 'beginner',
-  is_active: true, sort_order: 0,
+  is_active: true, is_featured: false, sort_order: 0,
 };
 
 function slugify(s) { return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); }
@@ -39,13 +39,16 @@ function ExerciseForm({ initial, onSave, onCancel }) {
 
     setSaving(true);
     try {
-      await upsertExercise({
+      const { featuredSaved } = await saveExercise({
         ...form,
         slug: form.slug || slugify(form.name),
         benefits: toList(form.benefits),
         suitable_for: toList(form.suitable_for),
       });
       toast.success(initial?.id ? 'Exercise updated' : 'Exercise created');
+      if (!featuredSaved && form.is_featured) {
+        toast('Saved, but "Show on homepage" needs migration 007 run in Supabase. Until then the homepage shows the first active exercises.', { icon: '⚠️', duration: 8000 });
+      }
       onSave();
     } catch (err) {
       toast.error(err?.message || 'Could not save that exercise');
@@ -123,10 +126,16 @@ function ExerciseForm({ initial, onSave, onCancel }) {
         </div>
       </div>
 
-      <label className="flex items-center gap-2 cursor-pointer">
-        <input type="checkbox" checked={form.is_active} onChange={(e) => set('is_active', e.target.checked)} className="rounded" />
-        <span className="text-sm text-gray-700">Active (visible on site)</span>
-      </label>
+      <div className="flex flex-col gap-2">
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" checked={form.is_active} onChange={(e) => set('is_active', e.target.checked)} className="rounded" />
+          <span className="text-sm text-gray-700">Active (listed on the Breathe page)</span>
+        </label>
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" checked={form.is_featured} onChange={(e) => set('is_featured', e.target.checked)} className="rounded" />
+          <span className="text-sm text-gray-700">Show on homepage (with none ticked, the first active ones show)</span>
+        </label>
+      </div>
 
       <div className="flex gap-3 pt-2">
         <button type="submit" disabled={saving}

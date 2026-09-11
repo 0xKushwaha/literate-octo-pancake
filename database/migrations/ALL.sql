@@ -877,20 +877,24 @@ COMMENT ON COLUMN booking_submissions.ip_hash IS
 
 -- ############################################################################
 -- #  007_homepage_picks.sql
--- #  "Show on homepage" tick for articles
+-- #  "Show on homepage" ticks for articles and breathing exercises
 -- ############################################################################
 
 -- ============================================================================
--- 007 — "Show on homepage" for articles
+-- 007 — "Show on homepage" picks
 -- ============================================================================
--- Videos already have is_featured and exercises have sort_order, so the admin
--- can decide what reaches the homepage cards for those two. Articles had no
--- such flag: the homepage could only ever show the newest posts. This adds the
--- same tick to articles.
+-- The homepage shows a few articles, a few videos and a few breathing
+-- exercises. Videos already had is_featured; articles and exercises did not,
+-- so the homepage could only ever take the newest or the first few. This adds
+-- the same flag to both, which is what the "Show on homepage" tick in the
+-- admin writes.
 --
--- Safe to run more than once. The site works before it is run — the homepage
--- falls back to the newest published articles when this column is missing, and
--- the blog editor saves without the tick and says so.
+-- Safe to run more than once, and safe to run again if you ran an earlier copy
+-- of this file: every statement is IF NOT EXISTS.
+--
+-- The site works before it is run. Each homepage query falls back (newest
+-- articles, first active exercises) and each admin form saves without the tick
+-- and says so, rather than failing or losing the choice silently.
 -- ============================================================================
 
 ALTER TABLE articles
@@ -899,7 +903,16 @@ ALTER TABLE articles
 COMMENT ON COLUMN articles.is_featured IS
     'Ticked in Admin → Blog → editor. Offers the article to the homepage cards; the blog itself lists everything published.';
 
--- Matches the homepage query: featured + published, newest first.
 CREATE INDEX IF NOT EXISTS idx_articles_homepage
     ON articles(published_at DESC)
     WHERE is_featured = TRUE AND is_published = TRUE;
+
+ALTER TABLE breathing_exercises
+    ADD COLUMN IF NOT EXISTS is_featured BOOLEAN NOT NULL DEFAULT FALSE;
+
+COMMENT ON COLUMN breathing_exercises.is_featured IS
+    'Ticked in Admin → Breathing. Offers the exercise to the homepage band; /breathe lists every active one.';
+
+CREATE INDEX IF NOT EXISTS idx_breathing_homepage
+    ON breathing_exercises(sort_order)
+    WHERE is_featured = TRUE AND is_active = TRUE;

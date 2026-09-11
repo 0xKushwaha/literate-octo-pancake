@@ -300,22 +300,26 @@ export const CONTENT_SCHEMA = [
   // ── Explore (homepage cards linking to blog / videos / breathe) ───────────
   f('explore.eyebrow', 'Eyebrow', 'Between sessions'),
   f('explore.headline', 'Headline', 'Something to take with you.'),
-  f('explore.lead', 'Lead paragraph', 'Articles, short videos and a guided breath. Free, no account, no appointment.', 'richtext'),
+  f('explore.lead', 'Lead paragraph', 'Articles and short videos from the clinical team. Free, no account, no appointment.', 'richtext'),
   f('explore.more_link', 'Link under the cards', 'See everything in Resources', 'text', 'Points at the Resources page. Leave blank to hide it.'),
-  f('explore.blog_count', 'How many articles on the homepage', 3, 'number', 'Which ones: tick "Show on homepage" in Blog → the article. Nothing ticked means the newest posts. 0 hides them.'),
+  f('explore.blog_count', 'How many articles on the homepage', 3, 'number', 'Which ones: tick "Show on homepage" in Blog → the article. None ticked means the newest posts. 0 hides them.'),
   f('explore.blog_kicker', 'Label on an article card', 'Blog'),
   f('explore.blog_cta', 'Link on an article card', 'Read the article'),
   f('explore.blog_title', 'Article card heading when nothing is published yet', 'Read something useful'),
   f('explore.blog_body', 'Article card body when nothing is published yet', 'Articles written and reviewed by our clinicians, on the things people actually bring to a first session.', 'richtext'),
-  f('explore.video_count', 'How many videos on the homepage', 2, 'number', 'Which ones: tick "Featured" in Videos. Nothing featured means the first active videos. 0 hides them.'),
+  f('explore.video_count', 'How many videos on the homepage', 2, 'number', 'Which ones: tick "Show on homepage" in Videos. None ticked means the first active videos. 0 hides them.'),
   f('explore.video_kicker', 'Label on a video card', 'Video'),
   f('explore.video_cta', 'Link on a video card', 'Watch'),
   f('explore.video_title', 'Video card heading when there are no videos yet', 'Watch a short one'),
   f('explore.video_body', 'Video card body when there are no videos yet', 'Five-minute explainers on anxiety, sleep and getting started, picked by the clinical team.', 'richtext'),
-  f('explore.breathe_count', 'How many breathing exercises on the homepage', 1, 'number', 'The active exercises, in the order set in Breathing. 0 hides them.'),
-  f('explore.breathe_kicker', 'Label on a breathing card', 'Breathe'),
-  f('explore.breathe_cta', 'Link on a breathing card', 'Start breathing'),
-  f('explore.breathe_meta', 'Small line on a breathing card', '{n} cycles · about a minute', 'text', 'Use {n} for the number of cycles.'),
+
+  // ── Breathing band (homepage) ─────────────────────────────────────────────
+  f('breathe_home.eyebrow', 'Eyebrow', 'One minute'),
+  f('breathe_home.headline', 'Headline', 'Before you go: one minute of breathing.'),
+  f('breathe_home.lead', 'Lead paragraph', 'Guided exercises from our clinical team. Nothing to install, nothing to sign up for — press start and follow the circle.', 'richtext'),
+  f('breathe_home.cta', 'Button', 'Start breathing'),
+  f('breathe_home.count', 'How many exercises on the homepage', 3, 'number', 'Which ones: tick "Show on homepage" in Breathing. None ticked means the first active ones. 0 hides the whole band.'),
+  f('breathe_home.meta', 'Small line under each exercise', '{n} cycles · about a minute', 'text', 'Use {n} for cycles, {technique} for the technique, {difficulty} for the level.'),
 
   // ── Video resources ───────────────────────────────────────────────────────
   f('resources.eyebrow', 'Eyebrow', 'Resources'),
@@ -520,7 +524,7 @@ export const SCHEMA_BY_KEY = Object.fromEntries(CONTENT_SCHEMA.map((x) => [x.key
 /** Section display order in the admin, matching the page from top to bottom. */
 export const SECTION_ORDER = [
   'brand', 'nav', 'footer', 'booking', 'ui',
-  'hero', 'trust', 'heard', 'testimonials', 'explore', 'cta',
+  'hero', 'trust', 'heard', 'testimonials', 'explore', 'breathe_home', 'cta',
   'services', 'approach', 'why', 'faq', 'therapists', 'pricing', 'resources', 'blog', 'breathing',
 ];
 
@@ -540,6 +544,7 @@ export const SECTION_PAGE = {
   heard: 'home',
   testimonials: 'home',
   explore: 'home',
+  breathe_home: 'home',
   cta: 'home',
   services: 'services',
   approach: 'how',
@@ -578,7 +583,7 @@ export const PAGE_PATHS = {
 
 export const PAGE_BLURBS = {
   everywhere: 'The header, the footer, the booking form and anything shared by every page.',
-  home: 'The short landing page: hero, the numbers, "we heard you", testimonials, the explore cards and the closing call to action.',
+  home: 'The short landing page: hero, the numbers, "we heard you", testimonials, the explore cards, the breathing band and the closing call to action.',
   services: 'The page behind the Care menu.',
   how: 'Steps, "Why Lumen" and the questions people ask before booking.',
   therapists: 'The team, their filters and their cards.',
@@ -601,7 +606,8 @@ export const SECTION_TITLES = {
   therapists: 'Therapists',
   resources: 'Resources (videos + articles)',
   testimonials: 'Testimonials',
-  explore: 'Explore cards (blog, video, breathe)',
+  explore: 'Explore cards (articles + videos)',
+  breathe_home: 'Breathing band',
   blog: 'Blog',
   pricing: 'Pricing',
   faq: 'FAQ',
