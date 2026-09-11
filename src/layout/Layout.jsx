@@ -55,7 +55,7 @@ function Shell() {
     }
 
     const deadline = performance.now() + 2000;
-    let raf = 0;
+    let timer = 0;
     let userScrolled = false;
     const onWheel = () => { userScrolled = true; };
 
@@ -68,16 +68,19 @@ function Shell() {
         if (Math.abs(top - NAV_OFFSET) < 8) return;
         document.documentElement.scrollTop = Math.max(0, top + window.scrollY - NAV_OFFSET);
       }
-      if (performance.now() < deadline) raf = requestAnimationFrame(tick);
+      if (performance.now() < deadline) timer = setTimeout(tick, 40);
     };
-    raf = requestAnimationFrame(tick);
+    // setTimeout rather than requestAnimationFrame: rAF does not run at all
+    // while the tab is in the background, so a link opened in a new tab would
+    // never get its scroll until the visitor looked at it.
+    tick();
 
     window.addEventListener('wheel', onWheel, { passive: true, once: true });
     window.addEventListener('touchmove', onWheel, { passive: true, once: true });
     window.addEventListener('keydown', onWheel, { once: true });
 
     return () => {
-      cancelAnimationFrame(raf);
+      clearTimeout(timer);
       window.removeEventListener('wheel', onWheel);
       window.removeEventListener('touchmove', onWheel);
       window.removeEventListener('keydown', onWheel);
