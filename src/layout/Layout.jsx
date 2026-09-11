@@ -32,12 +32,12 @@ function Shell() {
   /**
    * Scroll handling for route changes.
    *
-   * The hash case is retried rather than done once: on a cold load of
-   * /services#trauma the target exists by the time this effect runs, but the
-   * browser is still finishing its own load-time scroll restoration and puts
-   * the page back at the top straight afterwards. Two follow-up attempts
-   * (next frame, and a beat later) land it where it belongs without a visible
-   * jump, and they stop as soon as the element is in place.
+   * The hash case keeps trying for a short window instead of scrolling once.
+   * On a cold load of /how-it-works#faq the target exists immediately, but the
+   * browser performs its own scroll restoration when `load` fires — after the
+   * header photo decodes — and puts the page back at the top. So this polls
+   * until the target is actually in place (or the window expires), and gives
+   * up the moment the visitor scrolls themselves.
    */
   useEffect(() => {
     const id = hash ? hash.slice(1) : '';
@@ -46,20 +46,34 @@ function Shell() {
       return;
     }
 
-    let cancelled = false;
-    const settled = () => {
-      const el = document.getElementById(id);
-      if (!el) return false;
-      const top = el.getBoundingClientRect().top;
-      if (Math.abs(top) < 120) return true;
-      el.scrollIntoView({ behavior: 'auto', block: 'start' });
-      return false;
-    };
+    const deadline = performance.now() + 2000;
+    let raf = 0;
+    let userScrolled = false;
+    const onWheel = () => { userScrolled = true; };
 
-    settled();
-    const raf = requestAnimationFrame(() => { if (!cancelled) settled(); });
-    const t = setTimeout(() => { if (!cancelled) settled(); }, 260);
-    return () => { cancelled = true; cancelAnimationFrame(raf); clearTimeout(t); };
+    const tick = () => {
+      if (userScrolled) return;
+      const el = document.getElementById(id);
+      if (el) {
+        const top = el.getBoundingClientRect().top;
+        // Anything within a nav's height of the top counts as arrived.
+        if (Math.abs(top) < 120) return;
+        el.scrollIntoView({ behavior: 'auto', block: 'start' });
+      }
+      if (performance.now() < deadline) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+
+    window.addEventListener('wheel', onWheel, { passive: true, once: true });
+    window.addEventListener('touchmove', onWheel, { passive: true, once: true });
+    window.addEventListener('keydown', onWheel, { once: true });
+
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('wheel', onWheel);
+      window.removeEventListener('touchmove', onWheel);
+      window.removeEventListener('keydown', onWheel);
+    };
   }, [pathname, hash]);
 
   useEffect(() => {
