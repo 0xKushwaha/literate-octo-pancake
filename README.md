@@ -72,20 +72,33 @@ role changes from anyone who is not already an admin.
 
 ### 3. Set the environment variables in Vercel
 
-Settings → Environment Variables. All five, for Production and Preview:
+Settings → Environment Variables. Three required, one recommended:
 
-| Variable | Value | Reaches the browser? |
-|---|---|---|
-| `VITE_SUPABASE_URL` | Project URL | Yes |
-| `VITE_SUPABASE_ANON_KEY` | anon / public key | Yes |
-| `SUPABASE_URL` | same Project URL | No |
-| `SUPABASE_SERVICE_ROLE_KEY` | service_role key | No |
-| `BOOKING_IP_SALT` | `openssl rand -hex 32` | No |
+| Variable | Value | Vercel type | In the browser? |
+|---|---|---|---|
+| `VITE_SUPABASE_URL` | Project URL | **Config** | Yes |
+| `VITE_SUPABASE_ANON_KEY` | anon / publishable key | **Config** | Yes |
+| `SUPABASE_SERVICE_ROLE_KEY` | service_role / secret key | **Secret** | No |
+| `BOOKING_IP_SALT` | `openssl rand -hex 32` | **Secret** | No |
 
-The `VITE_` prefix is what decides this: anything carrying it is inlined into
-the bundle every visitor downloads. The service_role key bypasses every RLS
-policy, so it must never carry that prefix. `vite build` fails the build if it
+The `VITE_` prefix decides everything here. Vite inlines any variable carrying
+it into the bundle every visitor downloads, which is why Vercel refuses to
+store one as type Secret: a value the browser receives is not a secret. The
+service_role key must never carry that prefix, and `vite build` fails if it
 sees one that looks like a service key.
+
+A Vercel variable saved as Secret cannot later be switched to Config, because
+Secrets are write-only. Delete it and re-create it as Config instead.
+
+There is deliberately **no separate `SUPABASE_URL`**. Every project environment
+variable reaches the serverless function as `process.env` regardless of prefix,
+so `/api/booking` reads `VITE_SUPABASE_URL` directly rather than making you keep
+the same URL under two names that can drift apart. A `SUPABASE_URL` is still
+honoured if you have one set.
+
+`BOOKING_IP_SALT` is optional. Without it the IP hash falls back to salting with
+the service-role key, which is still not reversible, but rotating that key
+resets every rate-limit bucket.
 
 ### 4. Deploy and verify
 
@@ -101,7 +114,7 @@ After the first deploy, check four things:
    That is the SPA rewrite working.
 3. **Submit the booking form.** A `201` with a `LM-XXXXXXXX` reference means the
    function, the service key and the rate limiter are all wired up. A `503`
-   means one of the three server variables is missing.
+   means `SUPABASE_SERVICE_ROLE_KEY` is missing or the migrations have not run.
 4. **Edit a field in Site Content**, reload, and confirm it survived — then look
    for it on the public page.
 

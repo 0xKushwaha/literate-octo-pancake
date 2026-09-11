@@ -93,16 +93,22 @@ function requireEnv(env) {
         throw new Error('Refusing to build: VITE_SUPABASE_ANON_KEY looks like a service_role key.');
       }
 
-      // Server-side variables for /api/booking. These are read at request time,
-      // not build time, so a missing one cannot fail the build — but it would
-      // take the booking form down the moment someone used it, and finding out
-      // then is much worse than finding out here.
-      const serverVars = ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY', 'BOOKING_IP_SALT'];
-      const missingServer = serverVars.filter((k) => !(env[k] || '').trim());
-      if (missingServer.length) {
+      // Server-side variables for /api/booking. Read at request time, not build
+      // time, so a missing one cannot fail the build — but it would take the
+      // booking form down the moment someone used it, and finding out then is
+      // much worse than finding out here.
+      if (!(env.SUPABASE_SERVICE_ROLE_KEY || '').trim()) {
         this.warn(
-          `${missingServer.join(', ')} not set. /api/booking will return 503 and the booking ` +
-            'form will not accept submissions. Set these in Vercel → Settings → Environment Variables.',
+          'SUPABASE_SERVICE_ROLE_KEY is not set. /api/booking will return 503 and the booking ' +
+            'form will not accept submissions. Set it in Vercel → Settings → Environment ' +
+            'Variables, as type Secret, with no VITE_ prefix.',
+        );
+      }
+      if (!(env.BOOKING_IP_SALT || '').trim()) {
+        this.warn(
+          'BOOKING_IP_SALT is not set. Rate-limit buckets will fall back to salting with the ' +
+            'service-role key, which works but resets every bucket whenever that key is ' +
+            "rotated. Generate one with: openssl rand -hex 32",
         );
       }
     },

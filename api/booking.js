@@ -9,10 +9,18 @@
  * removes the anonymous INSERT policy so this is the only door.
  *
  * Runs as a Vercel Node serverless function.
- * Required environment variables (Project Settings → Environment Variables):
- *   SUPABASE_URL               — same value as VITE_SUPABASE_URL
- *   SUPABASE_SERVICE_ROLE_KEY  — server-only. No VITE_ prefix, ever.
- *   BOOKING_IP_SALT            — any long random string; salts the IP hash.
+ *
+ * Environment variables (Project Settings → Environment Variables):
+ *   SUPABASE_SERVICE_ROLE_KEY  — required. Server-only; no VITE_ prefix, ever.
+ *   BOOKING_IP_SALT            — optional but recommended. Any long random
+ *                                string; salts the IP hash. See hashIp below
+ *                                for what happens when it is absent.
+ *
+ * The project URL is NOT a separate variable. Every project environment
+ * variable is visible to the function runtime as process.env, prefix or no
+ * prefix — VITE_ only means something to Vite at build time. So this reads
+ * VITE_SUPABASE_URL directly rather than making you maintain the same URL
+ * twice under two names that can drift apart.
  */
 
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
@@ -29,12 +37,18 @@ const ALLOWED_WHO = ['individual', 'couples', 'teen', 'psychiatry'];
 const ALLOWED_FORMAT = ['video', 'phone', 'in-person'];
 const ALLOWED_CADENCE = ['weekly', 'fortnightly', 'monthly', 'once'];
 
+/** The project URL, under whichever name it is configured. */
+function projectUrl() {
+  return (process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '').trim();
+}
+
 let cachedClient = null;
 function admin() {
   if (cachedClient) return cachedClient;
-  const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) throw new Error('booking api: SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY not set');
+  const url = projectUrl();
+  const key = (process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
+  if (!url) throw new Error('booking api: no project URL (set VITE_SUPABASE_URL)');
+  if (!key) throw new Error('booking api: SUPABASE_SERVICE_ROLE_KEY not set');
   cachedClient = createClient(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
@@ -57,8 +71,18 @@ function clientIp(req) {
  * mental-health enquiries.
  */
 function hashIp(ip) {
-  const salt = process.env.BOOKING_IP_SALT || '';
-  return createHash('sha256').update(`${salt}:${ip}`).digest('hex').slice(0, 32);
+  // An unsalted SHA-256 of an IP address is not anonymisation: the whole IPv4
+  // space is about 4 billion values, so anyone holding the table can hash every
+  // address and recover the originals in minutes. The salt is what makes the
+  // hash a bucket label rather than a reversible identifier.
+  //
+  // BOOKING_IP_SALT is the right answer. Falling back to the service-role key
+  // keeps the property that matters — a long, server-only, stable secret — so
+  // an unset salt degrades to "still not reversible" rather than "silently
+  // useless". Rotating that key resets the rate-limit buckets, which is a
+  // one-off annoyance and not a correctness problem.
+  const salt = (process.env.BOOKING_IP_SALT || process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
+  return createHash('sha256').update(`lumen:${salt}:${ip}`).digest('hex').slice(0, 32);
 }
 
 /** LM-XXXXXXXX. Generated here so a client cannot choose or collide its own. */
