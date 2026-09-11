@@ -1,10 +1,9 @@
-import { StrictMode, lazy } from 'react';
+import { StrictMode, Suspense, lazy } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import ErrorBoundary from './components/ErrorBoundary';
 import HomePage from './pages/HomePage';
 import NotFoundPage from './pages/NotFoundPage';
-import { brand } from './data/site';
 import './index.css';
 
 const BlogIndexPage = lazy(() => import('./pages/BlogIndexPage'));
@@ -12,7 +11,6 @@ const BlogPostPage = lazy(() => import('./pages/BlogPostPage'));
 const AdminApp = lazy(() => import('./admin/AdminApp'));
 
 function RouteError() {
-  const tel = brand.phone.replace(/[^\d+]/g, '');
   return (
     <div className="flex min-h-[100svh] flex-col items-center justify-center gap-8 bg-bg px-6 py-20 text-center">
       <div>
@@ -33,11 +31,31 @@ function RouteError() {
   );
 }
 
+/**
+ * Lazy routes need a Suspense boundary above them. Without one, React throws
+ * while the chunk is in flight and the router falls straight through to the
+ * error element — so /blog and /admin would intermittently render "Something
+ * went wrong" on a cold load or a slow connection.
+ */
+function Lazy({ children }) {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-[100svh] items-center justify-center bg-bg">
+          <div className="size-6 animate-spin rounded-full border-2 border-line-2 border-t-ink" />
+        </div>
+      }
+    >
+      {children}
+    </Suspense>
+  );
+}
+
 const router = createBrowserRouter([
   { path: '/', element: <HomePage />, errorElement: <RouteError /> },
-  { path: '/blog', element: <BlogIndexPage />, errorElement: <RouteError /> },
-  { path: '/blog/:slug', element: <BlogPostPage />, errorElement: <RouteError /> },
-  { path: '/admin/*', element: <AdminApp />, errorElement: <RouteError /> },
+  { path: '/blog', element: <Lazy><BlogIndexPage /></Lazy>, errorElement: <RouteError /> },
+  { path: '/blog/:slug', element: <Lazy><BlogPostPage /></Lazy>, errorElement: <RouteError /> },
+  { path: '/admin/*', element: <Lazy><AdminApp /></Lazy>, errorElement: <RouteError /> },
   { path: '*', element: <NotFoundPage /> },
 ]);
 

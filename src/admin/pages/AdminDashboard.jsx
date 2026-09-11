@@ -2,19 +2,30 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase, isDemo } from '../../lib/supabase';
 import { demoArticles, demoExercises, demoVideos, demoBookings } from '../../lib/demoData';
+import { PageHeader } from '../components/ui';
 
-function StatCard({ label, value, to }) {
+function StatCard({ label, value, to, loading }) {
   const inner = (
     <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
       <p className="text-xs font-medium uppercase tracking-wide text-gray-400">{label}</p>
-      <p className="mt-2 text-3xl font-semibold text-gray-900">{value ?? '—'}</p>
+      {loading ? (
+        <div className="mt-3 h-7 w-12 animate-pulse rounded bg-gray-100" />
+      ) : (
+        <p className="mt-2 text-3xl font-semibold tabular-nums text-gray-900">{value ?? '—'}</p>
+      )}
     </div>
   );
-  return to ? <Link to={to}>{inner}</Link> : inner;
+  return to ? (
+    <Link to={to} className="rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
+      {inner}
+    </Link>
+  ) : inner;
 }
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     if (isDemo) {
@@ -24,6 +35,7 @@ export default function AdminDashboard() {
         exercises: demoExercises.listAll().length,
         videos: demoVideos.listAll().length,
       });
+      setLoading(false);
       return;
     }
     async function load() {
@@ -40,28 +52,29 @@ export default function AdminDashboard() {
         videos: videos.count,
       });
     }
-    load().catch(() => {});
+    load()
+      .catch((err) => {
+        console.error('[lumen admin] dashboard counts failed', err);
+        setError('Could not read the counts. The lists themselves may still work.');
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-semibold text-gray-900">Dashboard</h1>
-      <p className="mt-1 text-sm text-gray-500">Overview of your Lumen platform</p>
+    <>
+      <PageHeader title="Dashboard" subtitle="Overview of your Lumen platform" />
 
-      {isDemo && (
-        <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
-          <p className="text-sm text-amber-800">
-            <strong>Demo mode</strong> — Supabase credentials not configured. Data shown is sample data.
-            Update <code className="rounded bg-amber-100 px-1 font-mono text-xs">.env</code> with real credentials to connect.
-          </p>
+      {error && (
+        <div role="alert" className="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+          <p className="text-sm text-amber-800">{error}</p>
         </div>
       )}
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Booking requests" value={stats.bookings} to="/admin/bookings" />
-        <StatCard label="Blog articles" value={stats.articles} to="/admin/blog" />
-        <StatCard label="Breathing exercises" value={stats.exercises} to="/admin/breathing" />
-        <StatCard label="YouTube resources" value={stats.videos} to="/admin/youtube" />
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard label="Booking requests" value={stats.bookings} to="/admin/bookings" loading={loading} />
+        <StatCard label="Blog articles" value={stats.articles} to="/admin/blog" loading={loading} />
+        <StatCard label="Breathing exercises" value={stats.exercises} to="/admin/breathing" loading={loading} />
+        <StatCard label="YouTube resources" value={stats.videos} to="/admin/youtube" loading={loading} />
       </div>
 
       <div className="mt-10">
@@ -83,6 +96,6 @@ export default function AdminDashboard() {
           ))}
         </div>
       </div>
-    </div>
+    </>
   );
 }

@@ -24,3 +24,10 @@ dist-ssr
 *.sw?
 .env
 .env.local
+.env.*.local
+
+# Vercel
+.vercel
+
+# Vitest
+coverage

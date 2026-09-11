@@ -1,98 +1,129 @@
-import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import { listAllArticles, deleteArticle } from '../../lib/queries/articles';
-import { isDemo } from '../../lib/supabase';
 import StatusBadge from '../components/StatusBadge';
+import { useList, useSearch, useSort } from '../hooks';
+import {
+  Button, EmptyState, ErrorState, PageHeader, Panel, SearchInput, TableSkeleton, Th,
+} from '../components/ui';
+
+const SEARCH_FIELDS = ['title', 'slug', 'category'];
 
 export default function AdminBlog() {
-  const [articles, setArticles] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  const load = () => {
-    setLoading(true);
-    listAllArticles()
-      .then(setArticles)
-      .catch(() => toast.error('Failed to load articles'))
-      .finally(() => setLoading(false));
-  };
-
-  useEffect(load, []);
+  const { rows, setRows, loading, error, reload } = useList(listAllArticles);
+  const { query, setQuery, filtered } = useSearch(rows, SEARCH_FIELDS);
+  const { sort, toggle, sorted } = useSort(filtered, 'updated_at', 'desc');
 
   const handleDelete = async (id, title) => {
-    if (!window.confirm(`Delete "${title}"? This cannot be undone.`)) return;
+    if (!window.confirm(`Delete “${title}”? This cannot be undone.`)) return;
+    const snapshot = rows;
+    // Optimistic: the row goes immediately and comes back if the delete failed,
+    // which is far less jarring than a table that sits still for a second.
+    setRows((prev) => prev.filter((a) => a.id !== id));
     try {
       await deleteArticle(id);
-      toast.success('Article deleted');
-      setArticles((prev) => prev.filter((a) => a.id !== id));
-    } catch {
-      toast.error('Failed to delete article');
+      toast.success(`Deleted “${title}”`);
+    } catch (err) {
+      setRows(snapshot);
+      toast.error(err?.message || 'Could not delete that article');
     }
   };
 
+  const published = rows.filter((a) => a.is_published).length;
+
   return (
-    <div className="p-8">
-      <Toaster />
-      {isDemo && (
-        <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
-          <p className="text-sm text-amber-800"><strong>Demo mode</strong> — Changes persist in-memory during this session only.</p>
-        </div>
-      )}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Blog</h1>
-          <p className="mt-1 text-sm text-gray-500">{articles.length} articles</p>
-        </div>
+    <>
+      <PageHeader
+        title="Blog"
+        count={rows.length}
+        subtitle={rows.length ? `${published} published, ${rows.length - published} draft` : null}
+      >
         <Link
           to="/admin/blog/new"
-          className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-800"
+          className="inline-flex items-center rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-800"
         >
           + New article
         </Link>
-      </div>
+      </PageHeader>
 
-      <div className="mt-8 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+      {rows.length > 0 && (
+        <div className="mb-4">
+          <SearchInput
+            value={query}
+            onChange={setQuery}
+            placeholder="Search by title, slug or category…"
+            resultCount={filtered.length}
+            total={rows.length}
+          />
+        </div>
+      )}
+
+      <Panel>
         {loading ? (
-          <div className="flex h-48 items-center justify-center text-gray-400 text-sm">Loading…</div>
-        ) : articles.length === 0 ? (
-          <div className="flex h-48 flex-col items-center justify-center gap-3">
-            <p className="text-sm text-gray-400">No articles yet</p>
-            <Link to="/admin/blog/new" className="text-sm text-teal-600 hover:underline">Write the first one →</Link>
-          </div>
+          <TableSkeleton rows={5} cols={5} />
+        ) : error ? (
+          <ErrorState message={error} onRetry={reload} />
+        ) : rows.length === 0 ? (
+          <EmptyState
+            title="No articles yet"
+            hint="Posts you publish here appear on the public blog and in the homepage carousel."
+            action={
+              <Link to="/admin/blog/new" className="text-sm text-teal-600 hover:underline">
+                Write the first one →
+              </Link>
+            }
+          />
+        ) : sorted.length === 0 ? (
+          <EmptyState
+            title={`Nothing matches “${query}”`}
+            hint="Try a shorter search, or clear it to see every article."
+            action={<Button variant="ghost" onClick={() => setQuery('')}>Clear search</Button>}
+          />
         ) : (
-          <table className="w-full text-sm">
-            <thead className="border-b border-gray-200 bg-gray-50">
-              <tr>
-                <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Title</th>
-                <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Category</th>
-                <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Status</th>
-                <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Updated</th>
-                <th className="px-5 py-3" />
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {articles.map((a) => (
-                <tr key={a.id} className="hover:bg-gray-50">
-                  <td className="px-5 py-4 font-medium text-gray-900 max-w-xs truncate">{a.title}</td>
-                  <td className="px-5 py-4 text-gray-600">{a.category || '—'}</td>
-                  <td className="px-5 py-4">
-                    <StatusBadge status={a.is_published ? 'published' : 'draft'} />
-                  </td>
-                  <td className="px-5 py-4 text-gray-500">
-                    {a.updated_at ? new Date(a.updated_at).toLocaleDateString() : '—'}
-                  </td>
-                  <td className="px-5 py-4 text-right">
-                    <div className="flex items-center justify-end gap-3">
-                      <Link to={`/admin/blog/${a.id}`} className="text-teal-600 hover:underline text-xs">Edit</Link>
-                      <button onClick={() => handleDelete(a.id, a.title)} className="text-red-500 hover:underline text-xs">Delete</button>
-                    </div>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[44rem] text-sm">
+              <thead className="border-b border-gray-200 bg-gray-50">
+                <tr>
+                  <Th sortKey="title" sort={sort} onSort={toggle}>Title</Th>
+                  <Th sortKey="category" sort={sort} onSort={toggle}>Category</Th>
+                  <Th sortKey="is_published" sort={sort} onSort={toggle}>Status</Th>
+                  <Th sortKey="updated_at" sort={sort} onSort={toggle}>Updated</Th>
+                  <Th align="right">Actions</Th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {sorted.map((a) => (
+                  <tr key={a.id} className="hover:bg-gray-50">
+                    <td className="max-w-xs truncate px-5 py-4 font-medium text-gray-900">
+                      <Link to={`/admin/blog/${a.id}`} className="hover:text-teal-700 hover:underline">
+                        {a.title}
+                      </Link>
+                    </td>
+                    <td className="px-5 py-4 text-gray-600">{a.category || '—'}</td>
+                    <td className="px-5 py-4">
+                      <StatusBadge status={a.is_published ? 'published' : 'draft'} />
+                    </td>
+                    <td className="px-5 py-4 tabular-nums text-gray-500">
+                      {a.updated_at ? new Date(a.updated_at).toLocaleDateString() : '—'}
+                    </td>
+                    <td className="px-5 py-4 text-right">
+                      <div className="flex items-center justify-end gap-3">
+                        <Link to={`/admin/blog/${a.id}`} className="text-xs text-teal-600 hover:underline">Edit</Link>
+                        <button
+                          onClick={() => handleDelete(a.id, a.title)}
+                          className="text-xs text-red-500 hover:underline"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
-      </div>
-    </div>
+      </Panel>
+    </>
   );
 }

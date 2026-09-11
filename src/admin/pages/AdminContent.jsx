@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
-import toast, { Toaster } from 'react-hot-toast';
-import { getAllContent, upsertContent, deleteContent } from '../../lib/queries/siteContent';
-import { isDemo } from '../../lib/supabase';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import toast from 'react-hot-toast';
+import { getAllContent, upsertContent } from '../../lib/queries/siteContent';
+import { useSearch } from '../hooks';
+import { Button, EmptyState, PageHeader, Panel, SearchInput, TableSkeleton } from '../components/ui';
 
 // Default content seed — mirrors site.js values.
 // These are shown in the admin as pre-filled starting points.
@@ -33,6 +34,8 @@ const DEFAULTS = [
   { key: 'footer.disclaimer', section: 'footer', label: 'Footer disclaimer', type: 'text', value: 'This site is a design demonstration. Lumen is a fictional practice — nothing here is medical advice.' },
 ];
 
+const SEARCH_FIELDS = ['label', 'key', 'value', 'section'];
+
 function groupBySection(items) {
   return items.reduce((acc, item) => {
     const s = item.section ?? 'other';
@@ -43,18 +46,35 @@ function groupBySection(items) {
 }
 
 function ContentRow({ item, onSave }) {
-  const [value, setValue] = useState(item.value ?? '');
+  const saved = item.value ?? '';
+  const [value, setValue] = useState(saved);
+  const [seen, setSeen] = useState(saved);
   const [saving, setSaving] = useState(false);
-  const dirty = value !== (item.value ?? '');
+  const dirty = value !== saved;
+
+  // The parent replaces `item` whenever the list reloads. Without this the
+  // input keeps showing whatever was in local state at first mount, which
+  // looks exactly like "the admin panel is not updating the text".
+  //
+  // Adjusting during render rather than in an effect: React discards this
+  // render and redoes it immediately, so the stale value is never painted and
+  // there is no second commit for the browser to flicker through.
+  if (saved !== seen) {
+    setSeen(saved);
+    setValue(saved);
+  }
 
   const save = async () => {
     setSaving(true);
     try {
       await upsertContent({ key: item.key, value, section: item.section, label: item.label, type: item.type });
-      toast.success('Saved');
+      toast.success(`Saved "${item.label ?? item.key}"`);
       onSave(item.key, value);
-    } catch {
-      toast.error('Save failed');
+    } catch (err) {
+      // Surface the real reason — an RLS denial and a dropped connection are
+      // very different problems and "Save failed" hides both.
+      toast.error(err?.message || 'Save failed');
+      console.error('[lumen] content save failed', item.key, err);
     } finally {
       setSaving(false);
     }
@@ -70,24 +90,43 @@ function ContentRow({ item, onSave }) {
             value={value}
             onChange={(e) => setValue(e.target.value)}
             rows={3}
-            className="w-full resize-y rounded-lg border border-gray-300 px-3 py-1.5 text-sm outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
+            className={`w-full resize-y rounded-lg border px-3 py-1.5 text-sm outline-none transition focus:ring-1 ${
+              dirty
+                ? 'border-amber-400 focus:border-amber-500 focus:ring-amber-500'
+                : 'border-gray-300 focus:border-teal-500 focus:ring-teal-500'
+            }`}
           />
         ) : (
           <input
             type="text"
             value={value}
             onChange={(e) => setValue(e.target.value)}
-            className="w-full rounded-lg border border-gray-300 px-3 py-1.5 text-sm outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
+            onKeyDown={(e) => { if (e.key === 'Enter' && dirty) { e.preventDefault(); save(); } }}
+            className={`w-full rounded-lg border px-3 py-1.5 text-sm outline-none transition focus:ring-1 ${
+              dirty
+                ? 'border-amber-400 focus:border-amber-500 focus:ring-amber-500'
+                : 'border-gray-300 focus:border-teal-500 focus:ring-teal-500'
+            }`}
           />
         )}
       </div>
-      <button
-        onClick={save}
-        disabled={!dirty || saving}
-        className="mt-7 shrink-0 rounded-lg bg-teal-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-teal-700 disabled:opacity-30"
-      >
-        {saving ? '…' : 'Save'}
-      </button>
+      <div className="mt-7 flex shrink-0 items-center gap-2">
+        {dirty && !saving && (
+          <button
+            onClick={() => setValue(saved)}
+            className="rounded-lg px-2 py-1.5 text-xs text-gray-500 transition hover:bg-gray-100 hover:text-gray-800"
+          >
+            Undo
+          </button>
+        )}
+        <button
+          onClick={save}
+          disabled={!dirty || saving}
+          className="rounded-lg bg-teal-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-teal-700 disabled:opacity-30"
+        >
+          {saving ? 'Saving…' : dirty ? 'Save' : 'Saved'}
+        </button>
+      </div>
     </div>
   );
 }
@@ -96,62 +135,115 @@ export default function AdminContent() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const [loadError, setLoadError] = useState(null);
+
   useEffect(() => {
+    let active = true;
     getAllContent()
       .then((remote) => {
-        // Merge defaults with whatever is already in Supabase
+        if (!active) return;
+        setLoadError(null);
+        // Merge defaults with whatever is already stored
         const remoteMap = Object.fromEntries(remote.map((r) => [r.key, r]));
-        const merged = DEFAULTS.map((d) => remoteMap[d.key] ? { ...d, value: remoteMap[d.key].value } : d);
-        // Also include any extra keys from Supabase not in DEFAULTS
+        const merged = DEFAULTS.map((d) => {
+          const r = remoteMap[d.key];
+          if (!r) return d;
+          // Stored value wins; the labels/sections stay from DEFAULTS when the
+          // stored row left them null, so the admin UI never loses its grouping.
+          return {
+            ...d,
+            ...r,
+            value: r.value ?? '',
+            label: r.label ?? d.label,
+            section: r.section ?? d.section,
+            type: r.type ?? d.type,
+          };
+        });
+        // Also include any extra keys from the database not in DEFAULTS
         remote.forEach((r) => {
-          if (!DEFAULTS.find((d) => d.key === r.key)) merged.push(r);
+          if (!DEFAULTS.some((d) => d.key === r.key)) merged.push(r);
         });
         setItems(merged);
       })
-      .catch(() => {
-        // Offline/no Supabase yet — show defaults
+      .catch((err) => {
+        if (!active) return;
+        // Show the defaults so the page is still usable, but say plainly that
+        // what is on screen is not what is stored.
+        console.error('[lumen] could not load site content', err);
+        setLoadError(err?.message || 'Could not reach the content database.');
         setItems(DEFAULTS);
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => { active = false; };
   }, []);
 
-  const handleSave = (key, newValue) => {
-    setItems((prev) => prev.map((i) => i.key === key ? { ...i, value: newValue } : i));
-  };
+  const handleSave = useCallback((key, newValue) => {
+    setItems((prev) => prev.map((i) => (i.key === key ? { ...i, value: newValue } : i)));
+  }, []);
 
-  const grouped = groupBySection(items);
+  const { query, setQuery, filtered } = useSearch(items, SEARCH_FIELDS);
+  const grouped = useMemo(() => groupBySection(filtered), [filtered]);
 
   return (
-    <div className="p-8">
-      <Toaster />
-      {isDemo && (
-        <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
-          <p className="text-sm text-amber-800"><strong>Demo mode</strong> — Changes persist in-memory during this session only.</p>
+    <>
+      {loadError && (
+        <div role="alert" className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
+          <p className="text-sm text-red-800">
+            <strong>Showing built-in defaults.</strong> {loadError} Anything you save from here will
+            still be written once the connection is back.
+          </p>
         </div>
       )}
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-gray-900">Site content</h1>
-        <p className="mt-1 text-sm text-gray-500">Edit text that appears on the public site. Changes go live immediately — no rebuild needed.</p>
-      </div>
+
+      <PageHeader
+        title="Site content"
+        count={items.length}
+        subtitle="Text shown on the public site. Saved changes go live on the next page load — no rebuild."
+      />
+
+      {!loading && items.length > 0 && (
+        <div className="mb-4">
+          <SearchInput
+            value={query}
+            onChange={setQuery}
+            placeholder="Search by label, key or current text…"
+            resultCount={filtered.length}
+            total={items.length}
+          />
+        </div>
+      )}
 
       {loading ? (
-        <div className="h-48 flex items-center justify-center text-sm text-gray-400">Loading…</div>
+        <Panel><TableSkeleton rows={6} cols={2} /></Panel>
+      ) : filtered.length === 0 ? (
+        <Panel>
+          <EmptyState
+            title={`No fields match “${query}”`}
+            hint="Search covers the label, the dot-notation key, and the text currently stored."
+            action={<Button variant="ghost" onClick={() => setQuery('')}>Clear search</Button>}
+          />
+        </Panel>
       ) : (
-        <div className="space-y-8">
+        <div className="space-y-6">
           {Object.entries(grouped).map(([section, sectionItems]) => (
-            <div key={section} className="rounded-xl border border-gray-200 bg-white shadow-sm">
-              <div className="border-b border-gray-200 px-5 py-3">
-                <h2 className="text-sm font-semibold text-gray-900 capitalize">{section}</h2>
+            <Panel key={section}>
+              <div className="flex items-baseline justify-between border-b border-gray-200 bg-gray-50 px-5 py-3">
+                <h2 className="text-sm font-semibold capitalize text-gray-900">{section}</h2>
+                <span className="text-xs text-gray-400">
+                  {sectionItems.length} {sectionItems.length === 1 ? 'field' : 'fields'}
+                </span>
               </div>
               <div className="px-5">
                 {sectionItems.map((item) => (
                   <ContentRow key={item.key} item={item} onSave={handleSave} />
                 ))}
               </div>
-            </div>
+            </Panel>
           ))}
         </div>
       )}
-    </div>
+    </>
   );
 }

@@ -16,16 +16,149 @@ flow rather than a decorative form.
 
 ```bash
 npm install
-npm run dev          # http://localhost:5173
+npm run dev          # http://localhost:5173 (no serverless runtime — see below)
 npm run build        # production build into dist/ (also emits dist/_headers)
 npm run preview      # serve the production build — CSP only applies here
-npm run lint
+npm run test         # vitest, watch mode
+npm run verify       # lint + tests + build, what CI should run
 npm run gen:headers  # regenerate vercel.json + deploy/nginx.conf
 ```
+
+`npm run dev` serves the front end only. The booking form posts to
+`/api/booking`, a serverless function, so to exercise it locally use
+`npx vercel dev` instead — or leave the Supabase variables as placeholders and
+work in demo mode, where the form short-circuits without a server.
 
 The CSP is injected at **build** time only; the dev server needs an inline
 module preamble for Fast Refresh that `script-src 'self'` would forbid. Test
 security behaviour against `npm run preview`, not `npm run dev`.
+
+## Deploying to Vercel
+
+The build refuses to run without a backend, so steps 1-3 are not optional.
+
+### 1. Run the migrations, in this order
+
+`database/migrations/` is now self-contained. Paste each file into the Supabase
+SQL editor and run it:
+
+| File | What it creates |
+|---|---|
+| `001_initial_schema.sql` | `profiles`, `articles`, `faq_items` |
+| `003_functions.sql` | `is_admin()`, `update_updated_at_column()`, new-user trigger, `promote_to_admin()` |
+| `002_rls_policies.sql` | RLS on the base tables (needs `is_admin()`, hence after 003) |
+| `004_lumen_cms.sql` | `site_content`, breathing, YouTube, `booking_submissions` |
+| `005_hardening.sql` | Constraints, audit columns, prerequisite check |
+| `006_booking_api.sql` | Closes the anonymous write path, adds `rate_limits` + `consume_rate_limit()` |
+
+> **If you already have a live Supabase project from the sibling `physco` repo**,
+> 001-003 were reconstructed from what the application code references, not
+> copied from your database. Diff them against your live schema before running —
+> the `IF NOT EXISTS` guards make them safe to re-run, but they will not
+> reconcile a column that already exists with a different type.
+
+### 2. Create your admin account
+
+Sign up through Supabase Auth (Dashboard → Authentication → Users → Add user),
+then in the SQL editor:
+
+```sql
+SELECT promote_to_admin('you@example.com');
+```
+
+The login screen signs out any account whose `profiles.role` is not `ADMIN` or
+`SUPER_ADMIN`. A user cannot promote themselves — a trigger in `002` blocks
+role changes from anyone who is not already an admin.
+
+### 3. Set the environment variables in Vercel
+
+Settings → Environment Variables. All five, for Production and Preview:
+
+| Variable | Value | Reaches the browser? |
+|---|---|---|
+| `VITE_SUPABASE_URL` | Project URL | Yes |
+| `VITE_SUPABASE_ANON_KEY` | anon / public key | Yes |
+| `SUPABASE_URL` | same Project URL | No |
+| `SUPABASE_SERVICE_ROLE_KEY` | service_role key | No |
+| `BOOKING_IP_SALT` | `openssl rand -hex 32` | No |
+
+The `VITE_` prefix is what decides this: anything carrying it is inlined into
+the bundle every visitor downloads. The service_role key bypasses every RLS
+policy, so it must never carry that prefix. `vite build` fails the build if it
+sees one that looks like a service key.
+
+### 4. Deploy and verify
+
+Vercel auto-detects Vite (`npm run build` → `dist/`) and picks up `api/` as
+serverless functions. `vercel.json` is generated — run `npm run gen:headers`
+after any change to `security.config.js`, never edit it by hand.
+
+After the first deploy, check four things:
+
+1. **No CSP violations** in the browser console. The JSON-LD block is pinned by
+   hash, so a hand-edited CSP silently blocks your structured data.
+2. **Hard-refresh `/blog` and `/admin/login`** — both must render, not 404.
+   That is the SPA rewrite working.
+3. **Submit the booking form.** A `201` with a `LM-XXXXXXXX` reference means the
+   function, the service key and the rate limiter are all wired up. A `503`
+   means one of the three server variables is missing.
+4. **Edit a field in Site Content**, reload, and confirm it survived — then look
+   for it on the public page.
+
+Run `npm run verify` (lint, tests, build) before pushing.
+
+## Architecture notes
+
+### The booking form does not talk to Supabase
+
+`booking_submissions` holds free-text mental-health disclosures from an
+unauthenticated form. It used to accept anonymous `INSERT`s directly, which
+meant every field bound, every bot check and every rate limit lived in
+JavaScript the submitter could edit.
+
+Submissions now go to `POST /api/booking`, which holds the service-role key and
+re-runs validation, the honeypot and timing checks, and a Postgres-backed rate
+limit (3 per 15 minutes per IP hash) before inserting. Migration `006` drops the
+public policy, so this is the only write path. The raw IP is never stored — only
+a salted SHA-256, which is enough to bucket a rate limit and useless as an
+identifier.
+
+### Demo mode is dev-only
+
+With placeholder credentials the app serves fixture data and accepts a
+hard-coded admin login. That branch is gated on `import.meta.env.DEV` and the
+build fails before it could ever ship.
+
+### Known gaps before this handles real patients
+
+- **No BAA.** Supabase offers one on paid plans; it is not automatic, and the
+  schema already stores what a BAA exists for.
+- **The booking flow does not book anything.** It records an enquiry. No
+  scheduling, no confirmation email, no calendar hold.
+- **Rate limiting is per-IP.** Fine against drive-by spam, not against a
+  distributed attempt. Turnstile or hCaptcha in front of the function is the
+  next step if that becomes real.
+- **Article HTML is sanitised client-side** (`src/lib/sanitizeHtml.js`). That
+  plus the CSP is defence in depth, not a reason to trust an author.
+- **No error reporting.** Deliberate — see `src/components/ErrorBoundary.jsx`.
+
+## Testing
+
+```bash
+npm run test        # watch mode
+npm run test:run    # once, for CI
+```
+
+`tests/` covers the logic that can lose data rather than the UI around it:
+
+- `contentMerge.test.js` — the CMS merge rule that used to drop any key a
+  component had not hard-coded.
+- `editorSync.test.js` — the editor sync that decides whether loading an article
+  overwrites what is on screen. Getting this wrong either blanks the article or
+  resets the caret on every keystroke; both have happened.
+- `validate.test.js` — input normalisation and the bot heuristics, shared by the
+  browser and `/api/booking`.
+- `sanitizeHtml.test.js` — XSS payloads against the article sanitiser (jsdom).
 
 ## Stack
 

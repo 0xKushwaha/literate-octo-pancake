@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 import { getLatestArticles, getArticleBySlug } from '../lib/queries/articles';
-import { Reveal, Section, SectionHeading, Stagger, staggerItem, EASE } from '../components/primitives';
+import { Section, SectionHeading, Stagger, staggerItem } from '../components/primitives';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { sanitizeHtml } from '../lib/sanitizeHtml';
 
 const ACCENT_MAP = {
   aqua: { pill: 'bg-aqua-100 text-aqua-700', hover: 'group-hover:text-aqua-700', bar: 'bg-aqua-400' },
@@ -91,7 +92,7 @@ function ArticleReader({ article, onClose }) {
       {/* Content */}
       <div
         className="prose-lumen px-8 py-8 sm:px-12"
-        dangerouslySetInnerHTML={{ __html: article.content }}
+        dangerouslySetInnerHTML={{ __html: sanitizeHtml(article.content) }}
       />
 
       {/* Footer */}

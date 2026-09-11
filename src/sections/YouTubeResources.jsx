@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import { listFeaturedVideos } from '../lib/queries/youtube';
-import { Section, SectionHeading, Stagger, staggerItem, Reveal } from '../components/primitives';
+import { Section, SectionHeading, Stagger, staggerItem } from '../components/primitives';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 function formatDuration(sec) {

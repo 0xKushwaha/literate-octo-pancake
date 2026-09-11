@@ -1,6 +1,8 @@
+import { useEffect, useRef } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
+import { shouldSyncEditorContent } from '../editorSync';
 
 const ToolbarBtn = ({ onClick, active, disabled, title, children }) => (
   <button
@@ -17,6 +19,18 @@ const ToolbarBtn = ({ onClick, active, disabled, title, children }) => (
 );
 
 export default function RichTextEditor({ value, onChange }) {
+  // Keeps the latest onChange without re-creating the editor on every render.
+  // Assigned in an effect rather than during render: a render can be thrown
+  // away or replayed, and a ref written there would then be holding a callback
+  // from a render that never committed.
+  const onChangeRef = useRef(onChange);
+  useEffect(() => { onChangeRef.current = onChange; }, [onChange]);
+
+  // Tracks the HTML the editor itself produced, so an echo of our own output
+  // coming back through `value` does not trigger a setContent (which would
+  // reset the cursor to the start of the document on every keystroke).
+  const lastEmitted = useRef(value ?? '');
+
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -24,11 +38,34 @@ export default function RichTextEditor({ value, onChange }) {
     ],
     content: value ?? '',
     onUpdate({ editor }) {
-      onChange(editor.getHTML());
+      const html = editor.getHTML();
+      lastEmitted.current = html;
+      onChangeRef.current?.(html);
     },
   });
 
-  if (!editor) return null;
+  // `useEditor` only reads `content` on first mount. When the parent loads an
+  // existing article asynchronously, the new body arrives *after* that mount —
+  // without this sync the editor stays blank and saving overwrites the article
+  // with an empty document.
+  useEffect(() => {
+    if (!editor || editor.isDestroyed) return;
+    const incoming = value ?? '';
+    const sync = shouldSyncEditorContent({
+      incoming,
+      lastEmitted: lastEmitted.current,
+      currentHtml: editor.getHTML(),
+    });
+    if (!sync) return;
+    lastEmitted.current = incoming;
+    editor.commands.setContent(incoming, { emitUpdate: false });
+  }, [editor, value]);
+
+  if (!editor) {
+    return (
+      <div className="min-h-[360px] animate-pulse rounded-xl border border-gray-300 bg-gray-50" />
+    );
+  }
 
   const addLink = () => {
     const url = window.prompt('URL:', 'https://');

@@ -30,7 +30,6 @@ import {
   dayKey,
   formatDay,
   formatTime,
-  makeReference,
   parseDayKey,
   slotsFor,
   upcomingDays,
@@ -752,14 +751,22 @@ export default function BookingDialog({ open, onClose, prefill, openerRef }) {
     }));
 
     setSubmitting(true);
-    const ref = makeReference();
-    submitBooking(normalise(form), ref)
-      .then(() => {
+    setErrors({});
+
+    // The reference comes back from the server — it is issued there so a client
+    // cannot choose its own or collide with an existing booking.
+    submitBooking(form, { elapsedMs: openedAt.current ? Date.now() - openedAt.current : null })
+      .then((ref) => {
         setReference(ref);
         clearDraft();
       })
-      .catch(() => {
-        setErrors({ submit: 'Something went wrong. Please try again or call us directly.' });
+      .catch((err) => {
+        // Field-level messages from the server land on the right inputs; the
+        // rest surfaces as one message above the button.
+        setErrors({
+          ...(err?.fields ?? {}),
+          submit: err?.message ?? 'Something went wrong. Please try again or call us directly.',
+        });
       })
       .finally(() => setSubmitting(false));
   };

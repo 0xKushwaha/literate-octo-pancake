@@ -26,7 +26,14 @@ const CONTROL_KEEP_BREAKS = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009
 /** Strips control characters and collapses runs of whitespace. */
 export function normalise(value, { maxLength = 200, keepNewlines = false } = {}) {
   if (typeof value !== 'string') return '';
-  const stripped = value.replace(keepNewlines ? CONTROL_KEEP_BREAKS : CONTROL, '');
+
+  // Newlines and tabs are control characters, but they are also word
+  // separators. Deleting them outright turned a pasted two-line name into
+  // "AdaOkonkwo"; turning them into a space first keeps the words apart, and
+  // the collapse below tidies up the result.
+  const separated = keepNewlines ? value : value.replace(/[\r\n\t\f\v]+/g, ' ');
+
+  const stripped = separated.replace(keepNewlines ? CONTROL_KEEP_BREAKS : CONTROL, '');
   const collapsed = keepNewlines
     ? stripped.replace(/[ \t]{2,}/g, ' ').replace(/\n{3,}/g, '\n\n')
     : stripped.replace(/\s{2,}/g, ' ');

@@ -195,6 +195,8 @@ export const demoBookings = {
 // ── Site Content ──
 export const demoSiteContent = {
   getAll: () => [..._siteContent],
+  /** Raw rows for one section — the shape the Supabase query returns. */
+  getAllInSection: (section) => _siteContent.filter((c) => c.section === section),
   getSection: (section) => {
     const items = _siteContent.filter((c) => c.section === section);
     return Object.fromEntries(items.map(({ key, value, type, label }) => [key.split('.').pop(), { value, type, label, key }]));

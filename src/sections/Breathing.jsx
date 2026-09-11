@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { listActiveExercises } from '../lib/queries/breathing';
-import { Section, SectionHeading, Stagger, staggerItem, Reveal, EASE } from '../components/primitives';
+import { Section, SectionHeading, Stagger, staggerItem, EASE } from '../components/primitives';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useReducedMotion } from '../lib/hooks';
 

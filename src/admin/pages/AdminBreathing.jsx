@@ -1,8 +1,13 @@
-import { useEffect, useState } from 'react';
-import toast, { Toaster } from 'react-hot-toast';
+import { useCallback, useState } from 'react';
+import toast from 'react-hot-toast';
 import { listAllExercises, upsertExercise, deleteExercise } from '../../lib/queries/breathing';
-import { isDemo } from '../../lib/supabase';
 import StatusBadge from '../components/StatusBadge';
+import { useEscape, useList, useSaveShortcut, useSearch, useSort, useUnsavedChanges } from '../hooks';
+import {
+  Button, EmptyState, ErrorState, PageHeader, Panel, SearchInput, TableSkeleton, Th,
+} from '../components/ui';
+
+const SEARCH_FIELDS = ['name', 'slug', 'technique', 'difficulty', 'description'];
 
 const EMPTY = {
   name: '', slug: '', description: '', technique: '',
@@ -18,26 +23,41 @@ function ExerciseForm({ initial, onSave, onCancel }) {
   const [saving, setSaving] = useState(false);
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!form.name.trim()) { toast.error('Name is required'); return; }
+  const dirty = JSON.stringify(form) !== JSON.stringify(initial ?? EMPTY);
+  useUnsavedChanges(dirty && !saving);
+
+  const save = useCallback(async () => {
+    if (!form.name.trim()) { toast.error('A name is required'); return; }
+    // The timings drive an animation loop on the public site; a zero inhale or
+    // exhale would leave it stuck on a phase that never advances.
+    if (Number(form.inhale_sec) < 1 || Number(form.exhale_sec) < 1) {
+      toast.error('Inhale and exhale must each be at least 1 second');
+      return;
+    }
+    const toList = (v) =>
+      typeof v === 'string' ? v.split(',').map((x) => x.trim()).filter(Boolean) : (v ?? []);
+
     setSaving(true);
     try {
-      const payload = {
+      await upsertExercise({
         ...form,
         slug: form.slug || slugify(form.name),
-        benefits: typeof form.benefits === 'string' ? form.benefits.split(',').map((s) => s.trim()).filter(Boolean) : form.benefits,
-        suitable_for: typeof form.suitable_for === 'string' ? form.suitable_for.split(',').map((s) => s.trim()).filter(Boolean) : form.suitable_for,
-      };
-      await upsertExercise(payload);
-      toast.success('Saved!');
+        benefits: toList(form.benefits),
+        suitable_for: toList(form.suitable_for),
+      });
+      toast.success(initial?.id ? 'Exercise updated' : 'Exercise created');
       onSave();
     } catch (err) {
-      toast.error(err.message || 'Save failed');
+      toast.error(err?.message || 'Could not save that exercise');
     } finally {
       setSaving(false);
     }
-  };
+  }, [form, initial, onSave]);
+
+  useSaveShortcut(save, !saving);
+  useEscape(() => { if (!dirty) onCancel(); }, true);
+
+  const handleSubmit = (e) => { e.preventDefault(); save(); };
 
   const numInput = (key, label, min = 0) => (
     <div>
@@ -122,89 +142,121 @@ function ExerciseForm({ initial, onSave, onCancel }) {
 }
 
 export default function AdminBreathing() {
-  const [exercises, setExercises] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [editing, setEditing] = useState(null); // null | 'new' | exercise object
+  const { rows, setRows, loading, error, reload } = useList(listAllExercises);
+  const { query, setQuery, filtered } = useSearch(rows, SEARCH_FIELDS);
+  const { sort, toggle, sorted } = useSort(filtered, 'sort_order', 'asc');
+  const [editing, setEditing] = useState(null);
 
-  const load = () => {
-    setLoading(true);
-    listAllExercises()
-      .then(setExercises)
-      .catch(() => toast.error('Failed to load'))
-      .finally(() => setLoading(false));
+  const handleDelete = async (exercise) => {
+    if (!window.confirm(`Delete \u201C${exercise.name}\u201D?`)) return;
+    const snapshot = rows;
+    setRows((prev) => prev.filter((e) => e.id !== exercise.id));
+    try {
+      await deleteExercise(exercise.id);
+      toast.success('Exercise deleted');
+    } catch (err) {
+      setRows(snapshot);
+      toast.error(err?.message || 'Could not delete that exercise');
+    }
   };
 
-  useEffect(load, []);
+  /** Total seconds for one full cycle — the number that decides how it feels. */
+  const cycleSeconds = (e) =>
+    Number(e.inhale_sec || 0) + Number(e.hold_in_sec || 0) +
+    Number(e.exhale_sec || 0) + Number(e.hold_out_sec || 0);
 
-  const handleDelete = async (id, name) => {
-    if (!window.confirm(`Delete "${name}"?`)) return;
-    try { await deleteExercise(id); toast.success('Deleted'); setExercises((p) => p.filter((e) => e.id !== id)); }
-    catch { toast.error('Delete failed'); }
-  };
+  const active = rows.filter((e) => e.is_active).length;
 
   return (
-    <div className="p-8">
-      <Toaster />
-      {isDemo && (
-        <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
-          <p className="text-sm text-amber-800"><strong>Demo mode</strong> — Changes persist in-memory during this session only.</p>
-        </div>
-      )}
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-semibold text-gray-900">Breathing exercises</h1>
-        <button onClick={() => setEditing('new')}
-          className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-800">
-          + New exercise
-        </button>
-      </div>
+    <>
+      <PageHeader
+        title="Breathing exercises"
+        count={rows.length}
+        subtitle={rows.length ? `${active} live on the public site` : null}
+      >
+        <Button onClick={() => setEditing('new')} disabled={editing === 'new'}>+ New exercise</Button>
+      </PageHeader>
 
       {editing && (
-        <div className="mb-8">
+        <div className="mb-6">
           <ExerciseForm
             initial={editing === 'new' ? null : editing}
-            onSave={() => { setEditing(null); load(); }}
+            onSave={() => { setEditing(null); reload(); }}
             onCancel={() => setEditing(null)}
           />
         </div>
       )}
 
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+      {rows.length > 0 && (
+        <div className="mb-4">
+          <SearchInput
+            value={query}
+            onChange={setQuery}
+            placeholder="Search by name, technique or difficulty\u2026"
+            resultCount={filtered.length}
+            total={rows.length}
+          />
+        </div>
+      )}
+
+      <Panel>
         {loading ? (
-          <div className="h-40 flex items-center justify-center text-sm text-gray-400">Loading…</div>
-        ) : exercises.length === 0 ? (
-          <div className="h-40 flex items-center justify-center text-sm text-gray-400">No exercises yet. The site uses built-in defaults.</div>
+          <TableSkeleton rows={4} cols={5} />
+        ) : error ? (
+          <ErrorState message={error} onRetry={reload} />
+        ) : rows.length === 0 ? (
+          <EmptyState
+            title="No exercises yet"
+            hint="Active exercises drive the guided breathing player on the public site."
+            action={<Button onClick={() => setEditing('new')}>Add the first one</Button>}
+          />
+        ) : sorted.length === 0 ? (
+          <EmptyState
+            title={`Nothing matches \u201C${query}\u201D`}
+            action={<Button variant="ghost" onClick={() => setQuery('')}>Clear search</Button>}
+          />
         ) : (
-          <table className="w-full text-sm">
-            <thead className="border-b border-gray-200 bg-gray-50">
-              <tr>
-                <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Name</th>
-                <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Timing</th>
-                <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Difficulty</th>
-                <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Status</th>
-                <th className="px-5 py-3" />
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {exercises.map((ex) => (
-                <tr key={ex.id} className="hover:bg-gray-50">
-                  <td className="px-5 py-3 font-medium text-gray-900">{ex.name}</td>
-                  <td className="px-5 py-3 font-mono text-xs text-gray-500">
-                    {ex.inhale_sec}s·{ex.hold_in_sec}s·{ex.exhale_sec}s·{ex.hold_out_sec}s × {ex.cycles}
-                  </td>
-                  <td className="px-5 py-3 text-gray-600 capitalize">{ex.difficulty}</td>
-                  <td className="px-5 py-3"><StatusBadge status={ex.is_active ? 'active' : 'inactive'} /></td>
-                  <td className="px-5 py-3 text-right">
-                    <div className="flex justify-end gap-3">
-                      <button onClick={() => setEditing(ex)} className="text-teal-600 hover:underline text-xs">Edit</button>
-                      <button onClick={() => handleDelete(ex.id, ex.name)} className="text-red-500 hover:underline text-xs">Delete</button>
-                    </div>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[46rem] text-sm">
+              <thead className="border-b border-gray-200 bg-gray-50">
+                <tr>
+                  <Th sortKey="sort_order" sort={sort} onSort={toggle} className="w-16">#</Th>
+                  <Th sortKey="name" sort={sort} onSort={toggle}>Name</Th>
+                  <Th>Pattern</Th>
+                  <Th sortKey="difficulty" sort={sort} onSort={toggle}>Difficulty</Th>
+                  <Th sortKey="is_active" sort={sort} onSort={toggle}>Status</Th>
+                  <Th align="right">Actions</Th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {sorted.map((e) => (
+                  <tr key={e.id} className="hover:bg-gray-50">
+                    <td className="px-5 py-3 tabular-nums text-gray-400">{e.sort_order}</td>
+                    <td className="px-5 py-3">
+                      <span className="font-medium text-gray-900">{e.name}</span>
+                      <span className="ml-2 font-mono text-[11px] text-gray-400">{e.slug}</span>
+                    </td>
+                    <td className="px-5 py-3 font-mono text-xs tabular-nums text-gray-500">
+                      {e.inhale_sec}-{e.hold_in_sec}-{e.exhale_sec}-{e.hold_out_sec}
+                      <span className="ml-2 font-sans text-gray-400">
+                        {e.cycles}\u00D7 &middot; {Math.round((cycleSeconds(e) * e.cycles) / 6) / 10} min
+                      </span>
+                    </td>
+                    <td className="px-5 py-3 capitalize text-gray-500">{e.difficulty}</td>
+                    <td className="px-5 py-3"><StatusBadge status={e.is_active ? 'active' : 'inactive'} /></td>
+                    <td className="px-5 py-3 text-right">
+                      <div className="flex justify-end gap-3">
+                        <button onClick={() => setEditing(e)} className="text-xs text-teal-600 hover:underline">Edit</button>
+                        <button onClick={() => handleDelete(e)} className="text-xs text-red-500 hover:underline">Delete</button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
-      </div>
-    </div>
+      </Panel>
+    </>
   );
 }

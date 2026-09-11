@@ -1,8 +1,13 @@
-import { useEffect, useState } from 'react';
-import toast, { Toaster } from 'react-hot-toast';
+import { useCallback, useState } from 'react';
+import toast from 'react-hot-toast';
 import { listAllVideos, upsertVideo, deleteVideo } from '../../lib/queries/youtube';
-import { isDemo } from '../../lib/supabase';
 import StatusBadge from '../components/StatusBadge';
+import { useEscape, useList, useSaveShortcut, useSearch, useSort, useUnsavedChanges } from '../hooks';
+import {
+  Button, EmptyState, ErrorState, PageHeader, Panel, SearchInput, TableSkeleton, Th,
+} from '../components/ui';
+
+const SEARCH_FIELDS = ['title', 'category', 'youtube_id', 'curator_note'];
 
 const CATEGORIES = ['Anxiety', 'Depression', 'Mindfulness', 'Sleep', 'Relationships', 'Trauma', 'Self-care', 'Psychiatry'];
 
@@ -18,25 +23,35 @@ function VideoForm({ initial, onSave, onCancel }) {
   const [saving, setSaving] = useState(false);
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!form.title.trim()) { toast.error('Title is required'); return; }
-    if (!isValidYouTubeId(form.youtube_id)) { toast.error('YouTube ID must be exactly 11 characters (just the ID, not the full URL)'); return; }
+  const dirty = JSON.stringify(form) !== JSON.stringify(initial ?? EMPTY);
+  useUnsavedChanges(dirty && !saving);
+
+  const save = useCallback(async () => {
+    if (!form.title.trim()) { toast.error('A title is required'); return; }
+    if (!isValidYouTubeId(form.youtube_id)) {
+      toast.error('The YouTube ID is the 11 characters after v= — not the whole URL');
+      return;
+    }
     setSaving(true);
     try {
       await upsertVideo({
         ...form,
         duration_sec: form.duration_sec ? Number(form.duration_sec) : null,
-        tags: typeof form.tags === 'string' ? form.tags.split(',').map((s) => s.trim()).filter(Boolean) : form.tags,
+        tags: typeof form.tags === 'string' ? form.tags.split(',').map((t) => t.trim()).filter(Boolean) : form.tags,
       });
-      toast.success('Saved!');
+      toast.success(initial?.id ? 'Video updated' : 'Video added');
       onSave();
     } catch (err) {
-      toast.error(err.message || 'Save failed');
+      toast.error(err?.message || 'Could not save that video');
     } finally {
       setSaving(false);
     }
-  };
+  }, [form, initial, onSave]);
+
+  useSaveShortcut(save, !saving);
+  useEscape(() => { if (!dirty) onCancel(); }, true);
+
+  const handleSubmit = (e) => { e.preventDefault(); save(); };
 
   const thumbPreview = isValidYouTubeId(form.youtube_id)
     ? `https://img.youtube.com/vi/${form.youtube_id}/mqdefault.jpg`
@@ -44,7 +59,10 @@ function VideoForm({ initial, onSave, onCancel }) {
 
   return (
     <form onSubmit={handleSubmit} className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm space-y-4">
-      <h3 className="text-sm font-semibold text-gray-900">{initial?.id ? 'Edit video' : 'Add video'}</h3>
+      <div className="flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-gray-900">{initial?.id ? 'Edit video' : 'Add video'}</h2>
+        {dirty && <span className="text-xs text-amber-600">Unsaved changes</span>}
+      </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
@@ -118,84 +136,119 @@ function VideoForm({ initial, onSave, onCancel }) {
 }
 
 export default function AdminYouTube() {
-  const [videos, setVideos] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { rows, setRows, loading, error, reload } = useList(listAllVideos);
+  const { query, setQuery, filtered } = useSearch(rows, SEARCH_FIELDS);
+  const { sort, toggle, sorted } = useSort(filtered, 'sort_order', 'asc');
   const [editing, setEditing] = useState(null);
 
-  const load = () => {
-    setLoading(true);
-    listAllVideos().then(setVideos).catch(() => toast.error('Failed to load')).finally(() => setLoading(false));
+  const handleDelete = async (video) => {
+    if (!window.confirm(`Delete \u201C${video.title}\u201D?`)) return;
+    const snapshot = rows;
+    setRows((prev) => prev.filter((v) => v.id !== video.id));
+    try {
+      await deleteVideo(video.id);
+      toast.success('Video deleted');
+    } catch (err) {
+      setRows(snapshot);
+      toast.error(err?.message || 'Could not delete that video');
+    }
   };
 
-  useEffect(load, []);
-
-  const handleDelete = async (id, title) => {
-    if (!window.confirm(`Delete "${title}"?`)) return;
-    try { await deleteVideo(id); toast.success('Deleted'); setVideos((p) => p.filter((v) => v.id !== id)); }
-    catch { toast.error('Delete failed'); }
-  };
+  const featured = rows.filter((v) => v.is_featured).length;
 
   return (
-    <div className="p-8">
-      <Toaster />
-      {isDemo && (
-        <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
-          <p className="text-sm text-amber-800"><strong>Demo mode</strong> — Changes persist in-memory during this session only.</p>
-        </div>
-      )}
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-semibold text-gray-900">YouTube resources</h1>
-        <button onClick={() => setEditing('new')}
-          className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-800">
-          + Add video
-        </button>
-      </div>
+    <>
+      <PageHeader
+        title="YouTube resources"
+        count={rows.length}
+        subtitle={rows.length ? `${featured} featured on the homepage` : null}
+      >
+        <Button onClick={() => setEditing('new')} disabled={editing === 'new'}>+ Add video</Button>
+      </PageHeader>
 
       {editing && (
-        <div className="mb-8">
-          <VideoForm initial={editing === 'new' ? null : editing} onSave={() => { setEditing(null); load(); }} onCancel={() => setEditing(null)} />
+        <div className="mb-6">
+          <VideoForm
+            initial={editing === 'new' ? null : editing}
+            onSave={() => { setEditing(null); reload(); }}
+            onCancel={() => setEditing(null)}
+          />
         </div>
       )}
 
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+      {rows.length > 0 && (
+        <div className="mb-4">
+          <SearchInput
+            value={query}
+            onChange={setQuery}
+            placeholder="Search titles, categories and notes\u2026"
+            resultCount={filtered.length}
+            total={rows.length}
+          />
+        </div>
+      )}
+
+      <Panel>
         {loading ? (
-          <div className="h-40 flex items-center justify-center text-sm text-gray-400">Loading…</div>
-        ) : videos.length === 0 ? (
-          <div className="h-40 flex items-center justify-center text-sm text-gray-400">No videos yet — add some above.</div>
+          <TableSkeleton rows={5} cols={5} />
+        ) : error ? (
+          <ErrorState message={error} onRetry={reload} />
+        ) : rows.length === 0 ? (
+          <EmptyState
+            title="No videos yet"
+            hint="Featured videos appear in the Resources section of the public site."
+            action={<Button onClick={() => setEditing('new')}>Add the first one</Button>}
+          />
+        ) : sorted.length === 0 ? (
+          <EmptyState
+            title={`Nothing matches \u201C${query}\u201D`}
+            action={<Button variant="ghost" onClick={() => setQuery('')}>Clear search</Button>}
+          />
         ) : (
-          <table className="w-full text-sm">
-            <thead className="border-b border-gray-200 bg-gray-50">
-              <tr>
-                <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Thumb</th>
-                <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Title</th>
-                <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Category</th>
-                <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Featured</th>
-                <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Status</th>
-                <th className="px-5 py-3" />
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {videos.map((v) => (
-                <tr key={v.id} className="hover:bg-gray-50">
-                  <td className="px-5 py-3">
-                    <img src={`https://img.youtube.com/vi/${v.youtube_id}/mqdefault.jpg`} alt="" className="w-16 h-10 rounded object-cover" />
-                  </td>
-                  <td className="px-5 py-3 font-medium text-gray-900 max-w-xs truncate">{v.title}</td>
-                  <td className="px-5 py-3 text-gray-500">{v.category || '—'}</td>
-                  <td className="px-5 py-3 text-gray-500">{v.is_featured ? '★' : '—'}</td>
-                  <td className="px-5 py-3"><StatusBadge status={v.is_active ? 'active' : 'inactive'} /></td>
-                  <td className="px-5 py-3 text-right">
-                    <div className="flex justify-end gap-3">
-                      <button onClick={() => setEditing(v)} className="text-teal-600 hover:underline text-xs">Edit</button>
-                      <button onClick={() => handleDelete(v.id, v.title)} className="text-red-500 hover:underline text-xs">Delete</button>
-                    </div>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[46rem] text-sm">
+              <thead className="border-b border-gray-200 bg-gray-50">
+                <tr>
+                  <Th className="w-24">Thumb</Th>
+                  <Th sortKey="title" sort={sort} onSort={toggle}>Title</Th>
+                  <Th sortKey="category" sort={sort} onSort={toggle}>Category</Th>
+                  <Th sortKey="is_featured" sort={sort} onSort={toggle}>Featured</Th>
+                  <Th sortKey="is_active" sort={sort} onSort={toggle}>Status</Th>
+                  <Th align="right">Actions</Th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {sorted.map((v) => (
+                  <tr key={v.id} className="hover:bg-gray-50">
+                    <td className="px-5 py-3">
+                      <img
+                        src={`https://img.youtube.com/vi/${v.youtube_id}/mqdefault.jpg`}
+                        alt=""
+                        loading="lazy"
+                        width="64"
+                        height="40"
+                        className="h-10 w-16 rounded bg-gray-100 object-cover"
+                      />
+                    </td>
+                    <td className="max-w-xs truncate px-5 py-3 font-medium text-gray-900">{v.title}</td>
+                    <td className="px-5 py-3 text-gray-500">{v.category || '\u2014'}</td>
+                    <td className="px-5 py-3 text-gray-500">
+                      {v.is_featured ? <span title="Featured">\u2605</span> : '\u2014'}
+                    </td>
+                    <td className="px-5 py-3"><StatusBadge status={v.is_active ? 'active' : 'inactive'} /></td>
+                    <td className="px-5 py-3 text-right">
+                      <div className="flex justify-end gap-3">
+                        <button onClick={() => setEditing(v)} className="text-xs text-teal-600 hover:underline">Edit</button>
+                        <button onClick={() => handleDelete(v)} className="text-xs text-red-500 hover:underline">Delete</button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
-      </div>
-    </div>
+      </Panel>
+    </>
   );
 }

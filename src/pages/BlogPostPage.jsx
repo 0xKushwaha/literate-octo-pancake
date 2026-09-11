@@ -3,6 +3,7 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import { getArticleBySlug, getRelatedArticles } from '../lib/queries/articles';
 import { Button, Pill, Section } from '../components/primitives';
 import { brand } from '../data/site';
+import { sanitizeHtml } from '../lib/sanitizeHtml';
 
 function estimateReadTime(content) {
   if (!content) return 1;
@@ -90,7 +91,7 @@ export default function BlogPostPage() {
               {/* Article body */}
               <div
                 className="prose-lumen mt-10"
-                dangerouslySetInnerHTML={{ __html: article.content ?? '' }}
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(article.content) }}
               />
 
               <div className="mt-16 h-px bg-line" />

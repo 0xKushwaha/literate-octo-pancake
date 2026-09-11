@@ -85,6 +85,11 @@ export function formatTime(t) {
   return `${hour}:${String(m).padStart(2, '0')} ${suffix}`;
 }
 
+/**
+ * @deprecated The booking reference is now issued server-side by /api/booking,
+ * so a client cannot choose its own or collide with an existing booking. Kept
+ * only for the demo-mode path in lib/queries/bookings.js.
+ */
 export function makeReference() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let out = '';

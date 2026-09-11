@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { motion, useScroll, useTransform } from 'motion/react';
 import { Reveal, Section, SectionHeading } from '../components/primitives';
+import { useSiteContent } from '../lib/queries/siteContent';
 import Icon from '../components/Icon';
 import { process } from '../data/site';
 
@@ -67,12 +68,21 @@ const pillars = [
   },
 ];
 
+const APPROACH_DEFAULTS = {
+  headline: 'Four steps. No waiting rooms.',
+};
+
 export default function Approach() {
+  // This section's headline is editable from the admin panel (key
+  // "approach.headline"). It used to be hard-coded, so the field existed in the
+  // CMS but changing it did nothing on the site.
+  const content = useSiteContent('approach', APPROACH_DEFAULTS);
+
   return (
     <Section id="approach" className="py-32 sm:py-44 lg:py-56">
       <SectionHeading
         eyebrow="How it works"
-        title="Four steps. No waiting rooms."
+        title={content.headline}
         lead="Most people give up on finding a therapist somewhere between the third voicemail and the second waitlist. We removed that part."
       />
 

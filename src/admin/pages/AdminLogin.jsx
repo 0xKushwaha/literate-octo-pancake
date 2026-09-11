@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { signInAdmin } from '../../lib/auth';
-import { isDemo } from '../../lib/supabase';
+import { isDemo, configError } from '../../lib/supabase';
 import { brand } from '../../data/site';
 
 export default function AdminLogin() {
@@ -96,7 +96,13 @@ export default function AdminLogin() {
             </p>
           </div>
         )}
-        {!isDemo && (
+        {configError && (
+          <div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4">
+            <p className="text-xs font-medium text-red-800">Backend not configured</p>
+            <p className="mt-1 text-xs text-red-600">{configError}</p>
+          </div>
+        )}
+        {!isDemo && !configError && (
           <p className="mt-6 text-center text-xs text-gray-400">
             Restricted access — authorised personnel only
           </p>
