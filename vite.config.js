@@ -133,6 +133,10 @@ export default defineConfig(({ mode }) => {
             if (!id.includes('node_modules')) return;
             if (/[\\/]node_modules[\\/](react|react-dom|react-router|react-router-dom|scheduler)[\\/]/.test(id)) return 'react';
             if (/[\\/]node_modules[\\/]@supabase[\\/]/.test(id)) return 'supabase';
+            // three and its React renderer are the largest thing on the site
+            // and only the hero needs them. Their own chunk, reached through a
+            // dynamic import, so they never touch the first load.
+            if (/[\\/]node_modules[\\/](three|@react-three)[\\/]/.test(id)) return 'three';
           },
         },
       },

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button, Counter, Pill } from '../components/primitives';
 import Avatar from '../components/Avatar';
+import HeroVisual from './HeroVisual';
 import Icon from '../components/Icon';
 import { useBrand, useSiteContent } from '../lib/queries/siteContent';
 
@@ -113,27 +114,12 @@ export default function Hero({ onBook }) {
           </ul>
         </div>
 
-        <div className="relative">
-          {/* A flat brand panel offset behind the photo. One colour, no blend —
-              it is there to stop the picture floating on the tint with nothing
-              to sit against. */}
-          <div
-            aria-hidden
-            className="pointer-events-none absolute -bottom-7 -left-7 hidden h-full w-full rounded-[2rem] bg-brand-200 sm:block"
-          />
-          <div className="relative overflow-hidden rounded-[2rem] bg-surface-2 shadow-[var(--shadow-lift)]" style={{ aspectRatio: '5 / 4' }}>
-            {content.image_url && (
-              <img
-                src={content.image_url}
-                alt={content.image_alt ?? ''}
-                fetchPriority="high"
-                decoding="async"
-                className="h-full w-full object-cover"
-              />
-            )}
-          </div>
+        {/* The organic form on a device that can carry it, the practice's
+            photograph everywhere else. Same box, same radius, same shadow,
+            either way — see HeroVisual for which case gets which. */}
+        <HeroVisual imageUrl={content.image_url} imageAlt={content.image_alt ?? ''}>
           <MatchCard therapist={therapists[0]} badge={content.match_badge} />
-        </div>
+        </HeroVisual>
       </div>
 
       {/* The proof strip. It was four bordered white cards, which read as a
