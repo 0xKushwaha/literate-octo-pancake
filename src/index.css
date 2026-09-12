@@ -8,6 +8,7 @@
    this folder grows, because the vocabulary in there is scale, rotate,
    opacity, transform and grid. Excluded rather than policed by hand. */
 @source not "./motion";
+@source not "./three";
 
 /* Fonts are bundled, not fetched from a CDN. On a therapy site the visit
    itself is sensitive: a Google Fonts request would hand a third party the
