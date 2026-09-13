@@ -16,6 +16,44 @@ import { ACCEPTED_IMAGE_TYPES, uploadImage } from '../../lib/queries/media';
  * empty the picture is marked decorative (`alt=""`), which is the correct and
  * honest answer for a photograph that repeats the headline.
  */
+/**
+ * Shown instead of the controls when the database cannot store a cover yet.
+ *
+ * This replaced a post-save toast. The toast was accurate and useless: the
+ * link box looked like it worked, the preview appeared, and the picture was
+ * only reported lost after Save — which reads as "the link box is broken"
+ * rather than "there is one setup step left". A field that cannot keep what
+ * you type should not accept it.
+ */
+function NotReadyNotice({ onRecheck, checking }) {
+  return (
+    <div className="rounded-lg border border-amber-300 bg-amber-50 p-3">
+      <p className="text-[12px] font-medium text-amber-900">
+        Pictures need one setup step
+      </p>
+      <p className="mt-1 text-[11.5px] leading-relaxed text-amber-800">
+        Open the Supabase dashboard → <strong>SQL Editor</strong> → New query, paste the contents of{' '}
+        <code className="rounded bg-amber-100 px-1 py-px font-mono text-[10.5px]">
+          database/migrations/008_article_images.sql
+        </code>{' '}
+        and press Run. It adds the cover columns and creates the bucket uploads go into.
+      </p>
+      <p className="mt-1.5 text-[11px] text-amber-700">
+        Pictures placed <em>inside</em> the article with the toolbar’s link button already work — they
+        travel with the text. It is only the cover, and uploading files, that need this.
+      </p>
+      <button
+        type="button"
+        onClick={onRecheck}
+        disabled={checking}
+        className="mt-2 rounded-lg border border-amber-400 bg-white px-2.5 py-1 text-[11px] font-medium text-amber-900 transition hover:bg-amber-100 disabled:opacity-50"
+      >
+        {checking ? 'Checking…' : 'I have run it — check again'}
+      </button>
+    </div>
+  );
+}
+
 export default function ImageField({
   url,
   alt,
@@ -23,6 +61,9 @@ export default function ImageField({
   folder = 'articles',
   label = 'Cover image',
   hint = 'Shown on the blog cards, the homepage and at the top of the article.',
+  ready = true,
+  onRecheck,
+  checking = false,
 }) {
   const [uploading, setUploading] = useState(false);
   const [broken, setBroken] = useState(false);
@@ -46,6 +87,18 @@ export default function ImageField({
       if (fileRef.current) fileRef.current.value = '';
     }
   };
+
+  // `null` is "could not tell" — offline, or an error that was not about a
+  // missing column. Assume it works rather than nag about a migration that may
+  // well have been run.
+  if (ready === false) {
+    return (
+      <div>
+        <label className="mb-1 block text-xs font-medium text-gray-600">{label}</label>
+        <NotReadyNotice onRecheck={onRecheck} checking={checking} />
+      </div>
+    );
+  }
 
   return (
     <div>
