@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useBooking } from './booking';
 import { isFeatureOn } from './featureFlag';
 import { useSiteContent } from './queries/siteContent';
@@ -69,6 +70,17 @@ export function usePrimaryCta(bookLabel, { communityLabel, prefill } = {}) {
       // band and too long for a phone's sticky bar.
       label: communityLabel || community.cta_label,
       props: { as: 'a', href: community.url, target: '_blank', rel: 'noreferrer noopener' },
+    };
+  }
+  if (features.community) {
+    // Switched on, but no invite link saved yet. Rather than vanish — which
+    // left the header with no action at all and read as a broken deploy — the
+    // button points at the band on the homepage, which takes the email and
+    // promises the invite by mail.
+    return {
+      mode: 'community',
+      label: communityLabel || community.cta_label,
+      props: { as: Link, to: '/#community' },
     };
   }
   return null;
