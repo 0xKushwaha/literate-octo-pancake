@@ -5,6 +5,27 @@ import { useFeatures } from '../lib/features';
 import { useSiteContent } from '../lib/queries/siteContent';
 
 /**
+ * The card colours.
+ *
+ * Borrowed from the "we heard you" quotes, which were the one section on the
+ * page anyone pointed at and liked — the reason being that a row of identical
+ * white cards is a table, and a row of cards in different colours is a set of
+ * things. Same family, same rule: a fill and ink on it, never a gradient.
+ *
+ * White is in the rotation rather than absent from it. Three tinted cards in a
+ * row is a paint chart; the white one in the middle is what makes the other
+ * two read as deliberate. The icon tile flips to white on a tinted card and to
+ * the tint on the white one, so the same shape is legible either way, and each
+ * tone carries its own hairline because ink-at-10% disappears on sand.
+ */
+const CARD_TONES = [
+  { card: 'bg-brand-100', edge: 'border-ink/[0.08]', tile: 'bg-surface text-accent-strong' },
+  { card: 'bg-surface', edge: 'border-line', tile: 'bg-brand-100 text-accent-strong' },
+  { card: 'bg-peach-100', edge: 'border-ink/[0.10]', tile: 'bg-surface text-accent-strong' },
+  { card: 'bg-sand-100', edge: 'border-ink/[0.10]', tile: 'bg-surface text-accent-strong' },
+];
+
+/**
  * Service cards. On the homepage (`limit`) it is a teaser with a link to the
  * full page; on /services it is the whole list with a heading of its own.
  */
@@ -50,22 +71,23 @@ export default function Services({ onBook, limit, teaser = false, withHeading = 
         )}
 
         <Stagger className={`grid gap-4 sm:grid-cols-2 lg:grid-cols-3 ${withHeading ? 'mt-12' : ''}`} step={0.06}>
-          {shown.map((s) => {
+          {shown.map((s, i) => {
             const card = cardFor(s);
+            const tone = CARD_TONES[i % CARD_TONES.length];
             return (
             <StaggerItem key={s.id} id={teaser ? undefined : s.id} className="h-full scroll-mt-28">
               <card.Tag
                 {...card.props}
-                className={`group flex h-full w-full flex-col rounded-3xl border border-line bg-surface p-6 text-left shadow-[var(--shadow-card)] transition-[transform,box-shadow,border-color] duration-300 sm:p-7 ${
-                  card.live ? 'hover:-translate-y-1 hover:border-line-2 hover:shadow-[var(--shadow-lift)]' : ''
+                className={`group flex h-full w-full flex-col rounded-3xl border p-6 text-left shadow-[var(--shadow-card)] transition-[transform,box-shadow,border-color] duration-300 sm:p-7 ${tone.card} ${tone.edge} ${
+                  card.live ? 'hover:-translate-y-1 hover:shadow-[var(--shadow-lift)]' : ''
                 }`}
               >
                 <div className="flex items-start justify-between gap-4">
-                  <span className="grid size-11 place-items-center rounded-2xl bg-brand-100 text-accent-strong">
+                  <span className={`grid size-11 place-items-center rounded-2xl ${tone.tile}`}>
                     <Icon name={s.icon} size={20} />
                   </span>
                   {card.live && (
-                    <span className="grid size-8 place-items-center rounded-full border border-line text-ink-4 transition-colors duration-300 group-hover:border-brand-500 group-hover:bg-brand-500 group-hover:text-white">
+                    <span className="grid size-8 place-items-center rounded-full border border-ink/15 text-ink-4 transition-colors duration-300 group-hover:border-brand-500 group-hover:bg-brand-500 group-hover:text-white">
                       <Icon name="arrowUpRight" size={14} />
                     </span>
                   )}
@@ -76,7 +98,7 @@ export default function Services({ onBook, limit, teaser = false, withHeading = 
 
                 <div className="mt-6 flex flex-wrap gap-1.5">
                   {s.modalities.map((m) => (
-                    <Pill key={m}>{m}</Pill>
+                    <Pill key={m} tone="quiet">{m}</Pill>
                   ))}
                 </div>
 
@@ -84,7 +106,7 @@ export default function Services({ onBook, limit, teaser = false, withHeading = 
                     its price. Someone still deciding whether therapy is for
                     them does not need a number in the third block of their
                     first visit; /services carries it. */}
-                <div className="mt-5 flex items-center justify-between border-t border-line pt-4">
+                <div className="mt-5 flex items-center justify-between border-t border-ink/10 pt-4">
                   <span className="flex items-center gap-1.5 text-[12.5px] text-ink-4">
                     <Icon name="clock" size={13} />
                     {s.duration}

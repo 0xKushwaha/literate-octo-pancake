@@ -20,6 +20,21 @@ import Icon from '../components/Icon';
  * nothing under it.
  */
 
+/**
+ * The medallion on each exercise row.
+ *
+ * The rows stay white — they sit on the tinted band, and tinting them as well
+ * would turn a clean list into patchwork — so the colour goes in the one place
+ * on each row that is already a shape rather than text. Three exercises, three
+ * medallions, and the list reads as three different things instead of the same
+ * thing printed three times.
+ */
+const MEDALLIONS = [
+  'bg-brand-100 text-accent-strong',
+  'bg-peach-100 text-ink',
+  'bg-sand-100 text-ink',
+];
+
 function fill(template, values) {
   return Object.entries(values).reduce(
     (out, [k, v]) => out.replaceAll(`{${k}}`, v ?? ''),
@@ -85,13 +100,13 @@ export default function BreathePrompt() {
         </Reveal>
 
         <Stagger className="grid gap-3" step={0.07}>
-          {shown.map((e) => (
+          {shown.map((e, i) => (
             <StaggerItem key={e.id}>
               <Link
                 to="/breathe"
                 className="group flex items-center gap-4 rounded-3xl border border-line bg-surface p-5 shadow-[var(--shadow-card)] transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[var(--shadow-lift)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
               >
-                <span className="grid size-11 shrink-0 place-items-center rounded-full bg-brand-100 text-accent-strong">
+                <span className={`grid size-11 shrink-0 place-items-center rounded-full ${MEDALLIONS[i % MEDALLIONS.length]}`}>
                   <Icon name="wave" size={18} />
                 </span>
                 <span className="min-w-0 flex-1">

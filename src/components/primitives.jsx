@@ -221,6 +221,11 @@ export function Pill({ children, className = '', tone = 'default' }) {
     blush: 'border-brand-200/70 bg-brand-50 text-ink',
     sand: 'border-sand-100 bg-sand-100 text-ink',
     peach: 'border-peach-200/60 bg-peach-100 text-ink',
+    // For pills sitting on a coloured card. Every other tone is a fixed
+    // colour and picks a fight with whatever is behind it — a pale blue pill
+    // on a peach card reads as a mistake. This one is ink at a low alpha, so
+    // it is the same relationship to its ground on white, blue, peach or sand.
+    quiet: 'border-ink/10 bg-ink/[0.045] text-ink-2',
     amber: 'border-amber-500 bg-amber-500 text-ink',
   };
   return (

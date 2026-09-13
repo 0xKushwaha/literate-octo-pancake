@@ -44,15 +44,27 @@ function formatDuration(sec) {
 
 /* ------------------------------------------------------------------- bands */
 
-function BlogBand() {
+function BlogBand({ cover, alt }) {
   return (
-    // Peach, not brand blue: this band is the one part of an explore card that
-    // is pure decoration, which makes it the right size of place for the third
-    // colour — visible on the homepage, load-bearing nowhere.
+    // The article's own cover when it has one, and otherwise a drawn band:
+    // peach, not brand blue, because this is the one part of an explore card
+    // that is pure decoration — visible on the homepage, load-bearing nowhere.
     <div className="relative flex h-28 items-center justify-center overflow-hidden bg-peach-50">
-      <span className="absolute -right-8 -top-10 size-32 rounded-full bg-surface/45" />
-      <span className="absolute -bottom-12 -left-6 size-28 rounded-full bg-surface/30" />
-      <Icon name="message" size={38} className="relative text-ink/30" />
+      {cover ? (
+        <img
+          src={cover}
+          alt={alt || ''}
+          loading="lazy"
+          decoding="async"
+          className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+        />
+      ) : (
+        <>
+          <span className="absolute -right-8 -top-10 size-32 rounded-full bg-surface/45" />
+          <span className="absolute -bottom-12 -left-6 size-28 rounded-full bg-surface/30" />
+          <Icon name="message" size={38} className="relative text-ink/30" />
+        </>
+      )}
     </div>
   );
 }
@@ -148,7 +160,7 @@ export default function Explore() {
       body: a.excerpt,
       meta: [a.category, formatDate(a.published_at)].filter(Boolean).join(' · '),
       cta: c.blog_cta,
-      band: <BlogBand />,
+      band: <BlogBand cover={a.cover_image} alt={a.cover_alt} />,
     });
   }
   // Nothing published yet: one card that still points at the blog, rather than

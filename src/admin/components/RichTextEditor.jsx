@@ -1,7 +1,10 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
+import Image from '@tiptap/extension-image';
+import toast from 'react-hot-toast';
+import { ACCEPTED_IMAGE_TYPES, uploadImage } from '../../lib/queries/media';
 import { shouldSyncEditorContent } from '../editorSync';
 
 const ToolbarBtn = ({ onClick, active, disabled, title, children }) => (
@@ -31,10 +34,19 @@ export default function RichTextEditor({ value, onChange }) {
   // reset the cursor to the start of the document on every keystroke).
   const lastEmitted = useRef(value ?? '');
 
+  const fileRef = useRef(null);
+  const [uploading, setUploading] = useState(false);
+
   const editor = useEditor({
     extensions: [
       StarterKit,
       Link.configure({ openOnClick: false }),
+      // `inline: false` keeps a picture a block of its own rather than a very
+      // tall character inside a paragraph, which is what the article styles
+      // downstream expect. `allowBase64: false` on purpose: the sanitiser the
+      // public site runs strips data: URLs, so a pasted base64 image would
+      // survive the editor and then vanish from the published article.
+      Image.configure({ inline: false, allowBase64: false }),
     ],
     content: value ?? '',
     onUpdate({ editor }) {
@@ -66,6 +78,35 @@ export default function RichTextEditor({ value, onChange }) {
       <div className="min-h-[360px] animate-pulse rounded-xl border border-gray-300 bg-gray-50" />
     );
   }
+
+  /**
+   * Put a picture in the body. Upload one, or paste a link — the same pair the
+   * cover field offers, and for the same reason: uploading needs the storage
+   * bucket from migration 008, and the editor has to stay usable without it.
+   */
+  const insertImage = (src) => {
+    if (!src) return;
+    editor.chain().focus().setImage({ src }).run();
+  };
+
+  const handleImageFile = async (file) => {
+    if (!file) return;
+    setUploading(true);
+    try {
+      insertImage(await uploadImage(file, 'articles/body'));
+    } catch (err) {
+      toast.error(err?.message || 'Could not upload that image.', { duration: 7000 });
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = '';
+    }
+  };
+
+  const addImageByUrl = () => {
+    const url = window.prompt('Image link:', 'https://');
+    if (!url || url === 'https://') return;
+    insertImage(url.trim());
+  };
 
   const addLink = () => {
     const url = window.prompt('URL:', 'https://');
@@ -111,12 +152,26 @@ export default function RichTextEditor({ value, onChange }) {
         <ToolbarBtn onClick={() => editor.chain().focus().setHorizontalRule().run()} title="Divider">
           —
         </ToolbarBtn>
+        <span className="mx-1 h-4 w-px bg-gray-200" />
+        <input
+          ref={fileRef}
+          type="file"
+          accept={ACCEPTED_IMAGE_TYPES.join(',')}
+          onChange={(e) => handleImageFile(e.target.files?.[0])}
+          className="hidden"
+        />
+        <ToolbarBtn onClick={() => fileRef.current?.click()} disabled={uploading} title="Upload a picture into the article">
+          {uploading ? '…' : '🖼'}
+        </ToolbarBtn>
+        <ToolbarBtn onClick={addImageByUrl} title="Add a picture by link">
+          🖼+
+        </ToolbarBtn>
       </div>
 
       {/* Editor area */}
       <EditorContent
         editor={editor}
-        className="prose prose-sm min-h-[320px] max-w-none p-4 focus:outline-none [&_.ProseMirror]:min-h-[280px] [&_.ProseMirror]:outline-none"
+        className="prose prose-sm min-h-[320px] max-w-none p-4 focus:outline-none [&_.ProseMirror]:min-h-[280px] [&_.ProseMirror]:outline-none [&_.ProseMirror_img]:my-4 [&_.ProseMirror_img]:max-h-80 [&_.ProseMirror_img]:w-full [&_.ProseMirror_img]:rounded-lg [&_.ProseMirror_img]:object-cover [&_.ProseMirror_img.ProseMirror-selectednode]:ring-2 [&_.ProseMirror_img.ProseMirror-selectednode]:ring-teal-500"
       />
     </div>
   );
