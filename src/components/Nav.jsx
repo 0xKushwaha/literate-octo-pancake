@@ -4,14 +4,20 @@ import { Button } from './primitives';
 import Icon from './Icon';
 import { telHref, useBrand, useSiteContent } from '../lib/queries/siteContent';
 import { useScrollValue } from '../motion/ScrollStory';
+import { useCommunity, useFeatures, usePrimaryCta } from '../lib/features';
 
 /**
- * Top navigation. Five items, three of them dropdowns, in the order the site
- * is meant to be read: what we treat → who → how → extras → cost. Labels and
- * the "New" badge are editable in the admin (section "nav"); the Care menu
- * lists whatever services exist.
+ * Top navigation, in the order the site is meant to be read.
+ *
+ * Resources sits second — the slot Therapists used to have. That is the whole
+ * of the change the practice asked for at the top of the page: what someone
+ * can read or watch for nothing is now the second thing offered, rather than
+ * the fourth, behind the team and in front of the cost. Therapists and Pricing
+ * are switches now (Site content → Show & hide) and drop out of this list
+ * entirely when they are off, rather than being greyed out or left pointing at
+ * a page that redirects.
  */
-function useMenu(navContent, services) {
+function useMenu(navContent, services, features) {
   return useMemo(() => {
     const care = services.map((s) => ({ label: s.name, to: `/services#${s.id}` }));
     return [
@@ -21,7 +27,16 @@ function useMenu(navContent, services) {
         to: '/services',
         items: [...care, { label: navContent.services_all_label, to: '/services', all: true }],
       },
-      { id: 'therapists', label: navContent.therapists_label, to: '/therapists' },
+      {
+        id: 'resources',
+        label: navContent.resources_label,
+        to: '/resources',
+        items: [
+          { label: navContent.videos_label, to: '/resources#videos' },
+          { label: navContent.blog_label, to: '/blog' },
+          { label: navContent.breathing_label, to: '/breathe' },
+        ],
+      },
       {
         id: 'approach',
         label: navContent.approach_label,
@@ -32,19 +47,12 @@ function useMenu(navContent, services) {
           { label: navContent.faq_label, to: '/how-it-works#faq' },
         ],
       },
-      {
-        id: 'resources',
-        label: navContent.resources_label,
-        to: '/resources',
-        items: [
-          { label: navContent.breathing_label, to: '/breathe' },
-          { label: navContent.videos_label, to: '/resources#videos' },
-          { label: navContent.blog_label, to: '/blog' },
-        ],
-      },
-      { id: 'pricing', label: navContent.pricing_label, to: '/pricing' },
+      ...(features.therapists
+        ? [{ id: 'therapists', label: navContent.therapists_label, to: '/therapists' }]
+        : []),
+      ...(features.pricing ? [{ id: 'pricing', label: navContent.pricing_label, to: '/pricing' }] : []),
     ];
-  }, [navContent, services]);
+  }, [navContent, services, features.therapists, features.pricing]);
 }
 
 function isActive(item, pathname) {
@@ -116,13 +124,18 @@ function Badge({ text }) {
 /** The bar gains its hairline and frosted ground once the page has moved. */
 const pastTop = (m) => m.y > 16;
 
-export default function Nav({ onBook }) {
+export default function Nav() {
   const brand = useBrand();
   const navContent = useSiteContent('nav');
   const servicesContent = useSiteContent('services');
   const services = Array.isArray(servicesContent.items) ? servicesContent.items : [];
+  const features = useFeatures();
+  const community = useCommunity();
+  // One button in the bar, and what it does depends on what the practice has
+  // switched on: the booking form, or the Discord invite.
+  const cta = usePrimaryCta(navContent.book_label, { communityLabel: community.nav_label });
   const { pathname } = useLocation();
-  const menu = useMenu(navContent, services).map((m) => ({ ...m, active: isActive(m, pathname) }));
+  const menu = useMenu(navContent, services, features).map((m) => ({ ...m, active: isActive(m, pathname) }));
   const badgeItem = String(navContent.badge_item ?? '').trim();
   const badgeText = String(navContent.badge_text ?? '').trim();
 
@@ -182,9 +195,11 @@ export default function Nav({ onBook }) {
               <Icon name="phone" size={15} />
               {brand.phone}
             </a>
-            <Button variant="primary" size="md" onClick={onBook} className="hidden sm:inline-flex">
-              {navContent.book_label}
-            </Button>
+            {cta && (
+              <Button variant="primary" size="md" {...cta.props} className="hidden sm:inline-flex">
+                {cta.label}
+              </Button>
+            )}
             <button
               onClick={() => setDrawer(true)}
               className="grid size-10 place-items-center rounded-full text-ink transition-colors hover:bg-ink/[0.06] lg:hidden"
@@ -229,9 +244,17 @@ export default function Nav({ onBook }) {
             </div>
 
             <div className="mt-4 flex flex-col gap-3">
-              <Button variant="primary" size="lg" icon="arrow" onClick={() => { setDrawer(false); onBook?.(); }}>
-                {navContent.book_label}
-              </Button>
+              {cta && (
+                <Button
+                  variant="primary"
+                  size="lg"
+                  icon="arrow"
+                  {...cta.props}
+                  onClick={(e) => { setDrawer(false); cta.props.onClick?.(e); }}
+                >
+                  {cta.label}
+                </Button>
+              )}
               <a href={telHref(brand.phone)} className="flex items-center justify-center gap-2 py-1 text-sm text-ink-2">
                 <Icon name="phone" size={15} />
                 {brand.phone}

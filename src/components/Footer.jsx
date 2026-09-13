@@ -2,15 +2,26 @@ import { Link } from 'react-router-dom';
 import { Button, Section } from './primitives';
 import Icon from './Icon';
 import { telHref, useBrand, useSiteContent } from '../lib/queries/siteContent';
+import { useCommunity, useFeatures, usePrimaryCta } from '../lib/features';
 
+/**
+ * `feature` names a switch in Site content → Show & hide: the link is dropped
+ * when that part of the site is off, so the footer can never be the one place
+ * still advertising a page that redirects.
+ *
+ * The legal column takes both its labels and its addresses from the admin.
+ * HIPAA joins it here — a practice that touches protected health information
+ * has to publish a notice of privacy practices, and the footer is where
+ * everyone looks for it.
+ */
 const staticColumns = [
   {
     titleKey: 'col1_title',
     links: [
       { label: 'Our services', to: '/services' },
       { label: 'How it works', to: '/how-it-works' },
-      { label: 'Our therapists', to: '/therapists' },
-      { label: 'Pricing & insurance', to: '/pricing' },
+      { label: 'Our therapists', to: '/therapists', feature: 'therapists' },
+      { label: 'Pricing & insurance', to: '/pricing', feature: 'pricing' },
     ],
   },
   {
@@ -25,21 +36,31 @@ const staticColumns = [
   {
     titleKey: 'col3_title',
     links: [
-      { label: 'Privacy policy', key: 'privacy_url' },
-      { label: 'Terms of service', key: 'terms_url' },
-      { label: 'Accessibility', key: 'accessibility_url' },
+      { labelKey: 'privacy_label', urlKey: 'privacy_url' },
+      { labelKey: 'terms_label', urlKey: 'terms_url' },
+      { labelKey: 'hipaa_label', urlKey: 'hipaa_url' },
+      { labelKey: 'accessibility_label', urlKey: 'accessibility_url' },
     ],
   },
 ];
 
-export default function Footer({ onBook }) {
+export default function Footer() {
   const brand = useBrand();
   const footerContent = useSiteContent('footer');
   const ui = useSiteContent('ui');
+  const features = useFeatures();
+  const community = useCommunity();
+  const cta = usePrimaryCta(footerContent.book_label, { communityLabel: community.cta_label });
   const columns = staticColumns.map((col) => ({
     ...col,
     title: footerContent[col.titleKey],
-    links: col.links.map((l) => (l.key ? { label: l.label, href: footerContent[l.key] || '#' } : l)),
+    links: col.links
+      .filter((l) => !l.feature || features[l.feature])
+      .map((l) =>
+        l.urlKey
+          ? { label: footerContent[l.labelKey], href: footerContent[l.urlKey] || '#' }
+          : l,
+      ),
   }));
 
   return (
@@ -88,9 +109,11 @@ export default function Footer({ onBook }) {
               </span>
             </div>
 
-            <Button className="mt-8" variant="secondary" icon="arrow" onClick={() => onBook?.()}>
-              {footerContent.book_label}
-            </Button>
+            {cta && (
+              <Button className="mt-8" variant="secondary" icon="arrow" {...cta.props}>
+                {cta.label}
+              </Button>
+            )}
           </div>
 
           <div className="grid gap-10 sm:grid-cols-3">

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { getArticleBySlug, getRelatedArticles } from '../lib/queries/articles';
 import { Button, Pill, Section } from '../components/primitives';
-import { useBooking } from '../lib/booking';
+import { usePrimaryCta } from '../lib/features';
 import { useSiteContent } from '../lib/queries/siteContent';
 import { sanitizeHtml } from '../lib/sanitizeHtml';
 
@@ -13,7 +13,9 @@ function estimateReadTime(content) {
 }
 
 export default function BlogPostPage() {
-  const openBooking = useBooking();
+  // Booking when it is on, the community invite when it is not — an article
+  // that ends in a button to nowhere is worse than one that just ends.
+  const cta = usePrimaryCta(null);
   const content = useSiteContent('blog');
   const { slug } = useParams();
   const navigate = useNavigate();
@@ -93,9 +95,11 @@ export default function BlogPostPage() {
               <div className="mt-10 rounded-3xl border border-line bg-surface-2 p-8 text-center">
                 <p className="font-display text-2xl tracking-tight text-ink">{content.post_cta_title}</p>
                 <p className="mt-3 text-[14.5px] text-ink-3">{content.post_cta_body}</p>
-                <Button variant="primary" icon="arrow" className="mt-6" onClick={openBooking}>
-                  {content.post_cta_button}
-                </Button>
+                {cta && (
+                  <Button variant="primary" icon="arrow" className="mt-6" {...cta.props}>
+                    {cta.mode === 'book' ? content.post_cta_button : cta.label}
+                  </Button>
+                )}
               </div>
             </div>
           </Section>

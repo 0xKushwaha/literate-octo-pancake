@@ -2,6 +2,7 @@ import { Button } from './primitives';
 import Icon from './Icon';
 import { telHref, useBrand, useSiteContent } from '../lib/queries/siteContent';
 import { useScrollValue } from '../motion/ScrollStory';
+import { useCommunity, usePrimaryCta } from '../lib/features';
 
 /**
  * Up once the hero is behind us, down again near the footer, where the closing
@@ -13,13 +14,19 @@ const FOOTER_GUTTER = 260;
 const barVisible = (m) => m.y > m.vh * 0.9 && m.vh + m.y <= m.docH - FOOTER_GUTTER;
 
 /**
- * Booking is the point of the site; on a phone the nav CTA is hidden behind a
- * menu, so surface it permanently once the hero has scrolled past.
+ * On a phone the header's one action is behind a menu, so it gets surfaced
+ * permanently once the hero has scrolled past. Whichever action that is:
+ * booking, or the community invite. With neither switched on the bar has
+ * nothing to carry but the phone number, so it does not appear at all.
  */
-export default function MobileBookBar({ onBook }) {
+export default function MobileBookBar() {
   const brand = useBrand();
   const booking = useSiteContent('booking');
+  const community = useCommunity();
+  const cta = usePrimaryCta(booking.mobile_bar_label, { communityLabel: community.mobile_label });
   const show = useScrollValue(barVisible);
+
+  if (!cta) return null;
 
   return (
     <div
@@ -37,8 +44,8 @@ export default function MobileBookBar({ onBook }) {
             >
               <Icon name="phone" size={17} />
             </a>
-            <Button variant="primary" size="md" icon="arrow" className="flex-1" onClick={onBook}>
-              {booking.mobile_bar_label}
+            <Button variant="primary" size="md" icon="arrow" className="flex-1" {...cta.props}>
+              {cta.label}
             </Button>
           </div>
     </div>

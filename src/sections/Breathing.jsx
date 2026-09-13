@@ -346,7 +346,7 @@ export default function Breathing({ withHeading = true, tinted = true }) {
 
   return (
     <>
-      <div className={tinted ? 'bg-surface-2/60' : ''}>
+      <div className={tinted ? 'bg-bg-2' : ''}>
       <Section id="breathing" className={sectionPad(withHeading)}>
         {withHeading && (
           <SectionHeading eyebrow={content.eyebrow} title={content.headline} lead={content.lead} />

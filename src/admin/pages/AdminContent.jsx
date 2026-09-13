@@ -3,9 +3,10 @@ import toast from 'react-hot-toast';
 import { deleteContent, getAllContent, upsertContent } from '../../lib/queries/siteContent';
 import { parseJsonValue, stringifyContentValue } from '../../lib/contentMerge';
 import {
-  CONTENT_SCHEMA, PAGE_BLURBS, PAGE_ORDER, PAGE_PATHS, PAGE_TITLES,
+  CONTENT_SCHEMA, PAGE_BLURBS, PAGE_FEATURE, PAGE_ORDER, PAGE_PATHS, PAGE_TITLES,
   SCHEMA_BY_KEY, SECTION_ORDER, SECTION_PAGE, SECTION_TITLES,
 } from '../../data/contentSchema';
+import { isFeatureOn } from '../../lib/featureFlag';
 import { iconNames } from '../../components/Icon';
 import { useSearch } from '../hooks';
 import { Button, EmptyState, PageHeader, Panel, SearchInput, TableSkeleton } from '../components/ui';
@@ -223,6 +224,10 @@ function ContentRow({ item, onSave, onReset, expandAll = false }) {
   const [raw, setRaw] = useState(false);
   const dirty = value !== saved;
   const isJson = item.type === 'json';
+  const isToggle = item.type === 'toggle';
+  // Anything but the literal "off" counts as on, so a hand-edited row cannot
+  // leave a section in a third state nobody can see.
+  const switchedOn = String(value ?? '').trim().toLowerCase() !== 'off';
   const hasEditor = isJson && (item.fields || item.itemType);
   const jsonError = isJson ? validateJson(value, item.defaultValue) : null;
   const isDefault = !item.stored;
@@ -238,12 +243,16 @@ function ContentRow({ item, onSave, onReset, expandAll = false }) {
   const parsed = hasEditor && !jsonError ? parseJsonValue(value) : undefined;
   const listItems = Array.isArray(parsed) ? parsed : [];
 
-  const save = async () => {
+  // `explicit` is for the switch, which saves on the click rather than waiting
+  // for a Save press — setValue is async, so the new value has to be passed in
+  // rather than read back out of state on the same tick.
+  const save = async (explicit) => {
     if (jsonError) { toast.error(jsonError); return; }
+    const next = explicit === undefined ? value : explicit;
     setSaving(true);
     try {
       // Normalise JSON so what is stored is always well-formed and readable.
-      const toStore = isJson ? JSON.stringify(JSON.parse(value), null, 2) : value;
+      const toStore = isJson ? JSON.stringify(JSON.parse(next), null, 2) : next;
       await upsertContent({ key: item.key, value: toStore, section: item.section, label: item.label, type: item.type });
       toast.success(`Saved "${item.label ?? item.key}"`);
       onSave(item.key, toStore);
@@ -292,18 +301,20 @@ function ContentRow({ item, onSave, onReset, expandAll = false }) {
               {raw ? 'Use the editor' : 'Edit as JSON'}
             </button>
           )}
-          {dirty && !saving && (
+          {dirty && !saving && !isToggle && (
             <button onClick={() => setValue(saved)} className="rounded-lg px-2 py-1 text-xs text-gray-500 transition hover:bg-gray-100 hover:text-gray-800">
               Undo
             </button>
           )}
+          {!isToggle && (
           <button
-            onClick={save}
+            onClick={() => save()}
             disabled={!dirty || saving || Boolean(jsonError)}
             className="rounded-lg bg-teal-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-teal-700 disabled:opacity-30"
           >
             {saving ? 'Saving…' : dirty ? 'Save' : 'Saved'}
           </button>
+          )}
         </span>
       </div>
       {item.hint && <p className="mb-2 text-[11.5px] text-gray-400">{item.hint}</p>}
@@ -329,6 +340,22 @@ function ContentRow({ item, onSave, onReset, expandAll = false }) {
         />
       ) : item.type === 'richtext' ? (
         <textarea value={value} onChange={(e) => setValue(e.target.value)} rows={3} className={`${inputClass} resize-y`} />
+      ) : item.type === 'toggle' ? (
+        <button
+          type="button"
+          role="switch"
+          aria-checked={switchedOn}
+          disabled={saving}
+          onClick={() => { const next = switchedOn ? 'off' : 'on'; setValue(next); save(next); }}
+          className="inline-flex items-center gap-2.5 disabled:opacity-50"
+        >
+          <span className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${switchedOn ? 'bg-teal-600' : 'bg-gray-300'}`}>
+            <span className={`absolute top-0.5 size-5 rounded-full bg-white shadow transition-[left] ${switchedOn ? 'left-[1.375rem]' : 'left-0.5'}`} />
+          </span>
+          <span className={`text-[12.5px] ${switchedOn ? 'text-gray-800' : 'text-gray-500'}`}>
+            {saving ? 'Saving…' : switchedOn ? 'Shown on the site' : 'Hidden'}
+          </span>
+        </button>
       ) : item.type === 'number' ? (
         <input
           type="number"
@@ -467,6 +494,18 @@ export default function AdminContent() {
       .map((i) => (i.key === key ? { ...i, value: stringifyContentValue(i.defaultValue), stored: false } : i)));
   }, []);
 
+  // Which Show & hide switches are currently off, read from the same rows the
+  // page is already showing — no second request, and it updates the instant a
+  // switch is flipped further up the page.
+  const featuresOff = useMemo(() => {
+    const off = new Set();
+    for (const i of items) {
+      if (i.section !== 'features') continue;
+      if (!isFeatureOn(i.value)) off.add(i.key.slice('features.'.length));
+    }
+    return off;
+  }, [items]);
+
   const { query, setQuery, filtered } = useSearch(items, SEARCH_FIELDS);
   const searching = query.trim().length > 0;
   const grouped = useMemo(() => groupByPage(filtered), [filtered]);
@@ -533,6 +572,11 @@ export default function AdminContent() {
                     <span className="flex flex-wrap items-baseline gap-2">
                       <span className="text-[15px] font-semibold text-gray-900">{PAGE_TITLES[page] ?? page}</span>
                       {PAGE_PATHS[page] && <span className="font-mono text-[11px] text-gray-400">{PAGE_PATHS[page]}</span>}
+                      {PAGE_FEATURE[page] && featuresOff.has(PAGE_FEATURE[page]) && (
+                        <span className="rounded-full bg-amber-100 px-2 py-px text-[10.5px] font-medium text-amber-800">
+                          Hidden — switch it on under Show &amp; hide
+                        </span>
+                      )}
                     </span>
                     <span className="mt-0.5 block text-[12px] text-gray-500">{PAGE_BLURBS[page]}</span>
                   </span>

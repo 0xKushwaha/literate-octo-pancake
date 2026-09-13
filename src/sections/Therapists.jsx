@@ -3,6 +3,7 @@ import { Button, MoreLink, Pill, Section, SectionHeading, sectionPad } from '../
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import Avatar from '../components/Avatar';
 import Icon from '../components/Icon';
+import { useFeatures } from '../lib/features';
 import { useSiteContent } from '../lib/queries/siteContent';
 
 function availabilityLabel(days, content) {
@@ -13,6 +14,10 @@ function availabilityLabel(days, content) {
 export default function Therapists({ onBook, limit, teaser = false, withHeading = true }) {
   const content = useSiteContent('therapists');
   const servicesContent = useSiteContent('services');
+  // These profiles can be shown with booking switched off — the cards are
+  // worth reading on their own — so the Book buttons come off rather than
+  // the section.
+  const bookable = useFeatures().booking;
   const [filter, setFilter] = useState('all');
 
   const therapists = useMemo(
@@ -112,9 +117,11 @@ export default function Therapists({ onBook, limit, teaser = false, withHeading 
                 <span className="size-1.5 rounded-full bg-amber-500" />
                 {availabilityLabel(Number(t.nextAvailable) || 1, content)}
               </span>
-              <Button size="sm" variant="outline" icon="arrow" onClick={() => onBook?.({ therapist: t.id })}>
-                {content.book_label}
-              </Button>
+              {bookable && (
+                <Button size="sm" variant="outline" icon="arrow" onClick={() => onBook?.({ therapist: t.id })}>
+                  {content.book_label}
+                </Button>
+              )}
             </div>
           </article>
         ))}
@@ -128,11 +135,16 @@ export default function Therapists({ onBook, limit, teaser = false, withHeading 
 
       {shown.length === 0 && (
         <p className="mt-8 text-[15px] text-ink-3">
-          {content.empty_note}{' '}
-          <button onClick={() => onBook?.()} className="text-ink underline underline-offset-4">
-            {content.empty_cta}
-          </button>
-          .
+          {content.empty_note}
+          {bookable && (
+            <>
+              {' '}
+              <button onClick={() => onBook?.()} className="text-ink underline underline-offset-4">
+                {content.empty_cta}
+              </button>
+              .
+            </>
+          )}
         </p>
       )}
     </Section>

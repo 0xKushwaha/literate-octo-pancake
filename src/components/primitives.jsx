@@ -161,7 +161,12 @@ export const Button = forwardRef(function Button(
 export function Eyebrow({ children, className = '' }) {
   return (
     <div className={`flex items-center gap-2.5 ${className}`}>
-      <span className="h-3 w-1 rounded-full bg-amber-500" />
+      {/* The one peach mark that repeats. Amber is spoken for — it means
+          "notice this now" on the crisis banner and the closing band — and a
+          section label is not an alarm. Peach reads warm at this size on
+          every ground the site has, and it is four pixels wide, which is the
+          brief for this colour. */}
+      <span className="h-3 w-1 rounded-full bg-peach-200" />
       <span className="eyebrow">{children}</span>
     </div>
   );
@@ -215,7 +220,7 @@ export function Pill({ children, className = '', tone = 'default' }) {
     soft: 'border-brand-200/70 bg-brand-50 text-ink',
     blush: 'border-brand-200/70 bg-brand-50 text-ink',
     sand: 'border-sand-100 bg-sand-100 text-ink',
-    peach: 'border-sand-100 bg-sand-100 text-ink',
+    peach: 'border-peach-200/60 bg-peach-100 text-ink',
     amber: 'border-amber-500 bg-amber-500 text-ink',
   };
   return (

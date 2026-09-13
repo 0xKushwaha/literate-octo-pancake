@@ -32,3 +32,10 @@ dist-ssr
 # Vitest
 coverage
 .shots/
+
+# Scratch output from render/audit passes — build snapshots and screenshots,
+# not source. Lint reads .gitignore, and a copy of dist/ in here is 146 lint
+# errors in minified code that nobody wrote.
+.p2shots/
+.p2before/
+.claude/

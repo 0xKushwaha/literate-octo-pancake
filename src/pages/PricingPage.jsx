@@ -24,7 +24,7 @@ export default function PricingPage() {
       />
       <Pricing onBook={openBooking} withHeading={false} />
       <Faq />
-      <CtaBand onBook={openBooking} />
+      <CtaBand />
     </>
   );
 }
