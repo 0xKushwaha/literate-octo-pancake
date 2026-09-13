@@ -21,13 +21,18 @@ export default function CommunityBand() {
   const features = useFeatures();
   const community = useCommunity();
 
-  // No invite saved means no form: a field that collects an address and then
-  // has nowhere to send anyone is worse than no field.
-  if (!features.community || !community.enabled) return null;
+  // Only the Show & hide switch decides whether this appears. It used to also
+  // require a saved invite link, which meant the band was invisible on the
+  // live site until someone pasted a Discord URL — a section that silently is
+  // not there is indistinguishable from a deploy that did not happen, and it
+  // read as exactly that twice. With no invite saved the form still collects
+  // the address and says the invite is coming, which is worth more than the
+  // click it cannot yet offer.
+  if (!features.community) return null;
 
   return (
     <div className="border-b border-line bg-surface">
-      <Section className="py-14 sm:py-16">
+      <Section id="community" className="py-14 sm:py-16">
         <Reveal className="mx-auto max-w-xl text-center">
           {content.eyebrow && (
             <div className="flex justify-center">

@@ -446,6 +446,7 @@ export const CONTENT_SCHEMA = [
   f('community.email_placeholder', 'Email box placeholder', 'Enter your email ID'),
   f('community.email_label', 'Email box label (read aloud by screen readers)', 'Your email address'),
   f('community.privacy_note', 'Small print under the email box', 'We use it to send the invite again if the link ever changes. Nothing else, ever.', 'richtext'),
+  f('community.pending', 'Message after joining, while no invite link is saved', 'You are on the list — we will email you the invite.', 'text', 'Shown instead of opening Discord when the invite link below is still blank.'),
   f('community.success', 'Message after joining', 'You are in — opening Discord now.'),
   f('community.already', 'Message when that address has joined before', 'You are already on the list — opening Discord now.'),
   f('community.invalid_email', 'Message when the address looks wrong', 'That email address does not look right.'),

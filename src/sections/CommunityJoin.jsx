@@ -31,7 +31,12 @@ export default function CommunityJoin({ inviteUrl, content, tone = 'light' }) {
   const honeypot = useRef('');
 
   const openInvite = (tab) => {
-    if (!inviteUrl) return;
+    if (!inviteUrl) {
+      // Nothing to send them to. Close the tab claimed on the click rather
+      // than leaving a blank window open.
+      if (tab && !tab.closed) tab.close();
+      return;
+    }
     if (tab && !tab.closed) {
       tab.location.href = inviteUrl;
       return;
@@ -61,7 +66,12 @@ export default function CommunityJoin({ inviteUrl, content, tone = 'light' }) {
         honeypot: honeypot.current,
       });
       setState('done');
-      setMessage({ tone: 'ok', text: already ? content.already : content.success });
+      // With no invite link saved yet there is nothing to open, so say what
+      // actually happens next rather than claiming Discord is loading.
+      setMessage({
+        tone: 'ok',
+        text: inviteUrl ? (already ? content.already : content.success) : content.pending,
+      });
       setEmail('');
       openInvite(tab);
     } catch (err) {
