@@ -81,6 +81,30 @@ export default function BlogPostPage() {
                 <p className="mt-5 text-[17px] leading-relaxed text-ink-3">{article.excerpt}</p>
               )}
 
+              {/* The cover sits between the standfirst and the body, where a
+                  magazine would put it: after the reader has decided to read
+                  it, and before the first paragraph. Above the headline it
+                  would push the title itself below the fold on a phone. */}
+              {article.cover_image && (
+                <figure className="mt-9">
+                  {/* Fixed 16:9 rather than the picture's own shape. Whatever
+                      gets uploaded — a portrait phone photo, a wide stock
+                      landscape — the article opens the same way, and a tall
+                      image cannot push the first paragraph a screen and a half
+                      down the page. */}
+                  <div className="aspect-[16/9] w-full overflow-hidden rounded-3xl bg-peach-50 shadow-[var(--shadow-card)]">
+                    <img
+                      src={article.cover_image}
+                      alt={article.cover_alt || ''}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                  {article.cover_alt && (
+                    <figcaption className="mt-3 text-[12.5px] text-ink-4">{article.cover_alt}</figcaption>
+                  )}
+                </figure>
+              )}
+
               <div className="mt-10 h-px bg-line" />
 
               {/* Article body */}
@@ -114,12 +138,25 @@ export default function BlogPostPage() {
                     <Link
                       key={a.id}
                       to={`/blog/${a.slug}`}
-                      className="group rounded-2xl border border-line bg-surface p-5 transition-all hover:shadow-[var(--shadow-card)]"
+                      className="group overflow-hidden rounded-2xl border border-line bg-surface transition-all hover:shadow-[var(--shadow-card)]"
                     >
-                      {a.category && <Pill tone="rose">{a.category}</Pill>}
-                      <h3 className="mt-3 font-display text-[17px] leading-snug tracking-tight text-ink group-hover:text-ink transition-colors">
-                        {a.title}
-                      </h3>
+                      {a.cover_image && (
+                        <div className="aspect-[16/9] w-full overflow-hidden bg-peach-50">
+                          <img
+                            src={a.cover_image}
+                            alt={a.cover_alt || ''}
+                            loading="lazy"
+                            decoding="async"
+                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                          />
+                        </div>
+                      )}
+                      <div className="p-5">
+                        {a.category && <Pill tone="rose">{a.category}</Pill>}
+                        <h3 className="mt-3 font-display text-[17px] leading-snug tracking-tight text-ink group-hover:text-ink transition-colors">
+                          {a.title}
+                        </h3>
+                      </div>
                     </Link>
                   ))}
                 </div>

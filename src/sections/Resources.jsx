@@ -76,22 +76,35 @@ function ArticleCard({ article, onClick, labels }) {
     <StaggerItem className="h-full">
       <button
         onClick={() => onClick(article)}
-        className="group flex h-full w-full flex-col rounded-3xl border border-line bg-surface p-6 text-left shadow-[var(--shadow-card)] transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-lift)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+        className="group flex h-full w-full flex-col overflow-hidden rounded-3xl border border-line bg-surface text-left shadow-[var(--shadow-card)] transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-lift)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
       >
-        <div className="flex items-center gap-2.5">
+        {article.cover_image && (
+          <span className="block aspect-[16/9] w-full overflow-hidden bg-peach-50">
+            <img
+              src={article.cover_image}
+              alt={article.cover_alt || ''}
+              loading="lazy"
+              decoding="async"
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+            />
+          </span>
+        )}
+        <span className="flex flex-1 flex-col p-6">
+        <span className="flex items-center gap-2.5">
           <span className="inline-flex items-center rounded-full bg-sand-100 px-2.5 py-0.5 text-[11px] font-medium text-ink">
             {article.category || labels.default_category}
           </span>
           {article.published_at && <span className="text-[12px] text-ink-4">{formatDate(article.published_at)}</span>}
-        </div>
-        <h4 className="mt-4 font-display text-[clamp(1.1rem,1.8vw,1.35rem)] leading-snug tracking-tight text-ink">
+        </span>
+        <span className="mt-4 block font-display text-[clamp(1.1rem,1.8vw,1.35rem)] leading-snug tracking-tight text-ink">
           {article.title}
-        </h4>
-        {article.excerpt && <p className="mt-3 line-clamp-3 text-[13.5px] leading-relaxed text-ink-3">{article.excerpt}</p>}
-        <div className="mt-auto flex items-center gap-1.5 pt-5 text-[13px] font-medium text-ink">
+        </span>
+        {article.excerpt && <span className="mt-3 line-clamp-3 block text-[13.5px] leading-relaxed text-ink-3">{article.excerpt}</span>}
+        <span className="mt-auto flex items-center gap-1.5 pt-5 text-[13px] font-medium text-ink">
           {labels.read_cta}
           <Icon name="arrow" size={14} className="transition-transform duration-200 group-hover:translate-x-0.5" />
-        </div>
+        </span>
+        </span>
       </button>
     </StaggerItem>
   );
@@ -112,6 +125,13 @@ function ArticleReader({ article, onClose, labels }) {
         <h2 className="mt-4 font-display text-[clamp(1.5rem,3vw,2.2rem)] leading-tight tracking-tight text-ink">{article.title}</h2>
         {article.excerpt && <p className="mt-3 max-w-[60ch] text-[15px] leading-relaxed text-ink-3">{article.excerpt}</p>}
       </div>
+      {article.cover_image && (
+        <img
+          src={article.cover_image}
+          alt={article.cover_alt || ''}
+          className="block max-h-[340px] w-full object-cover"
+        />
+      )}
       <div className="prose-lumen px-8 py-8 sm:px-12" dangerouslySetInnerHTML={{ __html: sanitizeHtml(article.content) }} />
       <div className="flex flex-wrap items-center gap-3 border-t border-line px-8 py-6 sm:px-12">
         <button

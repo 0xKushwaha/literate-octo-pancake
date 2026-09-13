@@ -4,11 +4,12 @@ import toast from 'react-hot-toast';
 import { getArticleById, saveArticle } from '../../lib/queries/articles';
 import { supabase, isDemo } from '../../lib/supabase';
 import RichTextEditor from '../components/RichTextEditor';
+import ImageField from '../components/ImageField';
 import { publishedAtFor } from '../articlePublishDate';
 import { useSaveShortcut, useUnsavedChanges } from '../hooks';
 import { Button, FormSkeleton } from '../components/ui';
 
-const EMPTY = { title: '', slug: '', excerpt: '', category: '', content: '', is_published: false, is_featured: false };
+const EMPTY = { title: '', slug: '', excerpt: '', category: '', content: '', is_published: false, is_featured: false, cover_image: '', cover_alt: '' };
 
 const CATEGORIES = ['Anxiety', 'Depression', 'Relationships', 'Mindfulness', 'Trauma', 'Sleep', 'Psychiatry', 'Self-care'];
 
@@ -57,6 +58,8 @@ export default function AdminBlogEditor() {
           content: a.content ?? '',
           is_published: a.is_published ?? false,
           is_featured: a.is_featured ?? false,
+          cover_image: a.cover_image ?? '',
+          cover_alt: a.cover_alt ?? '',
         };
         setBaseline(JSON.stringify(loaded));
         setForm(loaded);
@@ -105,10 +108,15 @@ export default function AdminBlogEditor() {
         is_published: nextPublished,
         published_at: nextPublishedAt,
         is_featured: form.is_featured,
+        cover_image: form.cover_image.trim() || null,
+        cover_alt: form.cover_alt.trim() || null,
       };
-      const { featuredSaved } = await saveArticle(payload);
+      const { featuredSaved, coverSaved } = await saveArticle(payload);
       if (!featuredSaved && form.is_featured) {
         toast('Saved, but "Show on homepage" needs migration 007 run in Supabase. Until then the homepage shows the newest posts.', { icon: '⚠️', duration: 8000 });
+      }
+      if (!coverSaved && form.cover_image.trim()) {
+        toast('Saved, but the cover image needs migration 008 run in Supabase. The article is fine; the picture was not stored.', { icon: '⚠️', duration: 8000 });
       }
       setPublishedAt(nextPublishedAt);
       // Stand the guard down before navigating, or it prompts on the redirect
@@ -237,6 +245,15 @@ export default function AdminBlogEditor() {
                 </span>
               </span>
             </label>
+          </div>
+
+          <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+            <h3 className="mb-3 text-sm font-semibold text-gray-900">Picture</h3>
+            <ImageField
+              url={form.cover_image}
+              alt={form.cover_alt}
+              onChange={({ url, alt }) => setForm((f) => ({ ...f, cover_image: url, cover_alt: alt }))}
+            />
           </div>
 
           <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm space-y-4">

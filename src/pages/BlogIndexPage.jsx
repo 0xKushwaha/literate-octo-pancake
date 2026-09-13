@@ -12,8 +12,24 @@ function ArticleCard({ article, readMore }) {
   return (
     <Link
       to={`/blog/${article.slug}`}
-      className="group flex flex-col rounded-3xl border border-line bg-surface p-6 transition-all duration-300 hover:shadow-[var(--shadow-lift)] hover:-translate-y-0.5"
+      className="group flex flex-col overflow-hidden rounded-3xl border border-line bg-surface transition-all duration-300 hover:shadow-[var(--shadow-lift)] hover:-translate-y-0.5"
     >
+      {/* The cover, when there is one. A card with no picture keeps the shape
+          it always had rather than reserving a grey rectangle for a photo
+          nobody uploaded — a blog where half the posts have covers should not
+          look like a blog where half the images are broken. */}
+      {article.cover_image && (
+        <div className="aspect-[16/9] w-full overflow-hidden bg-peach-50">
+          <img
+            src={article.cover_image}
+            alt={article.cover_alt || ''}
+            loading="lazy"
+            decoding="async"
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+          />
+        </div>
+      )}
+      <div className="flex flex-1 flex-col p-6">
       <div className="flex items-center gap-2">
         {article.category && (
           <Pill tone="rose">{article.category}</Pill>
@@ -26,11 +42,12 @@ function ArticleCard({ article, readMore }) {
       {article.excerpt && (
         <p className="mt-3 line-clamp-3 text-[14px] leading-relaxed text-ink-3">{article.excerpt}</p>
       )}
-      <div className="mt-5 flex items-center gap-1.5 text-[13px] font-medium text-ink">
+      <div className="mt-auto flex items-center gap-1.5 pt-5 text-[13px] font-medium text-ink">
         {readMore}
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform group-hover:translate-x-0.5">
           <path d="M5 12h14M12 5l7 7-7 7"/>
         </svg>
+      </div>
       </div>
     </Link>
   );
