@@ -124,7 +124,10 @@ export async function getHomepageArticles(limit = 3) {
  * about a migration that may well have been run.
  */
 export async function articleImagesReady() {
-  if (isDemo) return false;
+  // Demo's in-memory store keeps whatever fields it is handed, so a cover can
+  // be set and previewed there. Only *uploading* is impossible in demo, and
+  // that is a separate question — see `canUpload` in the editor.
+  if (isDemo) return true;
   const { error } = await supabase.from('articles').select('cover_image').limit(1);
   if (!error) return true;
   if (isMissingCoverColumn(error)) return false;
