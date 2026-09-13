@@ -19,6 +19,9 @@ import { isEmail } from '../booking/validate';
  * block it as a popup; opening an empty tab on the click and pointing it at
  * the invite when the request settles is what survives that. If the browser
  * refuses even that, the same-tab navigation at the end is the fallback.
+ *
+ * That only works if window.open() hands back the tab, so the feature string
+ * stays empty — 'noopener' there returns null and costs us the handle.
  */
 export default function CommunityJoin({ inviteUrl, content, tone = 'light' }) {
   const deep = tone === 'deep';
@@ -29,6 +32,18 @@ export default function CommunityJoin({ inviteUrl, content, tone = 'light' }) {
   // Honeypot. Named "company" to match the booking form and to be the sort of
   // field a bot fills in without thinking.
   const honeypot = useRef('');
+
+  const claimTab = () => {
+    const win = window.open('', '_blank');
+    if (!win) return null; // popup blocked; openInvite falls back to this tab
+    try {
+      win.opener = null;
+    } catch {
+      // Cross-origin or a browser that refuses the assignment. The invite is
+      // a Discord URL we control the shape of, so this is not worth failing on.
+    }
+    return win;
+  };
 
   const openInvite = (tab) => {
     if (!inviteUrl) {
@@ -55,7 +70,14 @@ export default function CommunityJoin({ inviteUrl, content, tone = 'light' }) {
     }
 
     // Claim the tab while we still have the click.
-    const tab = inviteUrl ? window.open('', '_blank', 'noopener') : null;
+    //
+    // No 'noopener' in the feature string: it makes window.open() return null
+    // by spec, which threw away the tab we had just opened and sent the
+    // fallback down the same-tab branch — Discord replaced the page and the
+    // claimed tab was left stranded on about:blank. Sever the link from the
+    // child side instead, which keeps our handle and still denies the invite
+    // page a window.opener to reach back through.
+    const tab = inviteUrl ? claimTab() : null;
 
     setState('sending');
     setMessage(null);
