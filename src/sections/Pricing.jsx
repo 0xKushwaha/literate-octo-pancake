@@ -1,9 +1,14 @@
 import { Button, Pill, Reveal, Section, SectionHeading, sectionPad } from '../components/primitives';
 import Icon from '../components/Icon';
+import { usePrimaryCta } from '../lib/features';
 import { useSiteContent } from '../lib/queries/siteContent';
 
 export default function Pricing({ onBook, withHeading = true }) {
   const content = useSiteContent('pricing');
+  // Each plan keeps its own button label while booking is on. With booking
+  // off the plans are still worth reading — that is the point of a pricing
+  // page — so the cards stay and only the button changes.
+  const cta = usePrimaryCta(null);
   // Plans are a list field ("pricing.plans"); the older "<id>_blurb" keys are
   // still applied on top so earlier edits survive.
   const plans = (Array.isArray(content.plans) ? content.plans : []).map((p) => ({
@@ -70,15 +75,17 @@ export default function Pricing({ onBook, withHeading = true }) {
                 ))}
               </ul>
 
-              <Button
-                className="relative mt-9 w-full"
-                size="lg"
-                variant={p.featured ? 'primary' : 'outline'}
-                icon="arrow"
-                onClick={() => onBook?.({ plan: p.id })}
-              >
-                {p.cta}
-              </Button>
+              {cta && (
+                <Button
+                  className="relative mt-9 w-full"
+                  size="lg"
+                  variant={p.featured ? 'primary' : 'outline'}
+                  icon="arrow"
+                  {...(cta.mode === 'book' ? { onClick: () => onBook?.({ plan: p.id }) } : cta.props)}
+                >
+                  {cta.mode === 'book' ? p.cta : cta.label}
+                </Button>
+              )}
             </div>
           </Reveal>
         ))}

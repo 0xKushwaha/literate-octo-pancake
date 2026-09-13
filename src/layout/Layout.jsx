@@ -110,12 +110,12 @@ function Shell() {
         {ui.skip_link}
       </a>
       <Toaster position="bottom-center" />
-      <Nav onBook={openBooking} />
+      <Nav />
       <main id="main" key={pathname} className="page-enter">
         <Outlet />
       </main>
-      <Footer onBook={openBooking} />
-      <MobileBookBar onBook={openBooking} />
+      <Footer />
+      <MobileBookBar />
       {palette && (
         <Suspense fallback={null}>
           <CommandPalette onBook={openBooking} initialOpen />

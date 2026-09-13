@@ -8,36 +8,41 @@ import Explore from '../sections/Explore';
 import BreathePrompt from '../sections/BreathePrompt';
 import CtaBand from '../sections/CtaBand';
 import { useBooking } from '../lib/booking';
+import { useFeatures } from '../lib/features';
 
 /**
  * The homepage is a table of contents, not the whole site. Each block shows a
- * few items and links to the page that holds the rest — pricing, the full
- * team, every service, the resource library and the FAQ all live on their own
- * pages now. Keeping this page short is the point: the previous single-page
- * version asked for about twelve screens of scrolling before the footer.
+ * few items and links to the page that holds the rest — every service, the
+ * resource library and the FAQ all live on their own pages.
  *
- * The order is deliberate, and it is not the order the money is in. A first
- * visit goes: here is what we do, here is the thing you were afraid to say,
- * here is a minute of breathing you can have right now for nothing — and only
- * then the services, the team, and what it costs. Someone weighing up therapy
- * is not ready to be sold to in the first five seconds, and the free, useful
- * thing is what earns the scroll that gets them to the rest. Prices stay one
- * click away, on /services and /pricing, where someone who wants them will
- * look for them.
+ * The order is deliberate, and it is not the order the money is in. What
+ * other people say comes first, immediately under the hero: a stranger
+ * deciding whether to trust a practice reads the reviews before they read the
+ * prospectus, and burying them eight screens down was asking them to take the
+ * site's word for it until then. Then the thing they were afraid to say, then
+ * a minute of breathing they can have right now for nothing, and only then
+ * what we do and how.
+ *
+ * The explore cards — articles and short videos — sit where the team used to,
+ * because the free, useful thing is what earns the scroll, and because the
+ * team is currently switched off (Site content → Show & hide). If it is
+ * switched back on it returns here, after the cards rather than in front of
+ * them.
  */
 export default function HomePage() {
   const openBooking = useBooking();
+  const features = useFeatures();
   return (
     <>
-      <Hero onBook={openBooking} />
+      <Hero />
+      <Testimonials limit={3} tinted={false} />
       <HeardYou limit={3} />
       <BreathePrompt />
       <Services onBook={openBooking} limit={3} teaser />
       <Approach teaser />
-      <Therapists onBook={openBooking} limit={3} teaser />
-      <Testimonials limit={3} />
       <Explore />
-      <CtaBand onBook={openBooking} />
+      {features.therapists && <Therapists onBook={openBooking} limit={3} teaser />}
+      <CtaBand />
     </>
   );
 }

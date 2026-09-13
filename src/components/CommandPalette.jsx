@@ -13,16 +13,21 @@ import {
 import Icon from './Icon';
 import Avatar from './Avatar';
 import { telHref, useBrand, useSiteContent } from '../lib/queries/siteContent';
+import { useCommunity, useFeatures } from '../lib/features';
 
+// `feature` names a switch in Site content → Show & hide. A page that is
+// switched off is dropped from the palette rather than offered and then
+// redirected — the palette is meant to be faster than the menu, and sending
+// someone home is not faster.
 const PAGES = [
   { to: '/services', label: 'What we treat', icon: 'pulse' },
-  { to: '/how-it-works', label: 'How it works', icon: 'shuffle' },
-  { to: '/therapists', label: 'Our therapists', icon: 'person' },
-  { to: '/breathe', label: 'Breathing exercises', icon: 'spark' },
   { to: '/resources', label: 'Videos & articles', icon: 'play' },
-  { to: '/pricing', label: 'Pricing & insurance', icon: 'coins' },
   { to: '/blog', label: 'Blog', icon: 'message' },
+  { to: '/breathe', label: 'Breathing exercises', icon: 'spark' },
+  { to: '/how-it-works', label: 'How it works', icon: 'shuffle' },
   { to: '/how-it-works#faq', label: 'Questions', icon: 'smile' },
+  { to: '/therapists', label: 'Our therapists', icon: 'person', feature: 'therapists' },
+  { to: '/pricing', label: 'Pricing & insurance', icon: 'coins', feature: 'pricing' },
 ];
 
 /**
@@ -35,8 +40,11 @@ export default function CommandPalette({ onBook, initialOpen = false }) {
   const ui = useSiteContent('ui');
   const servicesContent = useSiteContent('services');
   const therapistsContent = useSiteContent('therapists');
+  const features = useFeatures();
+  const community = useCommunity();
   const services = Array.isArray(servicesContent.items) ? servicesContent.items : [];
-  const therapists = Array.isArray(therapistsContent.items) ? therapistsContent.items : [];
+  const therapists = features.therapists && Array.isArray(therapistsContent.items) ? therapistsContent.items : [];
+  const pages = PAGES.filter((p) => !p.feature || features[p.feature]);
   const navigate = useNavigate();
   const [open, setOpen] = useState(initialOpen);
   const [isMac] = useState(() => /mac|iphone|ipad/i.test(navigator.platform || navigator.userAgent));
@@ -86,27 +94,43 @@ export default function CommandPalette({ onBook, initialOpen = false }) {
         <CommandList className="max-h-[60vh]">
           <CommandEmpty>{ui.palette_empty}</CommandEmpty>
 
-          <CommandGroup heading={ui.palette_group_book}>
-            <CommandItem onSelect={() => run(() => onBook())} value="book a session appointment">
-              <Icon name="calendar" size={16} />
-              <span>{ui.palette_book}</span>
-              <CommandShortcut>Enter</CommandShortcut>
-            </CommandItem>
-            {services.map((s) => (
-              <CommandItem
-                key={s.id}
-                value={`book ${s.name} ${(s.modalities ?? []).join(' ')}`}
-                onSelect={() => run(() => onBook({ service: s.id }))}
-              >
-                <Icon name={s.icon} size={16} />
-                <span>{s.name}</span>
-                <CommandShortcut>${s.price}</CommandShortcut>
+          {features.booking && (
+            <CommandGroup heading={ui.palette_group_book}>
+              <CommandItem onSelect={() => run(() => onBook())} value="book a session appointment">
+                <Icon name="calendar" size={16} />
+                <span>{ui.palette_book}</span>
+                <CommandShortcut>Enter</CommandShortcut>
               </CommandItem>
-            ))}
-          </CommandGroup>
+              {services.map((s) => (
+                <CommandItem
+                  key={s.id}
+                  value={`book ${s.name} ${(s.modalities ?? []).join(' ')}`}
+                  onSelect={() => run(() => onBook({ service: s.id }))}
+                >
+                  <Icon name={s.icon} size={16} />
+                  <span>{s.name}</span>
+                  <CommandShortcut>${s.price}</CommandShortcut>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          )}
+
+          {community.enabled && (
+            <CommandGroup heading={community.eyebrow}>
+              <CommandItem
+                value="discord community join chat group"
+                onSelect={() => run(() => window.open(community.url, '_blank', 'noopener,noreferrer'))}
+              >
+                <Icon name="message" size={16} />
+                <span>{community.palette_label}</span>
+                <CommandShortcut>Discord</CommandShortcut>
+              </CommandItem>
+            </CommandGroup>
+          )}
 
           <CommandSeparator />
 
+          {therapists.length > 0 && (
           <CommandGroup heading={ui.palette_group_therapists}>
             {therapists.map((t) => (
               <CommandItem
@@ -120,11 +144,12 @@ export default function CommandPalette({ onBook, initialOpen = false }) {
               </CommandItem>
             ))}
           </CommandGroup>
+          )}
 
           <CommandSeparator />
 
           <CommandGroup heading={ui.palette_group_pages}>
-            {PAGES.map((p) => (
+            {pages.map((p) => (
               <CommandItem key={p.to} value={p.label} onSelect={() => goTo(p.to)}>
                 <Icon name={p.icon} size={16} />
                 <span>{p.label}</span>

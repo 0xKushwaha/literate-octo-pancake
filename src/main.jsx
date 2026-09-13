@@ -1,6 +1,6 @@
 import { StrictMode, Suspense, lazy } from 'react';
 import { createRoot } from 'react-dom/client';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { Navigate, createBrowserRouter, RouterProvider } from 'react-router-dom';
 import ErrorBoundary from './components/ErrorBoundary';
 import Layout from './layout/Layout';
 import HomePage from './pages/HomePage';
@@ -10,6 +10,7 @@ import TherapistsPage from './pages/TherapistsPage';
 import PricingPage from './pages/PricingPage';
 import NotFoundPage from './pages/NotFoundPage';
 import { useSiteContent } from './lib/queries/siteContent';
+import { useFeatures } from './lib/features';
 import './index.css';
 
 // Split off the pages most visitors never open, so the first load stays small.
@@ -42,6 +43,19 @@ function RouteError() {
 }
 
 /**
+ * A page that is behind one of the Show & hide switches.
+ *
+ * The route stays registered either way, so an old link, a bookmark or a
+ * search result never lands on a 404 while the section is switched off — it
+ * lands on the home page. Switch the section back on and the same URL serves
+ * the page again, unchanged.
+ */
+function Gated({ feature, children }) {
+  const features = useFeatures();
+  return features[feature] ? children : <Navigate to="/" replace />;
+}
+
+/**
  * Lazy routes need a Suspense boundary above them. Without one, React throws
  * while the chunk is in flight and the router falls straight through to the
  * error element — so /blog and /admin would intermittently render "Something
@@ -69,8 +83,8 @@ const router = createBrowserRouter([
       { path: '/', element: <HomePage /> },
       { path: '/services', element: <ServicesPage /> },
       { path: '/how-it-works', element: <HowItWorksPage /> },
-      { path: '/therapists', element: <TherapistsPage /> },
-      { path: '/pricing', element: <PricingPage /> },
+      { path: '/therapists', element: <Gated feature="therapists"><TherapistsPage /></Gated> },
+      { path: '/pricing', element: <Gated feature="pricing"><PricingPage /></Gated> },
       { path: '/resources', element: <Lazy><ResourcesPage /></Lazy> },
       { path: '/breathe', element: <Lazy><BreathePage /></Lazy> },
       { path: '/blog', element: <Lazy><BlogIndexPage /></Lazy> },

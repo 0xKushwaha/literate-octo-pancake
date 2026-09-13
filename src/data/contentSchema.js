@@ -10,6 +10,9 @@
  * Types:
  *   text     — single line
  *   richtext — multi-line plain text
+ *   toggle   — an on/off switch. Stored as the literal "on" or "off": an
+ *              empty stored value means "use the default" everywhere else in
+ *              this system, so a switch cannot be stored as "".
  *   json     — a structured list (services, therapists, …). Stored as JSON
  *              text; parsed on the way in. A list that declares `fields` or
  *              `itemType` gets a proper row editor in the admin instead of a
@@ -135,6 +138,16 @@ const strings = (itemLabel) => ({ itemLabel, itemType: 'string' });
 const LIST = 'json';
 
 export const CONTENT_SCHEMA = [
+  // ── What the site shows ───────────────────────────────────────────────────
+  // Four switches, and they are the reason nothing on this site has to be
+  // deleted to be taken down. Stored as the words "on"/"off" rather than as
+  // an empty string, because mergeContent treats an empty stored value as
+  // "fall back to the default" — an off switch saved as "" would read as on.
+  f('features.booking', 'Booking', 'off', 'toggle', 'Off hides the booking form and every button that opens it — the header, the mobile bar, the footer, the hero and the service cards. Those buttons offer the community instead. Turn it on and the whole booking flow comes back as it was.'),
+  f('features.therapists', 'Therapist profiles', 'off', 'toggle', 'Off takes the team off the homepage, the menu and the footer, and sends anyone with an old /therapists link back to the home page.'),
+  f('features.pricing', 'Pricing page', 'off', 'toggle', 'Off takes the plans off the menu and the footer and sends /pricing back to the home page. The prices on the service cards are a separate thing and are not affected.'),
+  f('features.community', 'Community (Discord)', 'on', 'toggle', 'The "Join our community" button and the band at the foot of every page. The invite link itself lives under Community — with no link saved, every community button stays hidden rather than pointing nowhere.'),
+
   // ── Brand ─────────────────────────────────────────────────────────────────
   f('brand.name', 'Practice name', brand.name),
   f('brand.tagline', 'Brand tagline', brand.tagline),
@@ -149,6 +162,7 @@ export const CONTENT_SCHEMA = [
   // meant the stored pink quietly overriding the new palette on the live site.
   f('brand.brand_color', 'Brand colour (hex)', '#0E6E7E', 'text', 'The one brand colour: buttons, links, focus rings, and every soft wash on the site is this mixed with white. Keep it dark enough for white text on top — anything that reads well as a button will work.'),
   f('brand.highlight_color', 'Highlight colour (hex)', '#FFBF00', 'text', 'The loud colour, used sparingly: the crisis banner, the button on the dark closing band, the exhale in the breathing player. It always carries black text, so keep it bright.'),
+  f('brand.peach_color', 'Peach accent (hex)', '#FFCBA4', 'text', 'The warm third colour, and the only one used sparingly on purpose: the status pill in the hero, the small bar beside each section label, one of the quote cards and the community chips. It never carries type, so it can be as soft as you like.'),
 
   // ── Navigation ────────────────────────────────────────────────────────────
   f('nav.book_label', 'Book button label', 'Book a session'),
@@ -415,6 +429,21 @@ export const CONTENT_SCHEMA = [
   f('cta.image_url', 'Call-to-action photo (URL)', IMAGES.services, 'text', 'Leave blank for a plain card.'),
   f('cta.reassurances', 'Reassurance chips', ['Free 15-min intro call', 'Cancel any time', 'No card to browse'], LIST, null, strings('Chip')),
 
+  // ── Community (Discord) ───────────────────────────────────────────────────
+  // What the closing band becomes while booking is switched off, and what
+  // every "book" button in the chrome offers instead.
+  f('community.eyebrow', 'Eyebrow', 'Community'),
+  f('community.headline', 'Headline (plain part)', 'You do not have to wait to be'),
+  f('community.headline_accent', 'Headline (highlighted part)', 'in the room.'),
+  f('community.body', 'Body', 'A moderated Discord for people working on the same things you are. Ask a question, answer one, or sit quietly and read. Free to join, and you can leave whenever you like.', 'richtext'),
+  f('community.invite_url', 'Discord invite link', '', 'text', 'Paste the invite from Discord — it looks like https://discord.gg/abc123. While this is blank every "Join our community" button stays hidden, so the site never shows a link that goes nowhere. Changing it here changes it everywhere, with no deploy.'),
+  f('community.cta_label', 'Button on the band', 'Join our community'),
+  f('community.secondary', 'Second button on the band', 'Or just call us'),
+  f('community.chips', 'Reassurance chips', ['Free to join', 'Moderated by the clinical team', 'Leave any time'], LIST, null, strings('Chip')),
+  f('community.nav_label', 'Button in the header', 'Join our community'),
+  f('community.mobile_label', 'Button on the mobile bar', 'Join our community'),
+  f('community.palette_label', 'Entry in the Cmd-K palette', 'Join our Discord community'),
+
   // ── Footer ────────────────────────────────────────────────────────────────
   f('footer.blurb', 'Footer blurb', 'A modern practice for people who have been meaning to do this for a while.', 'richtext'),
   f('footer.disclaimer', 'Footer disclaimer', `This site is a design demonstration. ${brand.name} is a fictional practice — nothing here is medical advice.`, 'richtext'),
@@ -423,9 +452,14 @@ export const CONTENT_SCHEMA = [
   f('footer.col1_title', 'First column heading', 'Practice'),
   f('footer.col2_title', 'Second column heading', 'Resources'),
   f('footer.col3_title', 'Third column heading', 'Legal'),
-  f('footer.privacy_url', 'Privacy policy link', '#'),
-  f('footer.terms_url', 'Terms of service link', '#'),
-  f('footer.accessibility_url', 'Accessibility link', '#'),
+  f('footer.privacy_label', 'Legal link 1: label', 'Privacy policy'),
+  f('footer.privacy_url', 'Legal link 1: address', '#'),
+  f('footer.terms_label', 'Legal link 2: label', 'Terms of service'),
+  f('footer.terms_url', 'Legal link 2: address', '#'),
+  f('footer.hipaa_label', 'Legal link 3: label', 'HIPAA Notice of Privacy Practices'),
+  f('footer.hipaa_url', 'Legal link 3: address', '#', 'text', 'The notice of privacy practices every practice has to publish. Paste the URL of the PDF or page once it exists.'),
+  f('footer.accessibility_label', 'Legal link 4: label', 'Accessibility'),
+  f('footer.accessibility_url', 'Legal link 4: address', '#'),
 
   // ── Booking ───────────────────────────────────────────────────────────────
   f('booking.mobile_bar_label', 'Mobile sticky bar label', 'Book a session'),
@@ -530,8 +564,9 @@ export const SCHEMA_BY_KEY = Object.fromEntries(CONTENT_SCHEMA.map((x) => [x.key
 
 /** Section display order in the admin, matching the page from top to bottom. */
 export const SECTION_ORDER = [
+  'features',
   'brand', 'nav', 'footer', 'booking', 'ui',
-  'hero', 'trust', 'heard', 'testimonials', 'explore', 'breathe_home', 'cta',
+  'hero', 'trust', 'heard', 'testimonials', 'explore', 'breathe_home', 'cta', 'community',
   'services', 'approach', 'why', 'faq', 'therapists', 'pricing', 'resources', 'blog', 'breathing',
 ];
 
@@ -541,6 +576,7 @@ export const SECTION_ORDER = [
  * guessing a key name.
  */
 export const SECTION_PAGE = {
+  features: 'visibility',
   brand: 'everywhere',
   nav: 'everywhere',
   footer: 'everywhere',
@@ -553,6 +589,7 @@ export const SECTION_PAGE = {
   explore: 'home',
   breathe_home: 'home',
   cta: 'home',
+  community: 'home',
   services: 'services',
   approach: 'how',
   why: 'how',
@@ -564,9 +601,21 @@ export const SECTION_PAGE = {
   breathing: 'breathe',
 };
 
-export const PAGE_ORDER = ['everywhere', 'home', 'services', 'how', 'therapists', 'pricing', 'resources', 'breathe'];
+/**
+ * Pages that live behind a switch in the `features` section. The admin reads
+ * this to mark a page "Hidden on the site" — the fields stay editable either
+ * way, and someone filling in a therapist deserves to know the page is
+ * currently switched off rather than find out by visiting it.
+ */
+export const PAGE_FEATURE = {
+  therapists: 'therapists',
+  pricing: 'pricing',
+};
+
+export const PAGE_ORDER = ['visibility', 'everywhere', 'home', 'services', 'how', 'therapists', 'pricing', 'resources', 'breathe'];
 
 export const PAGE_TITLES = {
+  visibility: 'Show & hide',
   everywhere: 'Everywhere',
   home: 'Home page',
   services: 'Services page',
@@ -578,6 +627,7 @@ export const PAGE_TITLES = {
 };
 
 export const PAGE_PATHS = {
+  visibility: null,
   everywhere: null,
   home: '/',
   services: '/services',
@@ -589,17 +639,20 @@ export const PAGE_PATHS = {
 };
 
 export const PAGE_BLURBS = {
+  visibility: 'Switches for whole parts of the site. Nothing is deleted — turn one back on and it returns exactly as it was.',
   everywhere: 'The header, the footer, the booking form and anything shared by every page.',
   home: 'The short landing page: hero, the numbers, "we heard you", testimonials, the explore cards, the breathing band and the closing call to action.',
   services: 'The page behind the Care menu.',
   how: 'Steps, "Why Lumen" and the questions people ask before booking.',
-  therapists: 'The team, their filters and their cards.',
-  pricing: 'Plans and the small print.',
+  therapists: 'The team, their filters and their cards. Editable whether or not the page is switched on — edits are kept and appear the moment it is.',
+  pricing: 'Plans and the small print. Editable whether or not the page is switched on — edits are kept and appear the moment it is.',
   resources: 'Videos, articles and the blog.',
   breathe: 'The guided breathing exercises.',
 };
 
 export const SECTION_TITLES = {
+  features: 'What the site shows',
+  community: 'Community (Discord)',
   ui: 'Shared buttons & error screens',
   brand: 'Brand & contact',
   nav: 'Navigation',

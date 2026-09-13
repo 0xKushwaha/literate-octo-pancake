@@ -5,6 +5,7 @@ import Avatar from '../components/Avatar';
 import HeroVisual from './HeroVisual';
 import Icon from '../components/Icon';
 import { useBrand, useSiteContent } from '../lib/queries/siteContent';
+import { useFeatures, usePrimaryCta } from '../lib/features';
 
 /**
  * The changing word on its own line.
@@ -57,8 +58,13 @@ function MatchCard({ therapist, badge }) {
   );
 }
 
-export default function Hero({ onBook }) {
+export default function Hero() {
   const content = useSiteContent('hero');
+  const features = useFeatures();
+  // Booking when booking is on, the community invite when it is not, and
+  // nothing at all when there is neither — better an absent button than one
+  // that opens a form the practice has switched off.
+  const cta = usePrimaryCta(content.primary_cta);
   const trust = useSiteContent('trust');
   const brand = useBrand();
   const therapistsContent = useSiteContent('therapists');
@@ -78,7 +84,7 @@ export default function Hero({ onBook }) {
       <div className="mx-auto grid w-full max-w-[1280px] items-center gap-12 px-5 sm:px-8 lg:grid-cols-2 lg:gap-14">
         <div>
           <div className="flex flex-wrap items-center gap-3">
-            <Pill tone="rose">
+            <Pill tone="peach">
               <span className="size-1.5 rounded-full bg-ink" />
               {content.status_pill}
             </Pill>
@@ -93,10 +99,16 @@ export default function Hero({ onBook }) {
           <p className="mt-7 max-w-[46ch] text-[17px] leading-relaxed text-ink-2 sm:text-[18.5px]">{content.subheadline}</p>
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
-            <Button variant="primary" size="lg" icon="arrow" onClick={onBook} className="w-full sm:w-auto">
-              {content.primary_cta}
-            </Button>
-            <Button variant="secondary" size="lg" as={Link} to="/how-it-works" className="w-full sm:w-auto">
+            {cta && (
+              <Button variant="primary" size="lg" icon="arrow" {...cta.props} className="w-full sm:w-auto">
+                {cta.label}
+              </Button>
+            )}
+            {/* Promoted to the primary style when there is no primary button
+                — while the Discord invite is still blank there would
+                otherwise be nothing filled in on the hero at all, which reads
+                as a page that has not finished loading. */}
+            <Button variant={cta ? 'secondary' : 'primary'} size="lg" as={Link} to="/how-it-works" className="w-full sm:w-auto">
               {content.secondary_cta}
             </Button>
           </div>
@@ -118,7 +130,11 @@ export default function Hero({ onBook }) {
             photograph everywhere else. Same box, same radius, same shadow,
             either way — see HeroVisual for which case gets which. */}
         <HeroVisual imageUrl={content.image_url} imageAlt={content.image_alt ?? ''}>
-          <MatchCard therapist={therapists[0]} badge={content.match_badge} />
+          {/* The match card is a therapist profile, so it follows the same
+              switch the rest of them do. Leaving a named clinician floating
+              over the hero while /therapists is switched off would be the
+              one place the site contradicts itself. */}
+          {features.therapists && <MatchCard therapist={therapists[0]} badge={content.match_badge} />}
         </HeroVisual>
       </div>
 

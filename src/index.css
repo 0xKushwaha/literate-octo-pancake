@@ -53,34 +53,41 @@
   --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
 
   /* ============================================================
-     PALETTE — deep teal, amber, warm paper
+     PALETTE — Adriatic Sea, amber, warm paper
      ============================================================
      Two colours carry the brand, and they are both editable in the admin:
 
-       --accent     #0E6E7E   deep teal   (brand.brand_color)
-       --highlight  #FFBF00   amber       (brand.highlight_color)
+       --accent     #055F81   Adriatic Sea, SW 6790  (brand.brand_color)
+       --highlight  #FFBF00   amber                  (brand.highlight_color)
 
      Everything else is one of those two mixed with white, or ink, or paper.
      Nothing here is a gradient: every surface in this site is one flat
      colour, and depth comes from shadow and hairlines instead.
 
-     Why teal rather than the old pastel rose: the rose was too light to
-     carry white text, which left the site with black buttons, black links
-     and colour only in the washes — pleasant, but nothing to remember it
-     by. #0E6E7E clears 5.9:1 against white and 5.6:1 as text on paper, so
-     the brand colour can be the button, the link, the focus ring and the
-     large display type. Amber is then the one loud colour, kept for the
-     things that must be noticed: the crisis banner, the closing call to
-     action, the exhale, a highlight mark.
+     Why this blue and not the old pastel rose: none of the six pastels on
+     the reference card clears 1.8:1 against white, so none of them can ever
+     carry white text. That is what left the site with black buttons, black
+     links and colour only in the washes — pleasant, and nothing to remember
+     it by.
+
+     Why this blue and not the teal it replaced: #0E6E7E was mixed by eye and
+     is not on any reference sheet. #055F81 is SW 6790 "Adriatic Sea", straight
+     off the chip card, and it is measurably better where it counts — 7.1:1
+     under white against the teal's 5.9, and 6.7:1 as text on paper against
+     5.6. That is the difference between AA and AAA for a button label.
+
+     Amber stays the one loud colour, kept for the things that must be
+     noticed: the crisis banner, the closing call to action, the exhale, a
+     highlight mark. It is never type.
      ============================================================ */
 
   /* grounds — warm paper, so the teal reads calm rather than clinical */
   --color-bg: #FAF9F6;
-  --color-bg-2: color-mix(in oklab, var(--accent) 10%, white);
+  --color-bg-2: color-mix(in oklab, var(--accent) 20%, white);
   --color-bg-3: color-mix(in oklab, var(--accent) 20%, white);
   --color-surface: #ffffff;
-  --color-surface-2: color-mix(in oklab, var(--accent) 6%, white);
-  --color-surface-3: color-mix(in oklab, var(--accent) 14%, white);
+  --color-surface-2: color-mix(in oklab, var(--accent) 10%, white);
+  --color-surface-3: color-mix(in oklab, var(--accent) 22%, white);
 
   /* the dark band: the closing CTA and the breathing player. 8.3:1 under
      white text, so body copy on it is comfortable, not just legal. */
@@ -88,22 +95,34 @@
   --color-deep-2: color-mix(in oklab, var(--accent) 88%, #06171A);
 
   /* hairlines — ink at an alpha, so they read on every ground in the set */
-  --color-line: rgba(11, 31, 36, 0.10);
-  --color-line-2: rgba(11, 31, 36, 0.20);
+  --color-line: rgba(8, 29, 38, 0.10);
+  --color-line-2: rgba(8, 29, 38, 0.20);
 
-  /* Text, strongest first. Ink is a very dark teal rather than black: on warm
-     paper pure black reads as a hole, and this still clears 16:1. */
-  --color-ink: #0B1F24;
-  --color-ink-2: rgba(11, 31, 36, 0.80);
-  --color-ink-3: rgba(11, 31, 36, 0.68);
-  --color-ink-4: rgba(11, 31, 36, 0.58);
+  /* Text, strongest first. Ink is a very dark blue rather than black: on warm
+     paper pure black reads as a hole, and this clears 16.4:1. It moved with
+     the accent — a neutral built on the old teal leaves every hairline and
+     every caption a few degrees off the hue around it, which is the kind of
+     thing nobody can name and everybody can see. */
+  --color-ink: #081D26;
+  --color-ink-2: rgba(8, 29, 38, 0.80);
+  --color-ink-3: rgba(8, 29, 38, 0.68);
+  --color-ink-4: rgba(8, 29, 38, 0.58);
 
   /* brand family — one hue, mixed with white. Every step is a fill for ink
-     type; brand-500 and brand-600 are the two that can carry white type. */
-  --color-brand-50: color-mix(in oklab, var(--accent) 8%, white);
-  --color-brand-100: color-mix(in oklab, var(--accent) 18%, white);
-  --color-brand-200: color-mix(in oklab, var(--accent) 30%, white);
-  --color-brand-300: color-mix(in oklab, var(--accent) 48%, white);
+     type; brand-500 and brand-600 are the two that can carry white type.
+
+     The percentages were all raised in this pass. At the old values the pale
+     end of the ladder was not a colour: --color-bg-2 at 10% has an oklab
+     chroma of 0.009, and below about 0.010 the eye simply reads white. Four
+     sections were painting themselves in it and the page came out 88% white
+     with the brand on 7% of it, which is the whole "the colour is not catchy"
+     complaint in one number. The headroom was always there — ink on the
+     strongest step here still clears 6.6:1, and nothing in this range carries
+     body text anyway. */
+  --color-brand-50: color-mix(in oklab, var(--accent) 12%, white);
+  --color-brand-100: color-mix(in oklab, var(--accent) 26%, white);
+  --color-brand-200: color-mix(in oklab, var(--accent) 38%, white);
+  --color-brand-300: color-mix(in oklab, var(--accent) 55%, white);
   --color-brand-400: color-mix(in oklab, var(--accent) 68%, white);
   --color-brand-500: var(--accent);
   --color-brand-600: color-mix(in oklab, var(--accent) 86%, #06171A);
@@ -113,10 +132,29 @@
      leave the hero headline unreadable. */
   --color-accent-strong: color-mix(in oklab, var(--accent) 88%, #06171A);
 
-  /* sand — the one warm note, from the peach in the reference palette. Used
-     where teal would feel cold: quotes, the "hold" phase, soft badges. */
+  /* The warm counterpoint, sampled from the "Malibu Escape" card. None of
+     these can carry white text — the best of them manages 1.73:1 — so they
+     are fills and only fills, always with ink on them. Used where a blue
+     would feel cold: the reasons people put therapy off, the "hold" phase of
+     a breath, soft badges. Ink clears 9.9:1 on the worst of them. */
   --color-sand-50: #FBF2E4;
-  --color-sand-100: #F6E3C9;
+  --color-sand-100: #F9DCC0;
+  --color-rose-100: #FFD3D6;
+  --color-rose-200: #FFB0B5;
+
+  /* peach — the third colour, and the smallest.
+
+     Asked for as an alternative rather than a replacement, so it is not in
+     the ladder with the blue: it appears in five places and nowhere else —
+     the status pill in the hero, the bar beside every section label, one of
+     the five quote cards, the band behind an explore card, and the community
+     chips. Like sand it is a fill only (1.5:1 at its strongest, so it can
+     never carry type), and ink clears 13:1 on the palest step. Editable as
+     brand.peach_color, so it can be tuned or taken back out from the admin
+     without touching any of this. */
+  --color-peach-50: color-mix(in oklab, var(--peach) 40%, white);
+  --color-peach-100: var(--peach);
+  --color-peach-200: color-mix(in oklab, var(--peach) 78%, #A8410E);
 
   /* amber — the single saturated colour. Attention, and nothing else:
      primary actions on the dark band, the crisis banner, the exhale.
@@ -185,8 +223,9 @@
   /* Runtime brand colours. The admin's brand.accent_color / brand.button_color
      are written onto <html> by src/lib/theme.js; these are the fallbacks. */
   :root {
-    --accent: #0E6E7E;
+    --accent: #055F81;
     --highlight: #FFBF00;
+    --peach: #FFCBA4;
     /* Buttons are the brand colour. Kept as its own variable so a single
        override can change them without touching the washes. */
     --button: var(--accent);

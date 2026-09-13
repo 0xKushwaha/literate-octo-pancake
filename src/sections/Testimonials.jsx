@@ -2,13 +2,20 @@ import { Section, SectionHeading, Stagger, StaggerItem } from '../components/pri
 import Icon from '../components/Icon';
 import { useSiteContent } from '../lib/queries/siteContent';
 
-export default function Testimonials({ limit = 6 }) {
+/**
+ * `tinted` exists because of where this section sits on the homepage now:
+ * directly under the hero, which is already a tinted band. Two of them
+ * touching read as one very tall band with a stats strip floating in the
+ * middle of it, so on the homepage the reviews sit on paper and the hero
+ * keeps its edge. Everywhere else they stay tinted.
+ */
+export default function Testimonials({ limit = 6, tinted = true }) {
   const content = useSiteContent('testimonials');
   const testimonials = Array.isArray(content.items) ? content.items : [];
   if (testimonials.length === 0) return null;
 
   return (
-    <div className="bg-surface-2/60">
+    <div className={tinted ? 'bg-bg-2' : ''}>
       <Section id="testimonials" className="py-20 sm:py-24">
         <SectionHeading eyebrow={content.eyebrow} title={content.headline} align="center" />
 

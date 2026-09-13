@@ -10,7 +10,7 @@ export default function Approach({ teaser = false, withHeading = true }) {
   const steps = Array.isArray(content.steps) ? content.steps : [];
 
   return (
-    <div className={teaser ? 'bg-surface-2/60' : ''}>
+    <div className={teaser ? 'bg-bg-2' : ''}>
       <Section id="approach" className={teaser ? 'py-20 sm:py-24' : sectionPad(withHeading)}>
         {withHeading && (
           <SectionHeading eyebrow={content.eyebrow} title={content.headline} lead={content.lead} align="center" />
@@ -58,7 +58,7 @@ export function Why() {
   const cards = Array.isArray(why.items) ? why.items : [];
   if (cards.length === 0) return null;
   return (
-    <div className="bg-surface-2/60">
+    <div className="bg-bg-2">
       <Section id="why" className="py-16 sm:py-24">
         <SectionHeading eyebrow={why.eyebrow} title={why.headline} align="center" />
         {/* Six columns so a five-card set ends in a row of two wide cards
