@@ -8,9 +8,10 @@ import { supabase, isDemo } from '../supabase';
  * expire and break every published article), admin-only write.
  *
  * Every failure here is turned into a sentence an editor can act on. The one
- * that matters is a missing bucket, which means 008 has not been run — and
- * the answer to that is "paste a link instead", not "ask a developer", which
- * is why the editor keeps the URL box next to the upload button.
+ * that matters is a missing bucket, which means migration 008 has not been
+ * run — and since uploading is now the only way to put a picture on an
+ * article, that message has to name the file to run rather than suggest a
+ * workaround there no longer is.
  */
 const BUCKET = 'media';
 
@@ -38,7 +39,7 @@ function friendlyError(err) {
   const text = `${err?.message ?? ''} ${err?.error ?? ''}`.toLowerCase();
   if (text.includes('bucket not found') || text.includes('does not exist')) {
     return new Error(
-      'Image storage is not set up yet — run migration 008 in the Supabase SQL editor. Until then you can paste an image link instead.',
+      'Image storage is not set up yet — run database/migrations/008_article_images.sql in the Supabase SQL editor, then try again.',
     );
   }
   if (text.includes('row-level security') || text.includes('unauthorized') || text.includes('not authorized')) {
@@ -65,7 +66,7 @@ export async function uploadImage(file, folder = 'articles') {
     throw new Error('That image is too large. Keep it under 10 MB — a cover photo rarely needs more.');
   }
   if (isDemo) {
-    throw new Error('Uploading needs the live database. Paste an image link instead while in demo mode.');
+    throw new Error('Uploading needs the live database — it does nothing in demo mode.');
   }
 
   const path = `${folder}/${safeName(file.name)}`;

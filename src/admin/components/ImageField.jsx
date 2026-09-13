@@ -3,27 +3,30 @@ import toast from 'react-hot-toast';
 import { ACCEPTED_IMAGE_TYPES, uploadImage } from '../../lib/queries/media';
 
 /**
- * Pick a picture: upload one, or paste a link to one.
+ * Pick a picture: choose a file, and that is the whole interaction.
  *
- * Both, deliberately. Uploading is what someone actually wants — choose a file
- * and be done — but it needs the storage bucket from migration 008, and this
- * editor has to keep working on a database that has not had it run yet. So the
- * link box is not a fallback hidden behind an error; it sits under the button
- * and always works.
+ * There was a "paste an image link" box next to the upload button for one
+ * afternoon and it was removed on purpose. Every link people reach for — a
+ * Google Drive share, a Google Photos album, an Unsplash photo page — is a
+ * *web page* that displays the picture rather than the picture itself, so an
+ * <img> given one draws a broken icon. That is not a thing an editor can be
+ * expected to know, and the workarounds (rewriting known share links, naming
+ * the service in the error) each only covered the cases we had thought of.
+ * Uploading has none of that surface: the file goes into the practice's own
+ * storage and the URL is one this code wrote.
  *
  * Alt text is a field rather than a nicety: an article cover that fails to
  * load, or a reader using a screen reader, gets whatever is typed here. Left
  * empty the picture is marked decorative (`alt=""`), which is the correct and
  * honest answer for a photograph that repeats the headline.
  */
+
 /**
  * Shown instead of the controls when the database cannot store a cover yet.
  *
- * This replaced a post-save toast. The toast was accurate and useless: the
- * link box looked like it worked, the preview appeared, and the picture was
- * only reported lost after Save — which reads as "the link box is broken"
- * rather than "there is one setup step left". A field that cannot keep what
- * you type should not accept it.
+ * This replaced a post-save toast, which was accurate and useless: the field
+ * looked like it worked and the picture was only reported lost after Save. A
+ * field that cannot keep what you give it should not accept it.
  */
 function NotReadyNotice({ onRecheck, checking }) {
   return (
@@ -37,10 +40,6 @@ function NotReadyNotice({ onRecheck, checking }) {
           database/migrations/008_article_images.sql
         </code>{' '}
         and press Run. It adds the cover columns and creates the bucket uploads go into.
-      </p>
-      <p className="mt-1.5 text-[11px] text-amber-700">
-        Pictures placed <em>inside</em> the article with the toolbar’s link button already work — they
-        travel with the text. It is only the cover, and uploading files, that need this.
       </p>
       <button
         type="button"
@@ -62,6 +61,7 @@ export default function ImageField({
   label = 'Cover image',
   hint = 'Shown on the blog cards, the homepage and at the top of the article.',
   ready = true,
+  canUpload = true,
   onRecheck,
   checking = false,
 }) {
@@ -107,8 +107,11 @@ export default function ImageField({
       {url ? (
         <div className="relative overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
           {broken ? (
-            <p className="px-3 py-6 text-center text-[11.5px] text-gray-500">
-              That link did not load as an image. Check the address, or upload a file instead.
+            // An upload URL that stops loading means the file went away, or an
+            // older article is still carrying a link from before this field
+            // was upload-only. Either way the fix is the same.
+            <p className="px-3 py-6 text-center text-[11.5px] leading-relaxed text-gray-600">
+              This picture is no longer loading. Remove it and upload the file again.
             </p>
           ) : (
             <img
@@ -133,32 +136,36 @@ export default function ImageField({
         </div>
       )}
 
-      <div className="mt-2 flex flex-wrap items-center gap-2">
-        <input
-          ref={fileRef}
-          type="file"
-          accept={ACCEPTED_IMAGE_TYPES.join(',')}
-          onChange={(e) => handleFile(e.target.files?.[0])}
-          className="hidden"
-        />
-        <button
-          type="button"
-          onClick={() => fileRef.current?.click()}
-          disabled={uploading}
-          className="rounded-lg bg-teal-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-teal-700 disabled:opacity-40"
-        >
-          {uploading ? 'Uploading…' : url ? 'Replace image' : 'Upload image'}
-        </button>
-        <span className="text-[11px] text-gray-400">JPG, PNG, WebP or GIF · up to 10 MB</span>
-      </div>
+      {/* Without this the panel is a placeholder and an alt-text box with no
+          way to do anything, and no clue why — which is exactly how demo mode
+          renders, since uploading needs the live database. */}
+      {!canUpload && (
+        <p className="mt-2 text-[11px] text-gray-400">
+          Uploading needs the live database, so it is unavailable here.
+        </p>
+      )}
 
-      <input
-        type="url"
-        value={url ?? ''}
-        onChange={(e) => { setBroken(false); set(e.target.value); }}
-        placeholder="…or paste an image link (https://…)"
-        className="mt-2 w-full rounded-lg border border-gray-300 px-3 py-1.5 text-xs text-gray-900 outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
-      />
+      {canUpload && (
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <input
+            ref={fileRef}
+            type="file"
+            accept={ACCEPTED_IMAGE_TYPES.join(',')}
+            onChange={(e) => handleFile(e.target.files?.[0])}
+            className="hidden"
+          />
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            disabled={uploading}
+            className="rounded-lg bg-teal-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-teal-700 disabled:opacity-40"
+          >
+            {uploading ? 'Uploading…' : url ? 'Replace image' : 'Upload image'}
+          </button>
+          <span className="text-[11px] text-gray-400">JPG, PNG, WebP or GIF · up to 10 MB</span>
+        </div>
+      )}
+
 
       <input
         type="text"

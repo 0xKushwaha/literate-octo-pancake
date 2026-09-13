@@ -87,9 +87,11 @@ export default function RichTextEditor({ value, onChange, canUpload = true }) {
   }
 
   /**
-   * Put a picture in the body. Upload one, or paste a link — the same pair the
-   * cover field offers, and for the same reason: uploading needs the storage
-   * bucket from migration 008, and the editor has to stay usable without it.
+   * Put a picture in the body. Uploading only — the "by link" button that used
+   * to sit beside it was removed with the cover field's link box, because the
+   * links people actually paste (a Drive share, a Photos album, an Unsplash
+   * photo page) are web pages showing a picture rather than the picture, and
+   * an <img> given one just breaks. See ImageField for the longer version.
    */
   const insertImage = (src) => {
     if (!src) return;
@@ -107,12 +109,6 @@ export default function RichTextEditor({ value, onChange, canUpload = true }) {
       setUploading(false);
       if (fileRef.current) fileRef.current.value = '';
     }
-  };
-
-  const addImageByUrl = () => {
-    const url = window.prompt('Image link:', 'https://');
-    if (!url || url === 'https://') return;
-    insertImage(url.trim());
   };
 
   const addLink = () => {
@@ -172,9 +168,6 @@ export default function RichTextEditor({ value, onChange, canUpload = true }) {
             {uploading ? '…' : '🖼'}
           </ToolbarBtn>
         )}
-        <ToolbarBtn onClick={addImageByUrl} title="Add a picture by link">
-          🖼+
-        </ToolbarBtn>
       </div>
 
       {/* Editor area */}

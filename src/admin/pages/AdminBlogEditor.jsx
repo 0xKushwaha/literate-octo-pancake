@@ -223,7 +223,7 @@ export default function AdminBlogEditor() {
             {loading ? (
               <FormSkeleton />
             ) : (
-              <RichTextEditor value={form.content} onChange={(html) => set('content', html)} canUpload={imagesReady !== false} />
+              <RichTextEditor value={form.content} onChange={(html) => set('content', html)} canUpload={imagesReady !== false && !isDemo} />
             )}
           </div>
         </div>
@@ -278,6 +278,7 @@ export default function AdminBlogEditor() {
               url={form.cover_image}
               alt={form.cover_alt}
               ready={imagesReady}
+              canUpload={imagesReady !== false && !isDemo}
               onRecheck={recheckImages}
               checking={checkingImages}
               onChange={({ url, alt }) => setForm((f) => ({ ...f, cover_image: url, cover_alt: alt }))}
