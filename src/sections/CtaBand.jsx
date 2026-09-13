@@ -59,6 +59,10 @@ export default function CtaBand() {
           </h2>
           <p className="mx-auto mt-6 max-w-[46ch] text-[16.5px] leading-relaxed text-white/80">{content.body}</p>
 
+          {/* The email capture lives just under the hero, not here — see
+              CommunityBand. This band keeps the pair of buttons it always had;
+              by the time someone reaches the foot of the page they have either
+              joined already or want the phone number. */}
           <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
             {action && (
               <Button variant="accent" size="lg" icon="arrow" {...action.props}>

@@ -15,6 +15,7 @@ const AdminYouTube = lazy(() => import('./pages/AdminYouTube'));
 const AdminContent = lazy(() => import('./pages/AdminContent'));
 const AdminFaqs = lazy(() => import('./pages/AdminFaqs'));
 const AdminBookings = lazy(() => import('./pages/AdminBookings'));
+const AdminCommunity = lazy(() => import('./pages/AdminCommunity'));
 
 /**
  * One Toaster for the whole admin, mounted here rather than in each page.
@@ -74,6 +75,7 @@ export default function AdminApp() {
                 <Route path="content" element={<AdminContent />} />
                 <Route path="faqs" element={<AdminFaqs />} />
                 <Route path="bookings" element={<AdminBookings />} />
+                <Route path="community" element={<AdminCommunity />} />
               </Routes>
             </AdminShell>
           </AdminGuard>

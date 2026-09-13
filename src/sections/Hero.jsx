@@ -4,7 +4,7 @@ import { Button, Counter, Pill } from '../components/primitives';
 import Avatar from '../components/Avatar';
 import HeroVisual from './HeroVisual';
 import Icon from '../components/Icon';
-import { useBrand, useSiteContent } from '../lib/queries/siteContent';
+import { useSiteContent } from '../lib/queries/siteContent';
 import { useFeatures, usePrimaryCta } from '../lib/features';
 
 /**
@@ -66,11 +66,9 @@ export default function Hero() {
   // that opens a form the practice has switched off.
   const cta = usePrimaryCta(content.primary_cta);
   const trust = useSiteContent('trust');
-  const brand = useBrand();
   const therapistsContent = useSiteContent('therapists');
   const booking = useSiteContent('booking');
   const words = Array.isArray(content.rotating_words) && content.rotating_words.length ? content.rotating_words : ['you'];
-  const credentials = Array.isArray(brand.credentials) ? brand.credentials : [];
   const stats = Array.isArray(trust.stats) ? trust.stats : [];
   // The same list the booking form offers, minus the two entries that are not
   // insurers. Nothing new to maintain, and it can never drift from the form.
@@ -113,17 +111,6 @@ export default function Hero() {
             </Button>
           </div>
 
-          <ul className="mt-8 flex flex-wrap items-center gap-2">
-            {credentials.slice(0, 4).map((c) => (
-              <li
-                key={c}
-                className="flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5 text-[12.5px] text-ink-2"
-              >
-                <Icon name="check" size={12} className="text-brand-500" />
-                {c}
-              </li>
-            ))}
-          </ul>
         </div>
 
         {/* The organic form on a device that can carry it, the practice's
