@@ -155,7 +155,7 @@ export const CONTENT_SCHEMA = [
   f('brand.email', 'Contact email', brand.email),
   f('brand.address', 'Address', brand.address),
   f('brand.crisis_line', 'Crisis banner text', 'Call or text 988 — Suicide & Crisis Lifeline, 24/7. If someone is in danger right now, call 911.', 'richtext'),
-  f('brand.credentials', 'Credential badges (hero)', credentials, LIST, 'Short trust badges shown under the hero buttons.', strings('Badge')),
+  f('brand.credentials', 'Credential badges (footer)', credentials, LIST, 'Short trust badges shown at the foot of every page, above the copyright line. Up to six.', strings('Badge')),
   // Two colours, and the whole site is mixed from them. New keys on purpose:
   // the old accent_color / button_color rows are still in site_content with
   // the pastel values this site shipped with, and reusing the keys would have
@@ -443,6 +443,12 @@ export const CONTENT_SCHEMA = [
   f('community.nav_label', 'Button in the header', 'Join our community'),
   f('community.mobile_label', 'Button on the mobile bar', 'Join our community'),
   f('community.palette_label', 'Entry in the Cmd-K palette', 'Join our Discord community'),
+  f('community.email_placeholder', 'Email box placeholder', 'Enter your email ID'),
+  f('community.email_label', 'Email box label (read aloud by screen readers)', 'Your email address'),
+  f('community.privacy_note', 'Small print under the email box', 'We use it to send the invite again if the link ever changes. Nothing else, ever.', 'richtext'),
+  f('community.success', 'Message after joining', 'You are in — opening Discord now.'),
+  f('community.already', 'Message when that address has joined before', 'You are already on the list — opening Discord now.'),
+  f('community.invalid_email', 'Message when the address looks wrong', 'That email address does not look right.'),
 
   // ── Footer ────────────────────────────────────────────────────────────────
   f('footer.blurb', 'Footer blurb', 'A modern practice for people who have been meaning to do this for a while.', 'richtext'),

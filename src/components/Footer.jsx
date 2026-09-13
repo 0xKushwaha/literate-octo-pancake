@@ -47,6 +47,7 @@ const staticColumns = [
 export default function Footer() {
   const brand = useBrand();
   const footerContent = useSiteContent('footer');
+  const credentials = Array.isArray(brand.credentials) ? brand.credentials : [];
   const ui = useSiteContent('ui');
   const features = useFeatures();
   const community = useCommunity();
@@ -109,11 +110,6 @@ export default function Footer() {
               </span>
             </div>
 
-            {cta && (
-              <Button className="mt-8" variant="secondary" icon="arrow" {...cta.props}>
-                {cta.label}
-              </Button>
-            )}
           </div>
 
           <div className="grid gap-10 sm:grid-cols-3">
@@ -140,7 +136,37 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-16 flex flex-col gap-4 border-t border-line pt-8 sm:flex-row sm:items-center sm:justify-between">
+        {/* The credential badges. They used to sit under the hero buttons and
+            were moved here: they are reassurance, not a headline, and the
+            place someone looks for "is this practice legitimate" is the foot
+            of the page, next to the legal column. Being in the footer also
+            puts them on every page rather than only the homepage. */}
+        {credentials.length > 0 && (
+          <ul className="mt-16 flex flex-wrap items-center gap-2 border-t border-line pt-8">
+            {credentials.slice(0, 6).map((c) => (
+              <li
+                key={c}
+                className="flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5 text-[12.5px] text-ink-2"
+              >
+                <Icon name="check" size={12} className="text-brand-500" />
+                {c}
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {/* The one action in the footer, and it comes after the badges: the
+            reassurance is what earns the click, so it reads in that order
+            rather than asking first and justifying afterwards. */}
+        {cta && (
+          <div className={credentials.length > 0 ? 'mt-7' : 'mt-16 border-t border-line pt-8'}>
+            <Button variant="secondary" icon="arrow" {...cta.props}>
+              {cta.label}
+            </Button>
+          </div>
+        )}
+
+        <div className={`flex flex-col gap-4 border-t border-line pt-8 sm:flex-row sm:items-center sm:justify-between ${credentials.length > 0 || cta ? 'mt-10' : 'mt-16'}`}>
           <p className="text-[12.5px] text-ink-4">
             © {new Date().getFullYear()} {brand.name} {footerContent.copyright_suffix}
           </p>

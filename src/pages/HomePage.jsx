@@ -6,6 +6,7 @@ import Therapists from '../sections/Therapists';
 import Testimonials from '../sections/Testimonials';
 import Explore from '../sections/Explore';
 import BreathePrompt from '../sections/BreathePrompt';
+import CommunityBand from '../sections/CommunityBand';
 import CtaBand from '../sections/CtaBand';
 import { useBooking } from '../lib/booking';
 import { useFeatures } from '../lib/features';
@@ -35,6 +36,7 @@ export default function HomePage() {
   return (
     <>
       <Hero />
+      <CommunityBand />
       <Testimonials limit={3} tinted={false} />
       <HeardYou limit={3} />
       <BreathePrompt />
