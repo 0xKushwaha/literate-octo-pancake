@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { getArticleById, saveArticle } from '../../lib/queries/articles';
+import { articleImagesReady, getArticleById, saveArticle } from '../../lib/queries/articles';
 import { supabase, isDemo } from '../../lib/supabase';
 import RichTextEditor from '../components/RichTextEditor';
 import ImageField from '../components/ImageField';
@@ -27,6 +27,31 @@ export default function AdminBlogEditor() {
   const [slugEdited, setSlugEdited] = useState(false);
   const [loading, setLoading] = useState(!isNew);
   const [loadError, setLoadError] = useState(null);
+
+  // Whether the database can store a cover picture yet (migration 008). Asked
+  // once on mount so the picture field can say so up front, and re-askable
+  // from the field itself, because the usual way this gets fixed is the editor
+  // running the migration in another tab and coming straight back.
+  const [imagesReady, setImagesReady] = useState(null);
+  const [checkingImages, setCheckingImages] = useState(false);
+
+  const recheckImages = useCallback(async () => {
+    setCheckingImages(true);
+    try {
+      const ok = await articleImagesReady();
+      setImagesReady(ok);
+      if (ok) toast.success('Pictures are set up — you can add a cover now');
+      else toast('Still not there. Check the query ran without an error.', { icon: 'ℹ️' });
+    } finally {
+      setCheckingImages(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    articleImagesReady().then((ok) => { if (active) setImagesReady(ok); });
+    return () => { active = false; };
+  }, []);
 
   // The article's existing publish date. It has to travel with every save —
   // see src/admin/articlePublishDate.js for why.
@@ -198,7 +223,7 @@ export default function AdminBlogEditor() {
             {loading ? (
               <FormSkeleton />
             ) : (
-              <RichTextEditor value={form.content} onChange={(html) => set('content', html)} />
+              <RichTextEditor value={form.content} onChange={(html) => set('content', html)} canUpload={imagesReady !== false} />
             )}
           </div>
         </div>
@@ -252,6 +277,9 @@ export default function AdminBlogEditor() {
             <ImageField
               url={form.cover_image}
               alt={form.cover_alt}
+              ready={imagesReady}
+              onRecheck={recheckImages}
+              checking={checkingImages}
               onChange={({ url, alt }) => setForm((f) => ({ ...f, cover_image: url, cover_alt: alt }))}
             />
           </div>

@@ -12,9 +12,27 @@ import { demoArticles } from '../demoData';
  */
 const COVER_COLUMNS = 'cover_image, cover_alt';
 
+const MISSING_COLUMN_CODES = new Set(['42703', 'PGRST204']);
+const OPTIONAL_COLUMNS = /cover_image|cover_alt|is_featured/;
+
+/**
+ * Does this error mean *this particular* column is not in the database?
+ *
+ * The message names the column — "column articles.cover_image does not exist"
+ * — and that has to be what decides, because the error *code* is the same for
+ * every missing column. Testing the code alone made both group tests answer
+ * "yes" to one cover error, so a save on a database missing only 008 dropped
+ * the 007 homepage tick as well and reported it as lost.
+ *
+ * The code is still the fallback for the case where the message names no
+ * column at all: then any optional column could be the culprit and dropping
+ * them is better than failing the save.
+ */
 function isMissingColumn(err, pattern) {
+  if (!MISSING_COLUMN_CODES.has(err?.code)) return false;
   const text = `${err?.message ?? ''} ${err?.details ?? ''} ${err?.hint ?? ''}`;
-  return err?.code === '42703' || err?.code === 'PGRST204' || pattern.test(text);
+  if (OPTIONAL_COLUMNS.test(text)) return pattern.test(text);
+  return true;
 }
 
 const isMissingCoverColumn = (err) => isMissingColumn(err, /cover_image|cover_alt/);
@@ -94,6 +112,24 @@ export async function getHomepageArticles(limit = 3) {
     console.warn('[lumen] homepage picks unavailable, falling back to the newest articles', err);
   }
   return getLatestArticles(limit);
+}
+
+/**
+ * Is the database ready to store a cover picture — has migration 008 been run?
+ *
+ * The editor asks this once, up front, so it can say so plainly instead of
+ * accepting a picture and discarding it at save time. `null` means the
+ * question could not be answered (offline, or an error that is not about a
+ * missing column), which is treated as "assume it works" rather than nagging
+ * about a migration that may well have been run.
+ */
+export async function articleImagesReady() {
+  if (isDemo) return false;
+  const { error } = await supabase.from('articles').select('cover_image').limit(1);
+  if (!error) return true;
+  if (isMissingCoverColumn(error)) return false;
+  console.warn('[lumen] could not check whether article covers are available', error);
+  return null;
 }
 
 export async function getArticleBySlug(slug) {

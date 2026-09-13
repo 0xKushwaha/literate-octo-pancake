@@ -21,7 +21,14 @@ const ToolbarBtn = ({ onClick, active, disabled, title, children }) => (
   </button>
 );
 
-export default function RichTextEditor({ value, onChange }) {
+/**
+ * `canUpload` false hides the upload button and leaves the by-link one. Adding
+ * a picture by link needs nothing at all — it travels inside the article's own
+ * HTML — while uploading needs the storage bucket from migration 008, so on a
+ * database without it the two buttons genuinely do different things and only
+ * one of them can be offered.
+ */
+export default function RichTextEditor({ value, onChange, canUpload = true }) {
   // Keeps the latest onChange without re-creating the editor on every render.
   // Assigned in an effect rather than during render: a render can be thrown
   // away or replayed, and a ref written there would then be holding a callback
@@ -160,9 +167,11 @@ export default function RichTextEditor({ value, onChange }) {
           onChange={(e) => handleImageFile(e.target.files?.[0])}
           className="hidden"
         />
-        <ToolbarBtn onClick={() => fileRef.current?.click()} disabled={uploading} title="Upload a picture into the article">
-          {uploading ? '…' : '🖼'}
-        </ToolbarBtn>
+        {canUpload && (
+          <ToolbarBtn onClick={() => fileRef.current?.click()} disabled={uploading} title="Upload a picture into the article">
+            {uploading ? '…' : '🖼'}
+          </ToolbarBtn>
+        )}
         <ToolbarBtn onClick={addImageByUrl} title="Add a picture by link">
           🖼+
         </ToolbarBtn>
