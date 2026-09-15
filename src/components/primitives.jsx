@@ -109,7 +109,7 @@ function useInViewOnce(amount = 0.15) {
  * feel answered, not enough to move the layout.
  */
 const PRIMARY =
-  'bg-[var(--button)] text-white shadow-[var(--shadow-card)] hover:-translate-y-0.5 hover:shadow-[var(--shadow-lift)] hover:brightness-[1.08]';
+  'bg-[#FFBF00] text-ink shadow-[var(--shadow-card)] hover:-translate-y-0.5 hover:shadow-[var(--shadow-lift)] hover:brightness-[1.04]';
 const ACCENT =
   'bg-amber-500 text-ink shadow-[var(--shadow-card)] hover:-translate-y-0.5 hover:shadow-[var(--shadow-lift)] hover:brightness-[1.04]';
 const SECONDARY =
