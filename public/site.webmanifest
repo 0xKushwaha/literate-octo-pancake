@@ -1,10 +1,10 @@
 {
-  "name": "Lumen Therapy",
-  "short_name": "Lumen",
+  "name": "zehnspaces Therapy",
+  "short_name": "zehnspaces",
   "description": "Therapy that meets you where you are.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f4f6fb",
   "theme_color": "#f4f6fb",
-  "icons": [{ "src": "/logo/fevicon.jpg", "sizes": "any", "type": "image/jpeg", "purpose": "any" }]
+  "icons": [{ "src": "/logo/fevicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
 }

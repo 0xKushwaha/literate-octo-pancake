@@ -1,5 +1,5 @@
 export const brand = {
-  name: 'Lumen',
+  name: 'zehnspaces',
   tagline: 'Therapy that meets you where you are.',
   phone: '+1 (415) 555-0142',
   email: 'hello@lumentherapy.com',
