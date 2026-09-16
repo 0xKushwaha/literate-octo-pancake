@@ -3,16 +3,15 @@ import { supabase, isDemo, configError } from './supabase';
 
 export const ADMIN_ROLES = ['ADMIN', 'SUPER_ADMIN'];
 
-// Demo credentials for local development only. lib/supabase.js guarantees
-// isDemo is false in any production build, so this path cannot ship.
-const DEMO_EMAIL = 'admin@lumen.dev';
-const DEMO_PASS = 'admin123';
-
 export async function signInAdmin(email, password) {
   if (configError) throw new Error(configError);
 
   // Demo mode — bypass Supabase entirely. Dev builds only; see lib/supabase.js.
+  // Credentials are scoped inside this block so the bundler can provably
+  // dead-code-eliminate them from production builds.
   if (isDemo) {
+    const DEMO_EMAIL = 'admin@lumen.dev';
+    const DEMO_PASS = 'admin123';
     if (email === DEMO_EMAIL && password === DEMO_PASS) {
       const demoSession = { user: { id: 'demo-admin', email: DEMO_EMAIL, role: 'ADMIN' } };
       sessionStorage.setItem('lumen.demo.session', JSON.stringify(demoSession));

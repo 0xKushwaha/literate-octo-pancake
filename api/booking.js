@@ -37,6 +37,27 @@ const ALLOWED_WHO = ['individual', 'couples', 'teen', 'psychiatry'];
 const ALLOWED_FORMAT = ['video', 'phone', 'in-person'];
 const ALLOWED_CADENCE = ['weekly', 'fortnightly', 'monthly', 'once'];
 
+// ── CORS ────────────────────────────────────────────────────────────────────
+// Without origin validation any website can POST here on behalf of its
+// visitors, flooding the inbox or exhausting rate-limit buckets for real users.
+const ALLOWED_ORIGINS = new Set(
+  (process.env.ALLOWED_ORIGINS || '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean),
+);
+// Always allow the Vite dev server so `npm run dev` keeps working.
+ALLOWED_ORIGINS.add('http://localhost:5173');
+
+function corsHeaders(req, res) {
+  const origin = req.headers.origin;
+  if (!origin) return true; // same-origin or non-browser client — allow
+  if (!ALLOWED_ORIGINS.has(origin)) return false;
+  res.setHeader('Access-Control-Allow-Origin', origin);
+  res.setHeader('Vary', 'Origin');
+  return true;
+}
+
 /** The project URL, under whichever name it is configured. */
 function projectUrl() {
   return (process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '').trim();
@@ -132,6 +153,17 @@ function isEmptyHoneypot(value) {
 
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
+
+  // ── CORS: reject cross-origin requests from unknown sites ─────────────
+  if (!corsHeaders(req, res)) {
+    return res.status(403).json({ error: 'Origin not allowed' });
+  }
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Methods', 'POST');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Max-Age', '86400');
+    return res.status(204).end();
+  }
 
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');

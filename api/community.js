@@ -25,6 +25,26 @@ const MAX_BODY_BYTES = 4 * 1024;
 const RATE_MAX = 5; // submissions
 const RATE_WINDOW_SECONDS = 900; // per 15 minutes, per IP
 
+// ── CORS ────────────────────────────────────────────────────────────────────
+// Same origin enforcement as /api/booking. Without it any website can submit
+// email addresses on behalf of its visitors.
+const ALLOWED_ORIGINS = new Set(
+  (process.env.ALLOWED_ORIGINS || '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean),
+);
+ALLOWED_ORIGINS.add('http://localhost:5173');
+
+function corsHeaders(req, res) {
+  const origin = req.headers.origin;
+  if (!origin) return true;
+  if (!ALLOWED_ORIGINS.has(origin)) return false;
+  res.setHeader('Access-Control-Allow-Origin', origin);
+  res.setHeader('Vary', 'Origin');
+  return true;
+}
+
 function projectUrl() {
   return (process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '').trim();
 }
@@ -81,6 +101,17 @@ function isEmptyHoneypot(value) {
 
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
+
+  // ── CORS: reject cross-origin requests from unknown sites ─────────────
+  if (!corsHeaders(req, res)) {
+    return res.status(403).json({ error: 'Origin not allowed' });
+  }
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Methods', 'POST');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Max-Age', '86400');
+    return res.status(204).end();
+  }
 
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');

@@ -48,6 +48,7 @@ export const csp = {
   'manifest-src': ["'self'"],
   // Ignored inside a <meta> tag — only meaningful as a real header.
   'frame-ancestors': ["'none'"],
+  'report-uri': ['/api/csp-report'],
   'upgrade-insecure-requests': [],
 };
 
@@ -71,6 +72,7 @@ export const securityHeaders = {
   'Cross-Origin-Opener-Policy': 'same-origin',
   'Cross-Origin-Resource-Policy': 'cross-origin',
   'X-Frame-Options': 'DENY',
+  'X-DNS-Prefetch-Control': 'off',
 };
 
 export const cacheHeaders = {
