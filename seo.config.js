@@ -1,10 +1,10 @@
 import { createHash } from 'node:crypto';
 import { brand, faqs, plans, services, therapists } from './src/data/site.js';
 
-export const SITE_URL = 'https://lumentherapy.com';
+export const SITE_URL = 'https://www.zehnspaces.com';
 
 export const meta = {
-  title: 'Lumen — Therapy that meets you where you are',
+  title: 'zehnspaces — Therapy that meets you where you are',
   description:
     'A modern therapy practice. Licensed clinicians matched to you by a human in under a day, video, phone or in person, and a first session this week. San Francisco and telehealth in 14 states.',
   ogImage: `${SITE_URL}/og.png`,
