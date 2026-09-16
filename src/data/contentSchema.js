@@ -170,7 +170,7 @@ export const CONTENT_SCHEMA = [
   f('nav.services_all_label', 'Care dropdown: "all services" link', 'All services'),
   f('nav.therapists_label', 'Menu: Therapists', 'Therapists'),
   f('nav.approach_label', 'Menu: How it works (dropdown)', 'How it works'),
-  f('nav.why_label', 'How it works dropdown: Why Lumen', 'Why Lumen'),
+  f('nav.why_label', 'How it works dropdown: Why zehnspaces', 'Why zehnspaces'),
   f('nav.faq_label', 'How it works dropdown: FAQ', 'Questions'),
   f('nav.resources_label', 'Menu: Resources (dropdown)', 'Resources'),
   f('nav.breathing_label', 'Resources dropdown: Breathe', 'Breathing exercises'),
@@ -236,8 +236,8 @@ export const CONTENT_SCHEMA = [
     ],
   }),
 
-  // ── Why Lumen ─────────────────────────────────────────────────────────────
-  f('why.eyebrow', 'Eyebrow', 'Why Lumen'),
+  // ── Why zehnspaces ─────────────────────────────────────────────────────────
+  f('why.eyebrow', 'Eyebrow', 'Why zehnspaces'),
   f('why.headline', 'Headline', 'What makes it hold together.'),
   f('why.items', 'Cards', WHY_ITEMS, LIST, null, {
     itemLabel: 'Card',
@@ -650,7 +650,7 @@ export const PAGE_BLURBS = {
   everywhere: 'The header, the footer, the booking form and anything shared by every page.',
   home: 'The short landing page: hero, the numbers, "we heard you", testimonials, the explore cards, the breathing band and the closing call to action.',
   services: 'The page behind the Care menu.',
-  how: 'Steps, "Why Lumen" and the questions people ask before booking.',
+  how: 'Steps, "Why zehnspaces" and the questions people ask before booking.',
   therapists: 'The team, their filters and their cards. Editable whether or not the page is switched on — edits are kept and appear the moment it is.',
   pricing: 'Plans and the small print. Editable whether or not the page is switched on — edits are kept and appear the moment it is.',
   resources: 'Videos, articles and the blog.',
@@ -667,7 +667,7 @@ export const SECTION_TITLES = {
   trust: 'Numbers (under the hero)',
   heard: 'We heard you',
   approach: 'How it works',
-  why: 'Why Lumen',
+  why: 'Why zehnspaces',
   breathing: 'Breathing',
   services: 'Services',
   therapists: 'Therapists',
