@@ -82,10 +82,7 @@ export default function Hero() {
       <div className="mx-auto grid w-full max-w-[1280px] items-center gap-12 px-5 sm:px-8 lg:grid-cols-2 lg:gap-14">
         <div>
           <div className="flex flex-wrap items-center gap-3">
-            <Pill tone="peach">
-              <span className="size-1.5 rounded-full bg-ink" />
-              {content.status_pill}
-            </Pill>
+
             <span className="text-[13px] text-ink-4">{content.location_note}</span>
           </div>
 
