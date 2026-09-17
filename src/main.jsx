@@ -12,6 +12,14 @@ import NotFoundPage from './pages/NotFoundPage';
 import { useSiteContent } from './lib/queries/siteContent';
 import { useFeatures } from './lib/features';
 import './index.css';
+import { isSetPasswordHash } from './lib/authLinks';
+
+// Password-reset and invitation emails sent from the Supabase dashboard land
+// on the site's home page with the sign-in tokens in the address. Send them to
+// the page that knows what to do with them, before anything else renders.
+if (window.location.pathname !== '/admin/reset-password' && isSetPasswordHash(window.location.hash)) {
+  window.location.replace(`/admin/reset-password${window.location.hash}`);
+}
 
 // Split off the pages most visitors never open, so the first load stays small.
 const ResourcesPage = lazy(() => import('./pages/ResourcesPage'));

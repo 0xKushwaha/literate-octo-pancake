@@ -4,6 +4,7 @@ import { Toaster } from 'react-hot-toast';
 import AdminGuard from './AdminGuard';
 import AdminNav from './components/AdminNav';
 import AdminLogin from './pages/AdminLogin';
+import AdminSetPassword from './pages/AdminSetPassword';
 import { isDemo } from '../lib/supabase';
 import { DemoBanner } from './components/ui';
 
@@ -16,6 +17,7 @@ const AdminContent = lazy(() => import('./pages/AdminContent'));
 const AdminFaqs = lazy(() => import('./pages/AdminFaqs'));
 const AdminBookings = lazy(() => import('./pages/AdminBookings'));
 const AdminCommunity = lazy(() => import('./pages/AdminCommunity'));
+const AdminAccount = lazy(() => import('./pages/AdminAccount'));
 
 /**
  * One Toaster for the whole admin, mounted here rather than in each page.
@@ -59,6 +61,7 @@ export default function AdminApp() {
   return (
     <Routes>
       <Route path="login" element={<AdminLogin />} />
+      <Route path="reset-password" element={<AdminSetPassword />} />
       <Route
         path="*"
         element={
@@ -76,6 +79,7 @@ export default function AdminApp() {
                 <Route path="faqs" element={<AdminFaqs />} />
                 <Route path="bookings" element={<AdminBookings />} />
                 <Route path="community" element={<AdminCommunity />} />
+                <Route path="account" element={<AdminAccount />} />
               </Routes>
             </AdminShell>
           </AdminGuard>

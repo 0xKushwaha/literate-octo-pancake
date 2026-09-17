@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase, isDemo, configError } from './supabase';
+import { passwordProblem } from './authLinks';
 
 export const ADMIN_ROLES = ['ADMIN', 'SUPER_ADMIN'];
 
@@ -58,6 +59,65 @@ export async function getAdminRole() {
 
   if (error || !profile || !ADMIN_ROLES.includes(profile.role)) return null;
   return profile.role;
+}
+
+/**
+ * Emails a password-reset link. Always resolves the same way whether or not
+ * the address has a login, so the form cannot be used to find out who does.
+ */
+export async function requestPasswordReset(email) {
+  if (configError) throw new Error(configError);
+  if (isDemo) return;
+  const redirectTo = `${window.location.origin}/admin/reset-password`;
+  const { error } = await supabase.auth.resetPasswordForEmail(String(email).trim(), { redirectTo });
+  // Rate-limit errors are worth showing; "user not found" is never returned.
+  if (error && error.status === 429) throw new Error('Too many requests. Wait a minute and try again.');
+}
+
+/**
+ * Changes the signed-in admin's password. The current password is checked
+ * first, so a laptop left signed in cannot be used to lock its owner out.
+ */
+export async function changePassword(currentPassword, newPassword, confirm) {
+  const problem = passwordProblem(newPassword, confirm);
+  if (problem) throw new Error(problem);
+  if (isDemo) return;
+
+  const { data: { session } } = await supabase.auth.getSession();
+  const email = session?.user?.email;
+  if (!email) throw new Error('You are signed out. Sign in again.');
+
+  const { error: checkError } = await supabase.auth.signInWithPassword({ email, password: currentPassword });
+  if (checkError) throw new Error('Your current password is not right.');
+
+  const { error } = await supabase.auth.updateUser({ password: newPassword });
+  if (error) throw new Error(error.message || 'Could not change the password.');
+}
+
+/**
+ * Finishes a reset or invitation link: signs in with what the link carries,
+ * sets the new password, then signs out again so the person signs in fresh.
+ */
+export async function setPasswordFromLink(link, newPassword, confirm) {
+  const problem = passwordProblem(newPassword, confirm);
+  if (problem) throw new Error(problem);
+  if (!link || link.kind === 'error') throw new Error(link?.message || 'This link is not valid.');
+
+  let result;
+  if (link.kind === 'tokens') {
+    result = await supabase.auth.setSession({ access_token: link.accessToken, refresh_token: link.refreshToken });
+  } else if (link.kind === 'token_hash') {
+    result = await supabase.auth.verifyOtp({ token_hash: link.tokenHash, type: link.type });
+  } else if (link.kind === 'code') {
+    result = await supabase.auth.exchangeCodeForSession(link.code);
+  }
+  if (result?.error) {
+    throw new Error('This link has expired or was already used. Ask for a new one.');
+  }
+
+  const { error } = await supabase.auth.updateUser({ password: newPassword });
+  await supabase.auth.signOut();
+  if (error) throw new Error(error.message || 'Could not set the password.');
 }
 
 export async function signOut() {

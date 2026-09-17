@@ -11,6 +11,7 @@ const navItems = [
   { to: '/admin/youtube', label: 'YouTube', icon: '▶' },
   { to: '/admin/faqs', label: 'FAQs', icon: '?' },
   { to: '/admin/content', label: 'Site Content', icon: '✦' },
+  { to: '/admin/account', label: 'Your account', icon: '⚿' },
 ];
 
 export default function AdminNav() {

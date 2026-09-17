@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { signInAdmin } from '../../lib/auth';
+import { requestPasswordReset, signInAdmin } from '../../lib/auth';
 import { isDemo, configError } from '../../lib/supabase';
 import { brand } from '../../data/site';
 
@@ -13,6 +13,23 @@ export default function AdminLogin() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resetState, setResetState] = useState('idle'); // idle | sending | sent
+
+  async function handleReset() {
+    setError('');
+    if (!email.trim()) {
+      setError('Type your email above first, then choose Forgot password.');
+      return;
+    }
+    setResetState('sending');
+    try {
+      await requestPasswordReset(email);
+      setResetState('sent');
+    } catch (err) {
+      setError(err.message);
+      setResetState('idle');
+    }
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -75,6 +92,11 @@ export default function AdminLogin() {
           {error && (
             <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
           )}
+          {resetState === 'sent' && (
+            <p className="mt-4 rounded-lg bg-teal-50 px-3 py-2 text-sm text-teal-800">
+              If that address has a login, a reset link is on its way. Check your inbox.
+            </p>
+          )}
 
           <button
             type="submit"
@@ -82,6 +104,14 @@ export default function AdminLogin() {
             className="mt-5 w-full rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800 disabled:opacity-60"
           >
             {loading ? 'Signing in…' : 'Sign in'}
+          </button>
+          <button
+            type="button"
+            onClick={handleReset}
+            disabled={resetState === 'sending'}
+            className="mt-3 w-full text-center text-xs text-gray-500 hover:text-gray-900 disabled:opacity-60"
+          >
+            {resetState === 'sending' ? 'Sending…' : 'Forgot password?'}
           </button>
         </form>
 

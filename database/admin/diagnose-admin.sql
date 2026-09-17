@@ -23,7 +23,7 @@ ORDER BY created_at DESC
 LIMIT 10;
 
 -- ── 2. Is there a matching profiles row, and what role does it carry? ───────
--- A missing row is the most common cause: create-admin.sql was never run, was
+-- A missing row is the most common cause: add-admin.sql was never run, was
 -- run with a different email, or errored and the message was missed.
 -- Look for role = 'ADMIN'. 'USER' means the promote step did not happen.
 SELECT
@@ -33,9 +33,9 @@ SELECT
     p.email          AS profile_email,
     p.role,
     CASE
-        WHEN p.id IS NULL THEN 'NO PROFILE ROW -> run create-admin.sql'
+        WHEN p.id IS NULL THEN 'NO PROFILE ROW -> run database/admin/add-admin.sql'
         WHEN p.role IN ('ADMIN','SUPER_ADMIN') THEN 'OK'
-        ELSE format('role is %L -> run create-admin.sql', p.role)
+        ELSE format('role is %L -> run database/admin/add-admin.sql', p.role)
     END AS verdict
 FROM auth.users u
 LEFT JOIN public.profiles p ON p.id = u.id
