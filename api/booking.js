@@ -13,8 +13,13 @@
  * Environment variables (Project Settings → Environment Variables):
  *   SUPABASE_SERVICE_ROLE_KEY  — required. Server-only; no VITE_ prefix, ever.
  *   BOOKING_IP_SALT            — optional but recommended. Any long random
- *                                string; salts the IP hash. See hashIp below
- *                                for what happens when it is absent.
+ *                                string; salts the IP hash. See hashIp in
+ *                                api/_lib/http.js for what happens when it is absent.
+ *   ALLOWED_ORIGINS            — optional. Extra sites allowed to post here,
+ *                                comma separated. The site's own domain is
+ *                                always allowed.
+ *   RESEND_API_KEY, NOTIFY_EMAIL_TO, NOTIFY_EMAIL_FROM — optional; see
+ *                                api/_lib/notify.js.
  *
  * The project URL is NOT a separate variable. Every project environment
  * variable is visible to the function runtime as process.env, prefix or no
@@ -23,9 +28,19 @@
  * twice under two names that can drift apart.
  */
 
-import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
-import { createClient } from '@supabase/supabase-js';
+import { randomBytes } from 'node:crypto';
 import { LIMITS, isEmail, isPhone, normalise, MIN_FILL_MS } from '../src/booking/validate.js';
+import {
+  BodyError,
+  adminDb,
+  clientIp,
+  consumeRateLimit,
+  guardRequest,
+  hashIp,
+  isEmptyHoneypot,
+  readJson,
+} from './_lib/http.js';
+import { adminLink, notifyPractice } from './_lib/notify.js';
 
 // ── Bounds the client cannot argue with ─────────────────────────────────────
 const MAX_BODY_BYTES = 16 * 1024;
@@ -36,75 +51,6 @@ const RATE_WINDOW_SECONDS = 900; // per 15 minutes, per IP
 const ALLOWED_WHO = ['individual', 'couples', 'teen', 'psychiatry'];
 const ALLOWED_FORMAT = ['video', 'phone', 'in-person'];
 const ALLOWED_CADENCE = ['weekly', 'fortnightly', 'monthly', 'once'];
-
-// ── CORS ────────────────────────────────────────────────────────────────────
-// Without origin validation any website can POST here on behalf of its
-// visitors, flooding the inbox or exhausting rate-limit buckets for real users.
-const ALLOWED_ORIGINS = new Set(
-  (process.env.ALLOWED_ORIGINS || '')
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean),
-);
-// Always allow the Vite dev server so `npm run dev` keeps working.
-ALLOWED_ORIGINS.add('http://localhost:5173');
-
-function corsHeaders(req, res) {
-  const origin = req.headers.origin;
-  if (!origin) return true; // same-origin or non-browser client — allow
-  if (!ALLOWED_ORIGINS.has(origin)) return false;
-  res.setHeader('Access-Control-Allow-Origin', origin);
-  res.setHeader('Vary', 'Origin');
-  return true;
-}
-
-/** The project URL, under whichever name it is configured. */
-function projectUrl() {
-  return (process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '').trim();
-}
-
-let cachedClient = null;
-function admin() {
-  if (cachedClient) return cachedClient;
-  const url = projectUrl();
-  const key = (process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
-  if (!url) throw new Error('booking api: no project URL (set VITE_SUPABASE_URL)');
-  if (!key) throw new Error('booking api: SUPABASE_SERVICE_ROLE_KEY not set');
-  cachedClient = createClient(url, key, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-  return cachedClient;
-}
-
-/**
- * Vercel sets x-forwarded-for; the left-most entry is the client as seen by the
- * edge. Never trust it for authorisation — it is only ever a rate-limit bucket.
- */
-function clientIp(req) {
-  const fwd = req.headers['x-forwarded-for'];
-  if (typeof fwd === 'string' && fwd.length) return fwd.split(',')[0].trim();
-  return req.headers['x-real-ip'] || req.socket?.remoteAddress || 'unknown';
-}
-
-/**
- * The raw IP is never stored. Salted SHA-256 gives a stable bucket for rate
- * limiting and abuse review without keeping an identifier for a table of
- * mental-health enquiries.
- */
-function hashIp(ip) {
-  // An unsalted SHA-256 of an IP address is not anonymisation: the whole IPv4
-  // space is about 4 billion values, so anyone holding the table can hash every
-  // address and recover the originals in minutes. The salt is what makes the
-  // hash a bucket label rather than a reversible identifier.
-  //
-  // BOOKING_IP_SALT is the right answer. Falling back to the service-role key
-  // keeps the property that matters — a long, server-only, stable secret — so
-  // an unset salt degrades to "still not reversible" rather than "silently
-  // useless". Rotating that key resets the rate-limit buckets, which is a
-  // one-off annoyance and not a correctness problem.
-  const salt = (process.env.BOOKING_IP_SALT || process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
-  return createHash('sha256').update(`lumen:${salt}:${ip}`).digest('hex').slice(0, 32);
-}
 
 /** LM-XXXXXXXX. Generated here so a client cannot choose or collide its own. */
 function makeReference() {
@@ -127,54 +73,15 @@ function cleanDate(value) {
   return parsed >= today && parsed <= horizon ? v : null;
 }
 
-async function readJson(req) {
-  // Vercel parses JSON bodies for us, but only up to its own limit and only
-  // when the content-type is right. Handle the raw case so a hand-rolled
-  // request cannot slip past by sending text/plain.
-  if (req.body && typeof req.body === 'object') return req.body;
-
-  const chunks = [];
-  let size = 0;
-  for await (const chunk of req) {
-    size += chunk.length;
-    if (size > MAX_BODY_BYTES) throw new Error('payload too large');
-    chunks.push(chunk);
-  }
-  if (!chunks.length) return {};
-  return JSON.parse(Buffer.concat(chunks).toString('utf8'));
-}
-
-/** Constant-time compare so the honeypot check cannot be timed. */
-function isEmptyHoneypot(value) {
-  const given = Buffer.from(String(value ?? ''));
-  const empty = Buffer.alloc(given.length);
-  return given.length === 0 || timingSafeEqual(given, empty);
-}
-
 export default async function handler(req, res) {
-  res.setHeader('Cache-Control', 'no-store');
-
-  // ── CORS: reject cross-origin requests from unknown sites ─────────────
-  if (!corsHeaders(req, res)) {
-    return res.status(403).json({ error: 'Origin not allowed' });
-  }
-  if (req.method === 'OPTIONS') {
-    res.setHeader('Access-Control-Allow-Methods', 'POST');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-    res.setHeader('Access-Control-Max-Age', '86400');
-    return res.status(204).end();
-  }
-
-  if (req.method !== 'POST') {
-    res.setHeader('Allow', 'POST');
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+  if (!guardRequest(req, res)) return;
 
   let body;
   try {
-    body = await readJson(req);
-  } catch {
-    return res.status(400).json({ error: 'Could not read that request.' });
+    body = await readJson(req, MAX_BODY_BYTES);
+  } catch (err) {
+    const tooBig = err instanceof BodyError && err.message === 'payload too large';
+    return res.status(tooBig ? 413 : 400).json({ error: 'Could not read that request.' });
   }
 
   // ── Bot heuristics, repeated server-side ──────────────────────────────────
@@ -199,7 +106,7 @@ export default async function handler(req, res) {
   if (name.length < 2) errors.name = 'Please give a name we can use.';
   if (!isEmail(email)) errors.email = 'That email address does not look right.';
   if (phone && !isPhone(phone)) errors.phone = 'Check the phone number.';
-  if (!body.consent) errors.consent = 'We need your confirmation to continue.';
+  if (body.consent !== true) errors.consent = 'We need your confirmation to continue.';
 
   const concerns = Array.isArray(body.concerns)
     ? [...new Set(body.concerns.map((c) => normalise(c, { maxLength: 60 })).filter(Boolean))]
@@ -214,30 +121,25 @@ export default async function handler(req, res) {
   const ipHash = hashIp(clientIp(req));
   let db;
   try {
-    db = admin();
+    db = adminDb();
   } catch (err) {
     console.error('[booking]', err.message);
     return res.status(503).json({ error: 'Bookings are temporarily unavailable. Please call us.' });
   }
 
-  const { data: limit, error: limitError } = await db.rpc('consume_rate_limit', {
-    p_key: `booking:${ipHash}`,
-    p_max: RATE_MAX,
-    p_window_seconds: RATE_WINDOW_SECONDS,
-  });
-
-  if (limitError) {
+  try {
+    const limit = await consumeRateLimit(db, `booking:${ipHash}`, RATE_MAX, RATE_WINDOW_SECONDS);
+    if (!limit.ok) {
+      res.setHeader('Retry-After', String(limit.retryAfter));
+      return res.status(429).json({
+        error: 'That is a few requests in a short time. Try again shortly, or call us directly.',
+      });
+    }
+  } catch (err) {
     // Fail closed. An enquiry lost to a database blip is recoverable by phone;
     // an open write path is not.
-    console.error('[booking] rate limit check failed', limitError);
+    console.error('[booking] rate limit check failed', err?.code || err?.message);
     return res.status(503).json({ error: 'Bookings are temporarily unavailable. Please call us.' });
-  }
-
-  if (limit && limit.allowed === false) {
-    res.setHeader('Retry-After', String(limit.retry_after ?? RATE_WINDOW_SECONDS));
-    return res.status(429).json({
-      error: 'That is a few requests in a short time. Try again shortly, or call us directly.',
-    });
   }
 
   // ── Insert ────────────────────────────────────────────────────────────────
@@ -263,9 +165,19 @@ export default async function handler(req, res) {
   });
 
   if (error) {
-    console.error('[booking] insert failed', error.code, error.message);
+    console.error('[booking] insert failed', error.code);
     return res.status(500).json({ error: 'We could not save that. Please try again or call us.' });
   }
+
+  // No personal details in the email, only that a request arrived.
+  await notifyPractice({
+    subject: `New booking request ${reference}`,
+    lines: [
+      `A new booking request (${reference}) came in through the website.`,
+      '',
+      `Read it in the admin panel: ${adminLink('/admin/bookings')}`,
+    ],
+  });
 
   return res.status(201).json({ reference, accepted: true });
 }

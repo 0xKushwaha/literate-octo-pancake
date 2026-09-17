@@ -19,6 +19,7 @@ const BreathePage = lazy(() => import('./pages/BreathePage'));
 const BlogIndexPage = lazy(() => import('./pages/BlogIndexPage'));
 const BlogPostPage = lazy(() => import('./pages/BlogPostPage'));
 const AdminApp = lazy(() => import('./admin/AdminApp'));
+const LegalPage = lazy(() => import('./pages/LegalPage'));
 
 function RouteError() {
   const ui = useSiteContent('ui');
@@ -89,6 +90,8 @@ const router = createBrowserRouter([
       { path: '/breathe', element: <Lazy><BreathePage /></Lazy> },
       { path: '/blog', element: <Lazy><BlogIndexPage /></Lazy> },
       { path: '/blog/:slug', element: <Lazy><BlogPostPage /></Lazy> },
+      { path: '/privacy', element: <Lazy><LegalPage kind="privacy" /></Lazy> },
+      { path: '/terms', element: <Lazy><LegalPage kind="terms" /></Lazy> },
       { path: '*', element: <NotFoundPage /> },
     ],
   },

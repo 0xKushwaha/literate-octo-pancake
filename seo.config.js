@@ -1,76 +1,69 @@
 import { createHash } from 'node:crypto';
-import { brand, faqs, plans, services, therapists } from './src/data/site.js';
+import { brand, faqs } from './src/data/site.js';
 
 export const SITE_URL = 'https://www.zehnspaces.com';
 
+/**
+ * Every address the app answers. vercel.json rewrites exactly these to the
+ * app (anything else is a real 404), and the sitemap lists the public ones.
+ * Keep in step with the router in src/main.jsx.
+ */
+export const APP_ROUTES = [
+  '/',
+  '/services',
+  '/how-it-works',
+  '/therapists',
+  '/pricing',
+  '/resources',
+  '/breathe',
+  '/blog',
+  '/blog/:slug',
+  '/privacy',
+  '/terms',
+  '/admin',
+  '/admin/:path*',
+];
+
+/** Pages worth listing for search engines (switched-off pages left out). */
+export const SITEMAP_ROUTES = ['/', '/services', '/how-it-works', '/resources', '/breathe', '/blog', '/privacy', '/terms'];
+
 export const meta = {
-  title: 'zehnspaces — Therapy that meets you where you are',
+  title: `${brand.name} — Therapy that meets you where you are`,
   description:
-    'A modern therapy practice. Licensed clinicians matched to you by a human in under a day, video, phone or in person, and a first session this week. San Francisco and telehealth in 14 states.',
+    `${brand.name} is a therapy practice in India. Talk to a therapist, try free guided breathing exercises and articles, and join a supportive community.`,
   ogImage: `${SITE_URL}/og.png`,
 };
 
 /**
- * Structured data, generated from src/data/site.js so the schema can never
- * drift from the copy on the page. Emitted as one @graph rather than several
- * script tags — fewer nodes to hash for the CSP, and easier for crawlers to
- * resolve the @id references between practice, clinicians and services.
+ * Structured data for search engines, as one @graph.
+ *
+ * Only what is true of the practice today: its name, site, contact email and
+ * the questions answered on the site. The earlier version listed a street
+ * address, opening hours, prices and six clinicians from the sample content;
+ * search engines show that data to people, so it stays out until it is real.
  */
 export function buildJsonLd() {
-  const [street, city, stateZip] = brand.address.split(', ');
-  const [region, postalCode] = (stateZip ?? '').split(' ');
-
   return {
     '@context': 'https://schema.org',
     '@graph': [
       {
-        '@type': ['MedicalBusiness', 'Psychologist'],
+        '@type': 'MedicalBusiness',
         '@id': `${SITE_URL}/#practice`,
-        name: `${brand.name} Therapy`,
+        name: brand.name,
         url: SITE_URL,
         description: meta.description,
-        telephone: brand.phone,
         email: brand.email,
-        priceRange: `$${Math.min(...plans.map((p) => p.price))}–$${Math.max(...services.map((s) => s.price))}`,
-        address: {
-          '@type': 'PostalAddress',
-          streetAddress: street,
-          addressLocality: city,
-          addressRegion: region,
-          postalCode,
-          addressCountry: 'US',
-        },
-        openingHoursSpecification: [
-          {
-            '@type': 'OpeningHoursSpecification',
-            dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
-            opens: '08:00',
-            closes: '18:00',
-          },
-          {
-            '@type': 'OpeningHoursSpecification',
-            dayOfWeek: 'Saturday',
-            opens: '08:00',
-            closes: '12:00',
-          },
-        ],
+        areaServed: { '@type': 'Country', name: 'India' },
         medicalSpecialty: 'Psychiatric',
-        availableService: services.map((s) => ({
-          '@type': 'MedicalTherapy',
-          name: s.name,
-          description: s.blurb,
-        })),
-        employee: therapists.map((t) => ({ '@id': `${SITE_URL}/#${t.id}` })),
       },
-      ...therapists.map((t) => ({
-        '@type': t.credentials.includes('MD') ? 'Physician' : 'Person',
-        '@id': `${SITE_URL}/#${t.id}`,
-        name: t.name,
-        jobTitle: t.credentials,
-        description: t.bio,
-        knowsLanguage: t.languages,
-        worksFor: { '@id': `${SITE_URL}/#practice` },
-      })),
+      {
+        '@type': 'WebSite',
+        '@id': `${SITE_URL}/#website`,
+        url: SITE_URL,
+        name: brand.name,
+        publisher: { '@id': `${SITE_URL}/#practice` },
+        inLanguage: 'en-IN',
+      },
       {
         '@type': 'FAQPage',
         '@id': `${SITE_URL}/#faq`,

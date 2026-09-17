@@ -133,4 +133,6 @@ $$;
 
 -- Deliberately NOT granted to anon or authenticated: this is a SQL-editor
 -- tool for the project owner, not an API endpoint.
-REVOKE ALL ON FUNCTION promote_to_admin(TEXT) FROM PUBLIC;
+-- Supabase grants EXECUTE to anon and authenticated directly, so PUBLIC alone
+-- is not enough (this was exploitable until 010).
+REVOKE ALL ON FUNCTION promote_to_admin(TEXT) FROM PUBLIC, anon, authenticated;

@@ -39,3 +39,8 @@ coverage
 .p2shots/
 .p2before/
 .claude/
+
+# Local reference material, not part of the site
+home.html
+colur/
+Claude outputs/

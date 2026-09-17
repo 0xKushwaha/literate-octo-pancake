@@ -3,6 +3,7 @@ import { Button, Section } from './primitives';
 import Icon from './Icon';
 import { telHref, useBrand, useSiteContent } from '../lib/queries/siteContent';
 import { useCommunity, useFeatures, usePrimaryCta } from '../lib/features';
+import { safeUrl } from '../lib/safeUrl';
 
 /**
  * `feature` names a switch in Site content → Show & hide: the link is dropped
@@ -59,9 +60,12 @@ export default function Footer() {
       .filter((l) => !l.feature || features[l.feature])
       .map((l) =>
         l.urlKey
-          ? { label: footerContent[l.labelKey], href: footerContent[l.urlKey] || '#' }
+          ? { label: footerContent[l.labelKey], href: safeUrl(footerContent[l.urlKey]) }
           : l,
-      ),
+      )
+      // A legal link with no address yet is left out rather than shown as a
+      // dead "#" link.
+      .filter((l) => !l.urlKey || l.href),
   }));
 
   return (
@@ -90,13 +94,15 @@ export default function Footer() {
             </p>
 
             <div className="mt-8 flex flex-col gap-3 text-[14px] text-ink-3">
-              <a
-                href={telHref(brand.phone)}
-                className="flex items-center gap-2.5 transition-colors hover:text-ink"
-              >
-                <Icon name="phone" size={15} className="text-ink-4" />
-                {brand.phone}
-              </a>
+              {brand.phone && (
+                <a
+                  href={telHref(brand.phone)}
+                  className="flex items-center gap-2.5 transition-colors hover:text-ink"
+                >
+                  <Icon name="phone" size={15} className="text-ink-4" />
+                  {brand.phone}
+                </a>
+              )}
               <a
                 href={`mailto:${brand.email}`}
                 className="flex items-center gap-2.5 transition-colors hover:text-ink"
@@ -119,8 +125,8 @@ export default function Footer() {
                 <ul className="mt-5 flex flex-col gap-3">
                   {col.links.map((l) => (
                     <li key={l.label}>
-                      {l.to ? (
-                        <Link to={l.to} className="text-[14.5px] text-ink-3 transition-colors duration-200 hover:text-ink">
+                      {l.to || l.href?.startsWith('/') ? (
+                        <Link to={l.to || l.href} className="text-[14.5px] text-ink-3 transition-colors duration-200 hover:text-ink">
                           {l.label}
                         </Link>
                       ) : (

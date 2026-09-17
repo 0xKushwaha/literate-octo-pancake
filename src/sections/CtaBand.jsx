@@ -69,16 +69,18 @@ export default function CtaBand() {
                 {action.label}
               </Button>
             )}
-            <Button
-              size="lg"
-              as="a"
-              href={telHref(brand.phone)}
-              iconLeft="phone"
-              className="border border-white/30 bg-transparent !text-white hover:border-white hover:bg-white/10 hover:!text-white"
-              variant="quiet"
-            >
-              {content.secondary}
-            </Button>
+            {brand.phone && (
+              <Button
+                size="lg"
+                as="a"
+                href={telHref(brand.phone)}
+                iconLeft="phone"
+                className="border border-white/30 bg-transparent !text-white hover:border-white hover:bg-white/10 hover:!text-white"
+                variant="quiet"
+              >
+                {content.secondary}
+              </Button>
+            )}
           </div>
 
           <p className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[12.5px] text-white/70">

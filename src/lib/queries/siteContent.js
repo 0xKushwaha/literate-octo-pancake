@@ -178,7 +178,13 @@ export function useSiteContent(section, overrides = null) {
  * changing the phone number in the admin changes it everywhere at once.
  */
 export function useBrand() {
-  return useSiteContent('brand');
+  const brand = useSiteContent('brand');
+  // A phone number that is not one (blank, or typed wrong in the admin) is
+  // treated as no number, so every "call us" link hides instead of dialling
+  // nonsense.
+  const digits = String(brand.phone ?? '').replace(/\D/g, '');
+  const phone = digits.length >= 7 && digits.length <= 15 ? brand.phone : '';
+  return { ...brand, phone };
 }
 
 /** `tel:` href for a display phone number. */

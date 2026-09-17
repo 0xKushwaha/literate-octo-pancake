@@ -27,13 +27,15 @@ export default function Faq({ withHeading = true }) {
             <p className="text-[14.5px] leading-relaxed text-ink-3">
               {content.aside}
             </p>
-            <a
-              href={telHref(brand.phone)}
-              className="mt-4 inline-flex items-center gap-2 text-[15px] text-ink transition-colors hover:text-ink"
-            >
-              <Icon name="phone" size={15} />
-              {brand.phone}
-            </a>
+            {brand.phone && (
+              <a
+                href={telHref(brand.phone)}
+                className="mt-4 inline-flex items-center gap-2 text-[15px] text-ink transition-colors hover:text-ink"
+              >
+                <Icon name="phone" size={15} />
+                {brand.phone}
+              </a>
+            )}
           </div>
         </div>
 

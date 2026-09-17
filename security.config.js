@@ -75,6 +75,12 @@ export const securityHeaders = {
   'X-DNS-Prefetch-Control': 'off',
 };
 
+/** Sent on /admin and everything under it. */
+export const noIndexHeaders = {
+  'X-Robots-Tag': 'noindex, nofollow, noarchive',
+  'Cache-Control': 'no-store',
+};
+
 export const cacheHeaders = {
   '/assets/*': { 'Cache-Control': 'public, max-age=31536000, immutable' },
   '/index.html': { 'Cache-Control': 'no-cache' },

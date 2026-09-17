@@ -160,7 +160,7 @@ export default function CommandPalette({ onBook, initialOpen = false }) {
           <CommandSeparator />
 
           <CommandGroup heading={ui.palette_group_contact}>
-            <CommandItem
+            {brand.phone && <CommandItem
               value={`call phone ${brand.phone}`}
               onSelect={() =>
                 run(() => {
@@ -171,13 +171,13 @@ export default function CommandPalette({ onBook, initialOpen = false }) {
               <Icon name="phone" size={16} />
               <span>{ui.palette_call}</span>
               <CommandShortcut>{brand.phone}</CommandShortcut>
-            </CommandItem>
+            </CommandItem>}
             <CommandItem
-              value="crisis emergency 988 suicide help urgent"
+              value="crisis emergency 14416 112 tele-manas suicide help urgent"
               onSelect={() => {
                 setOpen(false);
                 setTimeout(() => {
-                  window.location.href = 'tel:988';
+                  window.location.href = telHref(ui.crisis_number || '14416');
                 }, 120);
               }}
               className="data-[selected=true]:bg-amber-500 data-[selected=true]:text-ink"

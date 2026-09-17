@@ -69,10 +69,12 @@ export default function Hero() {
   const therapistsContent = useSiteContent('therapists');
   const booking = useSiteContent('booking');
   const words = Array.isArray(content.rotating_words) && content.rotating_words.length ? content.rotating_words : ['you'];
-  const stats = Array.isArray(trust.stats) ? trust.stats : [];
+  // Numbers and insurers only show once the practice has switched them on
+  // (Show & hide → Numbers, insurers and reviews).
+  const stats = features.proof && Array.isArray(trust.stats) ? trust.stats : [];
   // The same list the booking form offers, minus the two entries that are not
   // insurers. Nothing new to maintain, and it can never drift from the form.
-  const insurers = (Array.isArray(booking.insurers) ? booking.insurers : []).filter(
+  const insurers = (features.proof && Array.isArray(booking.insurers) ? booking.insurers : []).filter(
     (n) => !/^self-pay$|not sure|^other/i.test(String(n).trim()),
   );
   const therapists = Array.isArray(therapistsContent.items) ? therapistsContent.items : [];

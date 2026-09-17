@@ -85,7 +85,9 @@ export default function AdminLogin() {
           </button>
         </form>
 
-        {isDemo && (
+        {/* import.meta.env.DEV is a build-time constant, so this whole block and
+            its demo password are left out of the production bundle. */}
+        {import.meta.env.DEV && isDemo && (
           <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-center">
             <p className="text-xs font-medium text-amber-800">Demo Mode</p>
             <p className="mt-1 text-xs text-amber-600">

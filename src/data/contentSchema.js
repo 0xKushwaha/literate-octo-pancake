@@ -24,11 +24,12 @@
 import {
   brand, concerns, credentials, faqs, plans, process, services, stats, testimonials, therapists,
 } from './site';
+import { PRIVACY_BODY, PRIVACY_UPDATED, TERMS_BODY, TERMS_UPDATED } from './legalDefaults';
 
 /** The option lists inside the booking form, editable like everything else. */
 export const BOOKING_FORMATS = [
-  { id: 'video', label: 'Video call', icon: 'video', note: 'Anywhere we are licensed' },
-  { id: 'inperson', label: 'In person', icon: 'pin', note: 'Filbert Street, SF' },
+  { id: 'video', label: 'Video call', icon: 'video', note: 'From wherever you are' },
+  { id: 'inperson', label: 'In person', icon: 'pin', note: 'At our practice' },
   { id: 'phone', label: 'Phone', icon: 'phone', note: 'No camera, no app' },
 ];
 
@@ -100,12 +101,12 @@ export const WHY_ITEMS = [
   {
     icon: 'coins',
     title: 'Priced before you book',
-    body: 'Your exact out-of-pocket cost, insurance applied, on the booking screen. Nothing surfaces on a statement later.',
+    body: 'You see the full cost on the booking screen, before you confirm. Nothing surprising later.',
   },
   {
     icon: 'globe',
     title: 'Video, phone or in person',
-    body: 'Switch formats week to week without switching therapists. Telehealth across fourteen states.',
+    body: 'Switch formats week to week without switching therapists.',
   },
   {
     icon: 'lock',
@@ -146,6 +147,7 @@ export const CONTENT_SCHEMA = [
   f('features.booking', 'Booking', 'off', 'toggle', 'Off hides the booking form and every button that opens it — the header, the mobile bar, the footer, the hero and the service cards. Those buttons offer the community instead. Turn it on and the whole booking flow comes back as it was.'),
   f('features.therapists', 'Therapist profiles', 'off', 'toggle', 'Off takes the team off the homepage, the menu and the footer, and sends anyone with an old /therapists link back to the home page.'),
   f('features.pricing', 'Pricing page', 'off', 'toggle', 'Off takes the plans off the menu and the footer and sends /pricing back to the home page. The prices on the service cards are a separate thing and are not affected.'),
+  f('features.proof', 'Numbers, insurers and reviews', 'off', 'toggle', 'The four numbers and the "Covered by" line under the hero, and the client quotes on the homepage and the team page. Off until every number and quote on them is real: made-up reviews on a health site are a legal problem, not just an awkward one.'),
   f('features.community', 'Community (Discord)', 'on', 'toggle', 'The "Join our community" button and the band at the foot of every page. The invite link itself lives under Community — with no link saved, every community button stays hidden rather than pointing nowhere.'),
 
   // ── Brand ─────────────────────────────────────────────────────────────────
@@ -154,7 +156,7 @@ export const CONTENT_SCHEMA = [
   f('brand.phone', 'Phone number', brand.phone),
   f('brand.email', 'Contact email', brand.email),
   f('brand.address', 'Address', brand.address),
-  f('brand.crisis_line', 'Crisis banner text', 'Call or text 988 — Suicide & Crisis Lifeline, 24/7. If someone is in danger right now, call 911.', 'richtext'),
+  f('brand.crisis_line', 'Crisis banner text', 'Call Tele-MANAS on 14416 (free, 24/7). If someone is in danger right now, call 112.', 'richtext'),
   f('brand.credentials', 'Credential badges (footer)', credentials, LIST, 'Short trust badges shown at the foot of every page, above the copyright line. Up to six.', strings('Badge')),
   // Two colours, and the whole site is mixed from them. New keys on purpose:
   // the old accent_color / button_color rows are still in site_content with
@@ -187,7 +189,7 @@ export const CONTENT_SCHEMA = [
   f('hero.subheadline', 'Subheadline', 'Licensed clinicians, matched to you by a human in under a day. Video, phone or in person, and a first session this week, not next quarter.', 'richtext'),
   f('hero.primary_cta', 'Primary button', 'Book your first session'),
   f('hero.secondary_cta', 'Secondary button', 'See how it works'),
-  f('hero.location_note', 'Location note', 'San Francisco · Telehealth in 14 states'),
+  f('hero.location_note', 'Location note', 'Based in India · Sessions online'),
   f('hero.image_url', 'Hero photo (URL)', IMAGES.hero, 'text', 'Paste any https image URL. Landscape works best.'),
   f('hero.image_alt', 'Hero photo description (for screen readers)', 'Two people talking on a couch in a bright room'),
   f('hero.match_badge', 'Badge on the card over the photo', 'Matched in 1 day'),
@@ -451,22 +453,31 @@ export const CONTENT_SCHEMA = [
   f('community.already', 'Message when that address has joined before', 'You are already on the list — opening Discord now.'),
   f('community.invalid_email', 'Message when the address looks wrong', 'That email address does not look right.'),
 
+  // ── Legal pages ───────────────────────────────────────────────────────────
+  f('legal.updated_prefix', 'Words before the date', 'Last updated'),
+  f('legal.privacy_title', 'Privacy page: title', 'Privacy policy'),
+  f('legal.privacy_updated', 'Privacy page: last updated', PRIVACY_UPDATED, 'text', 'Change this whenever the text below changes.'),
+  f('legal.privacy_body', 'Privacy page: text', PRIVACY_BODY, 'richtext', 'Plain text. A line starting "## " is a heading, a line starting "- " is a bullet, a blank line starts a new paragraph. {name} and {email} are filled in from Brand & contact. This is a starting draft: have a lawyer review it.'),
+  f('legal.terms_title', 'Terms page: title', 'Terms of use'),
+  f('legal.terms_updated', 'Terms page: last updated', TERMS_UPDATED, 'text', 'Change this whenever the text below changes.'),
+  f('legal.terms_body', 'Terms page: text', TERMS_BODY, 'richtext', 'Same formatting rules as the privacy text. A starting draft: have a lawyer review it.'),
+
   // ── Footer ────────────────────────────────────────────────────────────────
   f('footer.blurb', 'Footer blurb', 'A modern practice for people who have been meaning to do this for a while.', 'richtext'),
-  f('footer.disclaimer', 'Footer disclaimer', `This site is a design demonstration. ${brand.name} is a fictional practice — nothing here is medical advice.`, 'richtext'),
+  f('footer.disclaimer', 'Footer disclaimer', `Articles and exercises on this site are general information, not medical advice. ${brand.name} is not an emergency service: if you are in crisis, call Tele-MANAS on 14416 or 112.`, 'richtext'),
   f('footer.copyright_suffix', 'Copyright suffix', 'Therapy, PC. All rights reserved.'),
   f('footer.book_label', 'Button in the footer', 'Book a session'),
   f('footer.col1_title', 'First column heading', 'Practice'),
   f('footer.col2_title', 'Second column heading', 'Resources'),
   f('footer.col3_title', 'Third column heading', 'Legal'),
   f('footer.privacy_label', 'Legal link 1: label', 'Privacy policy'),
-  f('footer.privacy_url', 'Legal link 1: address', '#'),
-  f('footer.terms_label', 'Legal link 2: label', 'Terms of service'),
-  f('footer.terms_url', 'Legal link 2: address', '#'),
-  f('footer.hipaa_label', 'Legal link 3: label', 'HIPAA Notice of Privacy Practices'),
-  f('footer.hipaa_url', 'Legal link 3: address', '#', 'text', 'The notice of privacy practices every practice has to publish. Paste the URL of the PDF or page once it exists.'),
+  f('footer.privacy_url', 'Legal link 1: address', '/privacy', 'text', 'A page on this site (like /privacy) or a full https link. Leave empty to hide the link.'),
+  f('footer.terms_label', 'Legal link 2: label', 'Terms of use'),
+  f('footer.terms_url', 'Legal link 2: address', '/terms', 'text', 'A page on this site (like /terms) or a full https link. Leave empty to hide the link.'),
+  f('footer.hipaa_label', 'Legal link 3: label', 'Grievances'),
+  f('footer.hipaa_url', 'Legal link 3: address', '/privacy#grievances', 'text', 'Where someone goes to raise a privacy complaint. Leave empty to hide the link.'),
   f('footer.accessibility_label', 'Legal link 4: label', 'Accessibility'),
-  f('footer.accessibility_url', 'Legal link 4: address', '#'),
+  f('footer.accessibility_url', 'Legal link 4: address', ''),
 
   // ── Booking ───────────────────────────────────────────────────────────────
   f('booking.mobile_bar_label', 'Mobile sticky bar label', 'Book a session'),
@@ -549,7 +560,8 @@ export const CONTENT_SCHEMA = [
   f('ui.palette_empty', 'Cmd-K palette: nothing found', 'Nothing matches that.'),
   f('ui.palette_book', 'Cmd-K palette: book entry', 'Book a session'),
   f('ui.palette_call', 'Cmd-K palette: call entry', 'Call the practice'),
-  f('ui.palette_crisis', 'Cmd-K palette: crisis entry', 'Crisis line — call or text 988'),
+  f('ui.palette_crisis', 'Cmd-K palette: crisis entry', 'Crisis line — call Tele-MANAS 14416'),
+  f('ui.crisis_number', 'Number the crisis entry dials', '14416', 'text', 'Digits only. Tele-MANAS is India\'s free national mental-health line.'),
   f('ui.palette_group_book', 'Cmd-K palette: group heading', 'Book'),
   f('ui.palette_group_therapists', 'Cmd-K palette: group heading', 'Therapists'),
   f('ui.palette_group_pages', 'Cmd-K palette: group heading', 'Go to'),
@@ -575,6 +587,7 @@ export const SECTION_ORDER = [
   'brand', 'nav', 'footer', 'booking', 'ui',
   'hero', 'trust', 'heard', 'testimonials', 'explore', 'breathe_home', 'cta', 'community',
   'services', 'approach', 'why', 'faq', 'therapists', 'pricing', 'resources', 'blog', 'breathing',
+  'legal',
 ];
 
 /**
@@ -606,6 +619,7 @@ export const SECTION_PAGE = {
   resources: 'resources',
   blog: 'resources',
   breathing: 'breathe',
+  legal: 'legal',
 };
 
 /**
@@ -619,7 +633,7 @@ export const PAGE_FEATURE = {
   pricing: 'pricing',
 };
 
-export const PAGE_ORDER = ['visibility', 'everywhere', 'home', 'services', 'how', 'therapists', 'pricing', 'resources', 'breathe'];
+export const PAGE_ORDER = ['visibility', 'everywhere', 'home', 'services', 'how', 'therapists', 'pricing', 'resources', 'breathe', 'legal'];
 
 export const PAGE_TITLES = {
   visibility: 'Show & hide',
@@ -631,6 +645,7 @@ export const PAGE_TITLES = {
   pricing: 'Pricing page',
   resources: 'Resources & blog',
   breathe: 'Breathe page',
+  legal: 'Legal pages',
 };
 
 export const PAGE_PATHS = {
@@ -643,6 +658,7 @@ export const PAGE_PATHS = {
   pricing: '/pricing',
   resources: '/resources',
   breathe: '/breathe',
+  legal: '/privacy',
 };
 
 export const PAGE_BLURBS = {
@@ -655,6 +671,7 @@ export const PAGE_BLURBS = {
   pricing: 'Plans and the small print. Editable whether or not the page is switched on — edits are kept and appear the moment it is.',
   resources: 'Videos, articles and the blog.',
   breathe: 'The guided breathing exercises.',
+  legal: 'The privacy policy (/privacy) and terms of use (/terms). Starting drafts for a practice in India: have a lawyer review them.',
 };
 
 export const SECTION_TITLES = {
@@ -676,6 +693,7 @@ export const SECTION_TITLES = {
   explore: 'Explore cards (articles + videos)',
   breathe_home: 'Breathing band',
   blog: 'Blog',
+  legal: 'Privacy policy and terms',
   pricing: 'Pricing',
   faq: 'FAQ',
   cta: 'Call to action',

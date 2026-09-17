@@ -3,13 +3,14 @@ import Therapists from '../sections/Therapists';
 import Testimonials from '../sections/Testimonials';
 import CtaBand from '../sections/CtaBand';
 import { useBooking } from '../lib/booking';
-import { usePrimaryCta } from '../lib/features';
+import { useFeatures, usePrimaryCta } from '../lib/features';
 import { useSiteContent } from '../lib/queries/siteContent';
 
 export default function TherapistsPage() {
   const openBooking = useBooking();
   const content = useSiteContent('therapists');
   const cta = usePrimaryCta(content.header_cta);
+  const features = useFeatures();
   return (
     <>
       <PageHeader
@@ -26,7 +27,7 @@ export default function TherapistsPage() {
         )}
       </PageHeader>
       <Therapists onBook={openBooking} withHeading={false} />
-      <Testimonials limit={6} />
+      {features.proof && <Testimonials limit={6} />}
       <CtaBand />
     </>
   );

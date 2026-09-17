@@ -3,7 +3,8 @@ import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { cacheHeaders, securityHeaders, serializeCsp } from './security.config.js';
-import { SITE_URL, jsonLdString, meta } from './seo.config.js';
+import { SITEMAP_ROUTES, SITE_URL, jsonLdString, meta } from './seo.config.js';
+import { brand } from './src/data/site.js';
 
 /**
  * Ships the security posture with the build:
@@ -18,7 +19,8 @@ function security() {
     transformIndexHtml(html) {
       const social = [
         { property: 'og:type', content: 'website' },
-        { property: 'og:site_name', content: 'Lumen' },
+        { property: 'og:site_name', content: brand.name },
+        { property: 'og:locale', content: 'en_IN' },
         { property: 'og:title', content: meta.title },
         { property: 'og:description', content: meta.description },
         { property: 'og:url', content: SITE_URL },
@@ -42,7 +44,8 @@ function security() {
             },
             injectTo: 'head-prepend',
           },
-          { tag: 'link', attrs: { rel: 'canonical', href: SITE_URL }, injectTo: 'head' },
+          // No site-wide canonical: one fixed canonical told search engines
+          // that every page was a copy of the home page.
           ...social.map((attrs) => ({ tag: 'meta', attrs, injectTo: 'head' })),
           {
             tag: 'script',
@@ -61,6 +64,26 @@ function security() {
         for (const [k, v] of Object.entries(headers)) lines.push(`  ${k}: ${v}`);
       }
       this.emitFile({ type: 'asset', fileName: '_headers', source: lines.join('\n') + '\n' });
+
+      // robots.txt and sitemap.xml, generated so they always name the real
+      // domain (the hand-written copies pointed at an old one).
+      const today = new Date().toISOString().slice(0, 10);
+      this.emitFile({
+        type: 'asset',
+        fileName: 'robots.txt',
+        source: ['User-agent: *', 'Allow: /', 'Disallow: /admin', 'Disallow: /api/', '', `Sitemap: ${SITE_URL}/sitemap.xml`, ''].join('\n'),
+      });
+      this.emitFile({
+        type: 'asset',
+        fileName: 'sitemap.xml',
+        source: [
+          '<?xml version="1.0" encoding="UTF-8"?>',
+          '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+          ...SITEMAP_ROUTES.map((r) => `  <url><loc>${SITE_URL}${r === '/' ? '/' : r}</loc><lastmod>${today}</lastmod></url>`),
+          '</urlset>',
+          '',
+        ].join('\n'),
+      });
     },
   };
 }
@@ -73,6 +96,21 @@ function security() {
  * the login screen. That is a fine dev experience and a terrible deploy, and
  * the two are indistinguishable until someone finds the login page.
  */
+/** A service-role JWT, or one of Supabase's newer sb_secret_ keys. */
+function looksLikeSecretKey(value) {
+  const v = String(value || '').trim();
+  if (!v) return false;
+  if (v.startsWith('sb_secret_')) return true;
+  const parts = v.split('.');
+  if (parts.length !== 3) return false;
+  try {
+    const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8'));
+    return payload?.role === 'service_role';
+  } catch {
+    return false;
+  }
+}
+
 function requireEnv(env) {
   return {
     name: 'lumen-require-env',
@@ -82,6 +120,12 @@ function requireEnv(env) {
         const v = (env[k] || '').trim();
         return !v || /your-project-ref|your-anon-key-here|placeholder/i.test(v);
       });
+      if (missing.length && process.env.VERCEL_ENV === 'production') {
+        this.error(
+          `Refusing to build for production: ${missing.join(' and ')} not set. ` +
+            'Add them in Vercel → Settings → Environment Variables and redeploy.',
+        );
+      }
       if (missing.length) {
         this.warn(
           `Building without credentials: ${missing.join(' and ')} ${missing.length > 1 ? 'are' : 'is'} ` +
@@ -89,8 +133,10 @@ function requireEnv(env) {
             '(or in your host\'s environment variables) before building for production.',
         );
       }
-      if (env.VITE_SUPABASE_ANON_KEY?.includes('service_role')) {
-        this.warn('Warning: VITE_SUPABASE_ANON_KEY looks like a service_role key.');
+      if (looksLikeSecretKey(env.VITE_SUPABASE_ANON_KEY)) {
+        // The anon key is published in the bundle; a service-role key there
+        // would hand every visitor full database access.
+        this.error('Refusing to build: VITE_SUPABASE_ANON_KEY looks like a service_role key.');
       }
 
       // Server-side variables for /api/booking. Read at request time, not build
@@ -115,13 +161,50 @@ function requireEnv(env) {
   };
 }
 
-export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), '');
+/**
+ * Vercel serves 404.html, with a real 404 status, for any address that no
+ * rewrite in vercel.json claims. It is a copy of index.html, so the app still
+ * boots and shows its own "page not found" screen, but search engines and
+ * scanners get a true 404 instead of a 200 for every made-up URL.
+ */
+function notFoundPage() {
   return {
-    plugins: [react(), tailwindcss(), security(), requireEnv(env)],
-    resolve: {
-      alias: { '@': path.resolve(import.meta.dirname, './src') },
+    name: 'lumen-404',
+    apply: 'build',
+    enforce: 'post',
+    generateBundle(_, bundle) {
+      const index = bundle['index.html'];
+      if (!index || index.type !== 'asset') return;
+      this.emitFile({ type: 'asset', fileName: '404.html', source: index.source });
     },
+  };
+}
+
+/**
+ * Demo mode can never switch on in a production bundle (isDemo requires a dev
+ * build), but its fixture data and fake admin still shipped as a chunk. In a
+ * build, every import of lib/demoData resolves to an empty stand-in instead.
+ */
+function stripDemo() {
+  const real = path.resolve(import.meta.dirname, 'src/lib/demoData.js');
+  const stub = path.resolve(import.meta.dirname, 'src/lib/demoData.prod.js');
+  return {
+    name: 'lumen-strip-demo',
+    enforce: 'pre',
+    resolveId(source, importer) {
+      if (!importer || !/(^|\/)demoData(\.js)?$/.test(source)) return null;
+      const resolved = path.resolve(path.dirname(importer), source.endsWith('.js') ? source : `${source}.js`);
+      return resolved === real ? stub : null;
+    },
+  };
+}
+
+export default defineConfig(({ command, mode }) => {
+  const env = loadEnv(mode, process.cwd(), '');
+  const alias = [{ find: '@', replacement: path.resolve(import.meta.dirname, './src') }];
+  return {
+    plugins: [react(), tailwindcss(), security(), requireEnv(env), notFoundPage(), ...(command === 'build' ? [stripDemo()] : [])],
+    resolve: { alias },
     build: {
       // Vite 8 bundles with rolldown, which only accepts the FUNCTION form of
       // manualChunks. Keeping the big, rarely-changing vendors in their own

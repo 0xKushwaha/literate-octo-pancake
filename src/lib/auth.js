@@ -9,7 +9,7 @@ export async function signInAdmin(email, password) {
   // Demo mode — bypass Supabase entirely. Dev builds only; see lib/supabase.js.
   // Credentials are scoped inside this block so the bundler can provably
   // dead-code-eliminate them from production builds.
-  if (isDemo) {
+  if (import.meta.env.DEV && isDemo) {
     const DEMO_EMAIL = 'admin@lumen.dev';
     const DEMO_PASS = 'admin123';
     if (email === DEMO_EMAIL && password === DEMO_PASS) {

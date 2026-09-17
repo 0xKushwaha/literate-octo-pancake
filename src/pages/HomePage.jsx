@@ -37,7 +37,7 @@ export default function HomePage() {
     <>
       <Hero />
       <CommunityBand />
-      <Testimonials limit={3} tinted={false} />
+      {features.proof && <Testimonials limit={3} tinted={false} />}
       <HeardYou limit={3} />
       <BreathePrompt />
       <Services onBook={openBooking} limit={3} teaser />

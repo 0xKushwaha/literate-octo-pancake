@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { useBooking } from './booking';
 import { isFeatureOn } from './featureFlag';
 import { useSiteContent } from './queries/siteContent';
+import { safeExternalUrl } from './safeUrl';
 
 /**
  * Whole parts of the site, switched on and off from the admin.
@@ -22,6 +23,7 @@ export function useFeatures() {
     therapists: isFeatureOn(f.therapists),
     pricing: isFeatureOn(f.pricing),
     community: isFeatureOn(f.community),
+    proof: isFeatureOn(f.proof),
   };
 }
 
@@ -35,7 +37,8 @@ export function useFeatures() {
 export function useCommunity() {
   const content = useSiteContent('community');
   const features = useFeatures();
-  const url = String(content.invite_url ?? '').trim();
+  // Only an https link is ever opened; anything else counts as no link yet.
+  const url = safeExternalUrl(content.invite_url) ?? '';
   return { ...content, url, enabled: features.community && url !== '' };
 }
 

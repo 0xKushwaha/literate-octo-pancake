@@ -1,10 +1,12 @@
 export const brand = {
   name: 'zehnspaces',
   tagline: 'Therapy that meets you where you are.',
-  phone: '+1 (415) 555-0142',
-  email: 'hello@lumentherapy.com',
-  address: '2140 Filbert Street, San Francisco, CA 94123',
-  crisis: '988 — Suicide & Crisis Lifeline (US), 24/7',
+  // Real contact details are entered in Admin → Site content → Everywhere.
+  // These defaults are only what shows before that is done.
+  phone: '',
+  email: 'hello@zehnspaces.com',
+  address: '',
+  crisis: 'Tele-MANAS 14416 (free, 24/7). In an emergency, call 112.',
 };
 
 export const stats = [
@@ -247,28 +249,20 @@ export const testimonials = [
 
 export const faqs = [
   {
-    q: 'Do you take insurance?',
-    a: 'We are in-network with Aetna, Cigna, United and Blue Shield of California. For everyone else we file out-of-network claims on your behalf, and most PPO plans reimburse 50–80%. You will see your exact cost before you confirm a booking — never after.',
-  },
-  {
-    q: 'How quickly can I actually be seen?',
-    a: 'Median time from intake to first session is 36 hours. Same-week availability is the norm rather than the exception, and the booking calendar shows real openings — not a request queue.',
+    q: 'How do I get started?',
+    a: 'Leave your email in the box near the top of the home page to join our community, or write to us. We will help you work out the right next step.',
   },
   {
     q: 'What if my therapist is not the right fit?',
-    a: 'Switch from your dashboard, no explanation required and no charge. The intro call exists precisely so you can find this out before you have invested six weeks. Roughly one in nine clients switches once; almost nobody switches twice.',
+    a: 'Tell us and we will help you switch. No explanation needed.',
   },
   {
     q: 'Is this confidential?',
-    a: 'Yes. Sessions are HIPAA-compliant and end-to-end encrypted, notes are visible only to your care team, and we never sell data — there is no advertising business here to sell it to. The exceptions are the legal ones every clinician has: imminent risk to you or someone else, and abuse of a child or dependent adult.',
+    a: 'Yes. What you share stays between you and your care team, and we never sell data. The exceptions are the ones every clinician has by law: a serious risk to you or someone else, or harm to a child.',
   },
   {
-    q: 'Do you offer in-person sessions?',
-    a: 'At our San Francisco practice on Filbert Street, yes — and most therapists offer a mix. Video and phone are available everywhere we are licensed, currently 14 states.',
-  },
-  {
-    q: 'What does it cost without insurance?',
-    a: 'Individual sessions are $165 for 50 minutes, couples $240 for 80, psychiatry $220 for the initial consult. Sliding-scale places are held open for anyone under financial strain — ask during intake, and no, you will not be asked to prove it.',
+    q: 'What if I am in crisis right now?',
+    a: 'Please do not wait for an appointment. Call Tele-MANAS on 14416 (free, 24 hours a day) or, if someone is in immediate danger, call 112.',
   },
 ];
 
@@ -314,11 +308,6 @@ export const plans = [
   },
 ];
 
-export const credentials = [
-  'HIPAA compliant',
-  'APA member practice',
-  'Licensed in 14 states',
-  'SOC 2 Type II',
-  'End-to-end encrypted',
-  'CAMFT accredited',
-];
+// Trust badges in the footer. Empty until the practice enters real ones in the
+// admin: a badge the practice cannot back up is worse than no badge.
+export const credentials = [];

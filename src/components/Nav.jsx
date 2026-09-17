@@ -188,10 +188,12 @@ export default function Nav() {
           </ul>
 
           <div className="flex items-center gap-2">
-            <a href={telHref(brand.phone)} className="hidden items-center gap-2 px-2 text-[13.5px] text-ink-2 hover:text-ink xl:inline-flex">
-              <Icon name="phone" size={15} />
-              {brand.phone}
-            </a>
+            {brand.phone && (
+              <a href={telHref(brand.phone)} className="hidden items-center gap-2 px-2 text-[13.5px] text-ink-2 hover:text-ink xl:inline-flex">
+                <Icon name="phone" size={15} />
+                {brand.phone}
+              </a>
+            )}
             {cta && (
               <Button variant="primary" size="md" {...cta.props} className="hidden sm:inline-flex">
                 {cta.label}
@@ -252,10 +254,12 @@ export default function Nav() {
                   {cta.label}
                 </Button>
               )}
-              <a href={telHref(brand.phone)} className="flex items-center justify-center gap-2 py-1 text-sm text-ink-2">
-                <Icon name="phone" size={15} />
-                {brand.phone}
-              </a>
+              {brand.phone && (
+                <a href={telHref(brand.phone)} className="flex items-center justify-center gap-2 py-1 text-sm text-ink-2">
+                  <Icon name="phone" size={15} />
+                  {brand.phone}
+                </a>
+              )}
             </div>
           </div>
         </div>

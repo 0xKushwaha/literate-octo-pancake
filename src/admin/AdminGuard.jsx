@@ -1,7 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { supabase, isDemo, configError } from '../lib/supabase';
-import { getAdminRole } from '../lib/auth';
+import { getAdminRole, signOut } from '../lib/auth';
+
+// Signed-in admin sessions end after this long with no activity, so a laptop
+// left open at the front desk does not stay inside the bookings list.
+const IDLE_LIMIT_MS = 30 * 60 * 1000;
+
 
 function ConfigError() {
   return (
@@ -54,6 +59,24 @@ export default function AdminGuard({ children }) {
       subscription.unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    if (status !== 'authorized') return undefined;
+    let timer;
+    const reset = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        signOut().finally(() => setStatus('unauthorized'));
+      }, IDLE_LIMIT_MS);
+    };
+    const events = ['pointerdown', 'keydown', 'scroll', 'visibilitychange'];
+    events.forEach((e) => window.addEventListener(e, reset, { passive: true }));
+    reset();
+    return () => {
+      clearTimeout(timer);
+      events.forEach((e) => window.removeEventListener(e, reset));
+    };
+  }, [status]);
 
   if (configError) return <ConfigError />;
 

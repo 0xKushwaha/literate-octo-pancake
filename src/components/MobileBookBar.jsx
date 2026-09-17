@@ -37,13 +37,15 @@ export default function MobileBookBar() {
       aria-hidden={!show}
     >
           <div className="flex items-center gap-3 rounded-full border border-line bg-surface/95 p-2 pl-5 shadow-[var(--shadow-float)] backdrop-blur-md">
-            <a
-              href={telHref(brand.phone)}
-              className="grid size-10 shrink-0 place-items-center rounded-full border border-line text-ink-2"
-              aria-label={`Call ${brand.name}`}
-            >
-              <Icon name="phone" size={17} />
-            </a>
+            {brand.phone ? (
+              <a
+                href={telHref(brand.phone)}
+                className="grid size-10 shrink-0 place-items-center rounded-full border border-line text-ink-2"
+                aria-label={`Call ${brand.name}`}
+              >
+                <Icon name="phone" size={17} />
+              </a>
+            ) : null}
             <Button variant="primary" size="md" icon="arrow" className="flex-1" {...cta.props}>
               {cta.label}
             </Button>
