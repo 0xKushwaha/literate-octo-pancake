@@ -16,6 +16,10 @@ import { useSiteContent } from '../lib/queries/siteContent';
  * the closing call to action is already the one dark block on the page —
  * a third heavy band between them would flatten both.
  */
+// Not on the homepage any more: the email capture was removed from it and the
+// explore cards took its place. Kept because the community is still offered in
+// the header and the closing band, and putting the capture back is one line in
+// HomePage.jsx.
 export default function CommunityBand() {
   const content = useSiteContent('community');
   const features = useFeatures();

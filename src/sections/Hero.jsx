@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Button, Counter, Pill } from '../components/primitives';
+import { Counter, Pill } from '../components/primitives';
 import Avatar from '../components/Avatar';
 import HeroVisual from './HeroVisual';
 import Icon from '../components/Icon';
 import { useSiteContent } from '../lib/queries/siteContent';
-import { useFeatures, usePrimaryCta } from '../lib/features';
+import { useFeatures } from '../lib/features';
 
 /**
  * The changing word on its own line.
@@ -61,10 +60,6 @@ function MatchCard({ therapist, badge }) {
 export default function Hero() {
   const content = useSiteContent('hero');
   const features = useFeatures();
-  // Booking when booking is on, the community invite when it is not, and
-  // nothing at all when there is neither — better an absent button than one
-  // that opens a form the practice has switched off.
-  const cta = usePrimaryCta(content.primary_cta);
   const trust = useSiteContent('trust');
   const therapistsContent = useSiteContent('therapists');
   const booking = useSiteContent('booking');
@@ -95,20 +90,9 @@ export default function Hero() {
 
           <p className="mt-7 max-w-[46ch] text-[17px] leading-relaxed text-ink-2 sm:text-[18.5px]">{content.subheadline}</p>
 
-          <div className="mt-8 flex flex-wrap items-center gap-3">
-            {cta && (
-              <Button variant="primary" size="lg" icon="arrow" {...cta.props} className="w-full sm:w-auto">
-                {cta.label}
-              </Button>
-            )}
-            {/* Promoted to the primary style when there is no primary button
-                — while the Discord invite is still blank there would
-                otherwise be nothing filled in on the hero at all, which reads
-                as a page that has not finished loading. */}
-            <Button variant={cta ? 'secondary' : 'primary'} size="lg" as={Link} to="/how-it-works" className="w-full sm:w-auto">
-              {content.secondary_cta}
-            </Button>
-          </div>
+          {/* No buttons here on purpose. The hero states what the practice
+              is; the ask lives in the header and in the closing band, and the
+              cards immediately below are the thing worth scrolling to. */}
 
         </div>
 

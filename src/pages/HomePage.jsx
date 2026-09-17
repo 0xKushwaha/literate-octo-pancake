@@ -6,7 +6,6 @@ import Therapists from '../sections/Therapists';
 import Testimonials from '../sections/Testimonials';
 import Explore from '../sections/Explore';
 import BreathePrompt from '../sections/BreathePrompt';
-import CommunityBand from '../sections/CommunityBand';
 import CtaBand from '../sections/CtaBand';
 import { useBooking } from '../lib/booking';
 import { useFeatures } from '../lib/features';
@@ -24,11 +23,14 @@ import { useFeatures } from '../lib/features';
  * a minute of breathing they can have right now for nothing, and only then
  * what we do and how.
  *
- * The explore cards — articles and short videos — sit where the team used to,
- * because the free, useful thing is what earns the scroll, and because the
- * team is currently switched off (Site content → Show & hide). If it is
- * switched back on it returns here, after the cards rather than in front of
- * them.
+ * The explore cards — articles and short videos — now sit directly under the
+ * hero, where the community email capture used to be. The free, useful thing
+ * is what earns the scroll, and it asks the visitor for nothing. The capture
+ * itself is gone from this page; the community is offered in the header and
+ * in the closing band, which is enough places to ask.
+ *
+ * The team, when it is switched back on (Site content → Show & hide), returns
+ * near the foot of the page rather than in front of the cards.
  */
 export default function HomePage() {
   const openBooking = useBooking();
@@ -36,13 +38,12 @@ export default function HomePage() {
   return (
     <>
       <Hero />
-      <CommunityBand />
+      <Explore />
       {features.proof && <Testimonials limit={3} tinted={false} />}
       <HeardYou limit={3} />
       <BreathePrompt />
       <Services onBook={openBooking} limit={3} teaser />
       <Approach teaser />
-      <Explore />
       {features.therapists && <Therapists onBook={openBooking} limit={3} teaser />}
       <CtaBand />
     </>
