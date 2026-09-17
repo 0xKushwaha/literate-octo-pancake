@@ -23,7 +23,6 @@ export function useFeatures() {
     therapists: isFeatureOn(f.therapists),
     pricing: isFeatureOn(f.pricing),
     community: isFeatureOn(f.community),
-    proof: isFeatureOn(f.proof),
     testimonials: isFeatureOn(f.testimonials),
   };
 }

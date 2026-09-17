@@ -64,12 +64,13 @@ export default function Hero() {
   const therapistsContent = useSiteContent('therapists');
   const booking = useSiteContent('booking');
   const words = Array.isArray(content.rotating_words) && content.rotating_words.length ? content.rotating_words : ['you'];
-  // Numbers and insurers only show once the practice has switched them on
-  // (Show & hide → Numbers, insurers and reviews).
-  const stats = features.proof && Array.isArray(trust.stats) ? trust.stats : [];
+  // The numbers and the insurer line are edited in Site content → Home page,
+  // and an empty list hides its own row. No switch: emptying the field is the
+  // way to take one off the page.
+  const stats = Array.isArray(trust.stats) ? trust.stats : [];
   // The same list the booking form offers, minus the two entries that are not
   // insurers. Nothing new to maintain, and it can never drift from the form.
-  const insurers = (features.proof && Array.isArray(booking.insurers) ? booking.insurers : []).filter(
+  const insurers = (Array.isArray(booking.insurers) ? booking.insurers : []).filter(
     (n) => !/^self-pay$|not sure|^other/i.test(String(n).trim()),
   );
   const therapists = Array.isArray(therapistsContent.items) ? therapistsContent.items : [];
@@ -81,23 +82,23 @@ export default function Hero() {
   return (
     <section
       id="top"
-      className={`backdrop-soft relative overflow-hidden pt-12 sm:pt-20 ${
-        hasProofStrip ? '' : 'pb-20 sm:pb-28'
+      className={`backdrop-soft relative overflow-hidden pt-10 sm:pt-14 lg:flex lg:min-h-[calc(100svh-4.75rem)] lg:flex-col lg:justify-center lg:pt-6 ${
+        hasProofStrip ? 'pb-2 lg:pb-6' : 'pb-20 sm:pb-28'
       }`}
     >
-      <div className="mx-auto grid w-full max-w-[1280px] items-center gap-12 px-5 sm:px-8 lg:grid-cols-2 lg:gap-14">
+      <div className="mx-auto grid w-full max-w-[1280px] items-center gap-10 px-5 sm:px-8 lg:grid-cols-2 lg:gap-12">
         <div>
           <div className="flex flex-wrap items-center gap-3">
 
             <span className="text-[13px] text-ink-4">{content.location_note}</span>
           </div>
 
-          <h1 className="mt-6 font-display text-[clamp(2.8rem,6.4vw,5rem)] leading-[1.04] tracking-[-0.02em] text-ink">
+          <h1 className="mt-5 font-display text-[clamp(2.6rem,5.6vw,4rem)] leading-[1.04] tracking-[-0.02em] text-ink">
             <span className="block">{content.headline}</span>
             <RotatingWord words={words} />
           </h1>
 
-          <p className="mt-7 max-w-[46ch] text-[17px] leading-relaxed text-ink-2 sm:text-[18.5px]">{content.subheadline}</p>
+          <p className="mt-6 max-w-[46ch] text-[16.5px] leading-relaxed text-ink-2 sm:text-[17.5px]">{content.subheadline}</p>
 
           {/* No buttons here on purpose. The hero states what the practice
               is; the ask lives in the header and in the closing band, and the
@@ -108,6 +109,10 @@ export default function Hero() {
         {/* The organic form on a device that can carry it, the practice's
             photograph everywhere else. Same box, same radius, same shadow,
             either way — see HeroVisual for which case gets which. */}
+        {/* The visual is capped by the height left over on a laptop screen,
+            not by its column: 5:4, so the width that fits is the height times
+            1.25. That is what keeps the numbers below it above the fold. */}
+        <div className="w-full lg:ml-auto lg:max-w-[min(100%,calc((100svh-24rem)*1.25))]">
         <HeroVisual imageUrl={content.image_url} imageAlt={content.image_alt ?? ''}>
           {/* The match card is a therapist profile, so it follows the same
               switch the rest of them do. Leaving a named clinician floating
@@ -115,6 +120,7 @@ export default function Hero() {
               one place the site contradicts itself. */}
           {features.therapists && <MatchCard therapist={therapists[0]} badge={content.match_badge} />}
         </HeroVisual>
+        </div>
       </div>
 
       {/* The proof strip. It was four bordered white cards, which read as a
@@ -124,18 +130,18 @@ export default function Hero() {
           afford this" — the one money question worth answering before the
           page has asked for anything. */}
       {(stats.length > 0 || insurers.length > 0) && (
-        <div className="mx-auto mt-16 w-full max-w-[1280px] px-5 pb-2 sm:px-8">
+        <div className="mx-auto mt-12 w-full max-w-[1280px] px-5 pb-2 sm:px-8 lg:mt-9">
           {stats.length > 0 && (
             <dl className="grid grid-cols-2 border-t border-line lg:grid-cols-4">
               {stats.map((s, i) => (
                 <div
                   key={s.label}
-                  className={`flex flex-col-reverse px-1 py-6 sm:py-7 ${
+                  className={`flex flex-col-reverse px-1 py-5 sm:py-6 ${
                     i % 2 === 1 ? 'border-l border-line pl-6' : 'lg:border-l lg:border-line lg:pl-6'
                   } ${i > 1 ? 'border-t border-line lg:border-t-0' : ''}`}
                 >
                   <dt className="mt-2 text-[12.5px] leading-snug text-ink-3">{s.label}</dt>
-                  <dd className="font-display text-[clamp(2.1rem,3.6vw,2.9rem)] font-medium leading-none tracking-tight text-accent-strong">
+                  <dd className="font-display text-[clamp(1.9rem,3.1vw,2.6rem)] font-medium leading-none tracking-tight text-accent-strong">
                     <Counter value={Number(s.value) || 0} decimals={s.decimals ?? 0} suffix={s.suffix ?? ''} />
                   </dd>
                 </div>
@@ -144,7 +150,7 @@ export default function Hero() {
           )}
 
           {insurers.length > 0 && (
-            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-line py-5">
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-line py-4">
               <span className="eyebrow">{trust.insurers_label}</span>
               {insurers.map((name) => (
                 <span key={name} className="text-[14px] font-medium tracking-tight text-ink-3">

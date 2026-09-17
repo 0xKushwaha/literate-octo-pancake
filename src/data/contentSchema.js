@@ -147,7 +147,6 @@ export const CONTENT_SCHEMA = [
   f('features.booking', 'Booking', 'off', 'toggle', 'Off hides the booking form and every button that opens it — the header, the mobile bar, the footer, the hero and the service cards. Those buttons offer the community instead. Turn it on and the whole booking flow comes back as it was.'),
   f('features.therapists', 'Therapist profiles', 'off', 'toggle', 'Off takes the team off the homepage, the menu and the footer, and sends anyone with an old /therapists link back to the home page.'),
   f('features.pricing', 'Pricing page', 'off', 'toggle', 'Off takes the plans off the menu and the footer and sends /pricing back to the home page. The prices on the service cards are a separate thing and are not affected.'),
-  f('features.proof', 'Numbers and insurers', 'off', 'toggle', 'The four numbers and the "Covered by" line under the hero. Off until every number on them is real.'),
   f('features.testimonials', 'Client reviews', 'on', 'toggle', 'The "In their words" quotes on the homepage and the team page. The ones shipped with the site are samples — replace them with real quotes, used with the client\'s permission, before the site is promoted. Invented reviews on a health site are a legal problem, not just an awkward one.'),
   f('features.community', 'Community (Discord)', 'on', 'toggle', 'The "Join our community" button and the band at the foot of every page. The invite link itself lives under Community — with no link saved, every community button stays hidden rather than pointing nowhere.'),
 
