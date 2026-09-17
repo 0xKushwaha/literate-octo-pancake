@@ -73,9 +73,18 @@ export default function Hero() {
     (n) => !/^self-pay$|not sure|^other/i.test(String(n).trim()),
   );
   const therapists = Array.isArray(therapistsContent.items) ? therapistsContent.items : [];
+  // The proof strip used to be what ended this band, so with it switched off
+  // the tint stopped level with the bottom of the visual and the next section
+  // started against it. The band closes itself instead.
+  const hasProofStrip = stats.length > 0 || insurers.length > 0;
 
   return (
-    <section id="top" className="backdrop-soft relative overflow-hidden pt-12 sm:pt-20">
+    <section
+      id="top"
+      className={`backdrop-soft relative overflow-hidden pt-12 sm:pt-20 ${
+        hasProofStrip ? '' : 'pb-20 sm:pb-28'
+      }`}
+    >
       <div className="mx-auto grid w-full max-w-[1280px] items-center gap-12 px-5 sm:px-8 lg:grid-cols-2 lg:gap-14">
         <div>
           <div className="flex flex-wrap items-center gap-3">
