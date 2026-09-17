@@ -27,7 +27,7 @@ export default function TherapistsPage() {
         )}
       </PageHeader>
       <Therapists onBook={openBooking} withHeading={false} />
-      {features.proof && <Testimonials limit={6} />}
+      {features.testimonials && <Testimonials limit={6} />}
       <CtaBand />
     </>
   );

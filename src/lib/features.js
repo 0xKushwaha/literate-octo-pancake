@@ -24,6 +24,7 @@ export function useFeatures() {
     pricing: isFeatureOn(f.pricing),
     community: isFeatureOn(f.community),
     proof: isFeatureOn(f.proof),
+    testimonials: isFeatureOn(f.testimonials),
   };
 }
 
