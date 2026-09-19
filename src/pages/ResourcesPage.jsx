@@ -12,7 +12,7 @@ export default function ResourcesPage() {
         title={content.headline}
         lead={content.lead}
         image={content.image_url}
-        imageAlt="A person holding a warm mug at a table"
+        imageAlt={content.image_alt}
       />
       <Resources withHeading={false} videoLimit={12} articleLimit={6} showEmpty />
       <CtaBand />

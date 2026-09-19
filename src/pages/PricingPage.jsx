@@ -20,7 +20,7 @@ export default function PricingPage() {
         title={content.headline}
         lead={content.lead}
         image={content.image_url}
-        imageAlt="A person walking a stone labyrinth above the sea"
+        imageAlt={content.image_alt}
       />
       <Pricing onBook={openBooking} withHeading={false} />
       <Faq />

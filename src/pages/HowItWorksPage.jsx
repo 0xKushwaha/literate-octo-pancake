@@ -17,7 +17,7 @@ export default function HowItWorksPage() {
         title={content.headline}
         lead={content.lead}
         image={content.image_url}
-        imageAlt="A person smiling during a video call at home"
+        imageAlt={content.image_alt}
       >
         {cta && (
           <Button variant="primary" size="lg" icon="arrow" {...cta.props}>

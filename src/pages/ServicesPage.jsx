@@ -16,7 +16,7 @@ export default function ServicesPage() {
         title={content.headline}
         lead={content.aside}
         image={content.image_url}
-        imageAlt="Two people sitting together, one comforting the other"
+        imageAlt={content.image_alt}
       >
         {cta && (
           <Button variant="primary" size="lg" icon="arrow" {...cta.props}>
