@@ -20,15 +20,26 @@ export const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 
 export const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'];
 
+/** 20 MB, matching what migration 012 raised the bucket to. */
+export const MAX_AUDIO_BYTES = 20 * 1024 * 1024;
+
+export const ACCEPTED_AUDIO_TYPES = [
+  'audio/mpeg', 'audio/mp4', 'audio/x-m4a', 'audio/aac',
+  'audio/wav', 'audio/x-wav', 'audio/ogg', 'audio/webm',
+];
+
 /** A filename Supabase will accept and a human can still recognise later. */
 function safeName(name) {
   const dot = String(name ?? '').lastIndexOf('.');
-  const stem = (dot > 0 ? name.slice(0, dot) : String(name ?? 'image'))
+  const stem = (dot > 0 ? name.slice(0, dot) : String(name ?? 'file'))
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '')
-    .slice(0, 60) || 'image';
-  const ext = (dot > 0 ? name.slice(dot + 1) : 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+    .slice(0, 60) || 'file';
+  // The extension is kept as given: it is what tells Supabase, the CDN and the
+  // browser what the file is. Only the fallback differs by caller, and both
+  // callers always pass a real filename.
+  const ext = (dot > 0 ? name.slice(dot + 1) : 'bin').toLowerCase().replace(/[^a-z0-9]/g, '') || 'bin';
   // The random suffix is not decoration: two people uploading "cover.jpg" in
   // the same second would otherwise collide, and `upsert: false` would fail
   // the second one rather than quietly overwrite the first.
@@ -82,4 +93,57 @@ export async function uploadImage(file, folder = 'articles') {
   const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
   if (!data?.publicUrl) throw new Error('The image uploaded but the site could not work out its address.');
   return data.publicUrl;
+}
+
+/**
+ * Uploads one audio clip and returns its public URL.
+ *
+ * Same bucket and same policies as the pictures — migration 012 only widens
+ * the list of mime types it accepts. A browser reports m4a inconsistently
+ * (audio/mp4, audio/x-m4a, and occasionally nothing at all), so the extension
+ * is the fallback check rather than trusting file.type alone.
+ */
+export async function uploadAudio(file, folder = 'testimonials') {
+  if (!file) throw new Error('No file chosen.');
+
+  const byExtension = /\.(mp3|m4a|aac|wav|ogg|oga|webm)$/i.test(file.name || '');
+  if (!ACCEPTED_AUDIO_TYPES.includes(file.type) && !byExtension) {
+    throw new Error('That file is not audio the site can play. Use an MP3, M4A, WAV, OGG or WebM.');
+  }
+  if (file.size > MAX_AUDIO_BYTES) {
+    throw new Error('That clip is too large. Keep it under 20 MB — a minute or two of speech is far smaller.');
+  }
+  if (isDemo) {
+    throw new Error('Uploading needs the live database — it does nothing in demo mode.');
+  }
+
+  const path = `${folder}/${safeName(file.name)}`;
+  const { error } = await supabase.storage.from(BUCKET).upload(path, file, {
+    cacheControl: '31536000',
+    upsert: false,
+    contentType: file.type || 'audio/mpeg',
+  });
+  if (error) throw friendlyAudioError(error);
+
+  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
+  if (!data?.publicUrl) throw new Error('The clip uploaded but the site could not work out its address.');
+  return data.publicUrl;
+}
+
+/** The image messages name the wrong migration for an audio failure. */
+function friendlyAudioError(err) {
+  const text = `${err?.message ?? ''} ${err?.error ?? ''}`.toLowerCase();
+  if (text.includes('bucket not found') || text.includes('does not exist')) {
+    return new Error('Storage is not set up yet — run database/migrations/008_article_images.sql, then 012_audio_testimonials.sql.');
+  }
+  if (text.includes('mime') || text.includes('content type') || text.includes('invalid_mime')) {
+    return new Error('The storage bucket is not accepting audio yet — run database/migrations/012_audio_testimonials.sql in the Supabase SQL editor.');
+  }
+  if (text.includes('row-level security') || text.includes('unauthorized') || text.includes('not authorized')) {
+    return new Error('This account is not allowed to upload. Sign in as an admin and try again.');
+  }
+  if (text.includes('payload too large') || text.includes('maximum allowed size')) {
+    return new Error('That clip is too large. Keep it under 20 MB.');
+  }
+  return new Error(err?.message || 'Could not upload that clip.');
 }

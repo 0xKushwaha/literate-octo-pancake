@@ -382,6 +382,7 @@ export const CONTENT_SCHEMA = [
   // ── Testimonials ──────────────────────────────────────────────────────────
   f('testimonials.eyebrow', 'Eyebrow', 'In their words'),
   f('testimonials.headline', 'Headline', 'The part that is hard to put in a brochure.'),
+  f('testimonials.audio_label', 'Label above a recording', 'Hear it from them'),
   f('testimonials.items', 'Quotes', testimonials, LIST, null, {
     itemLabel: 'Testimonial',
     summaryKey: 'quote',
@@ -389,6 +390,12 @@ export const CONTENT_SCHEMA = [
       { key: 'quote', label: 'Quote', type: 'richtext' },
       { key: 'name', label: 'Name', type: 'text' },
       { key: 'meta', label: 'Under the name', type: 'text', hint: 'e.g. "Client, 14 months"' },
+      {
+        key: 'audio_url',
+        label: 'Recording (optional)',
+        type: 'audio',
+        hint: 'A recorded voice is identifiable in a way a typed quote is not. Upload one only with written consent that names this website, and keep the written quote as well — it is what anyone with the sound off, or using a screen reader, will read.',
+      },
     ],
   }),
 
