@@ -25,6 +25,14 @@ import Icon from '../components/Icon';
 
 const OFFSETS = ['', 'lg:mt-10', 'lg:mt-5'];
 
+/**
+ * Where a card's corner arrow goes: the section on /resources that this kind
+ * of card was drawn from, never the individual item. Both anchors are real
+ * ids in src/sections/Resources.jsx — change them together.
+ */
+const ARTICLES_SECTION = '/resources#articles';
+const VIDEOS_SECTION = '/resources#videos';
+
 /** Counts are CMS text, so they arrive as "3" as often as 3. */
 function count(value, fallback, max) {
   const n = Math.floor(Number(value));
@@ -92,32 +100,53 @@ function VideoBand({ thumb }) {
 
 /* -------------------------------------------------------------------- card */
 
+/**
+ * Two destinations on one card, which is why the card itself is no longer the
+ * link.
+ *
+ * The body opens the thing on the card — this article, this video. The arrow
+ * in the corner opens the section it came from, the way the service cards'
+ * arrow opens the service. An article card therefore points at two different
+ * places, and an `<a>` cannot contain another `<a>`.
+ *
+ * So the card is a plain element and the title carries the main link with a
+ * stretched `::after` covering the whole card, which is what makes the body
+ * clickable everywhere. The arrow is a sibling link lifted above that overlay
+ * with `relative z-10` — it comes first in the DOM, so without the z-index the
+ * overlay would simply swallow it. Focus moves to the card via focus-within,
+ * because the element that shows the ring is no longer the element that takes
+ * the focus.
+ */
 function FloatCard({ card, index }) {
   return (
     <StaggerItem className={`h-full ${OFFSETS[index % OFFSETS.length]}`}>
       <div className="float-y h-full" style={{ animationDelay: `${(index * 1.1) % 3.3}s` }}>
-        <Link
-          to={card.to}
-          className="group flex h-full flex-col overflow-hidden rounded-[1.75rem] border border-line bg-surface shadow-[var(--shadow-card)] transition-[transform,box-shadow] duration-300 hover:-translate-y-1.5 hover:shadow-[var(--shadow-float)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
-        >
+        <div className="group relative flex h-full flex-col overflow-hidden rounded-[1.75rem] border border-line bg-surface shadow-[var(--shadow-card)] transition-[transform,box-shadow] duration-300 hover:-translate-y-1.5 hover:shadow-[var(--shadow-float)] focus-within:ring-2 focus-within:ring-brand-500">
           {card.band}
           <div className="flex flex-1 flex-col p-6">
             {/* Kicker on the left, the same circular arrow the service cards
-                carry on the right. Both are whole-card links, so they should
-                announce it the same way; the badge sits on the kicker row
-                rather than over the band because a thumbnail underneath it
-                cannot be relied on for contrast. */}
+                carry on the right. The badge sits on the kicker row rather
+                than over the band because a thumbnail underneath it cannot be
+                relied on for contrast. */}
             <div className="flex items-start justify-between gap-4">
               <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface-2 px-2.5 py-1 text-[11px] font-medium text-ink">
                 <Icon name={card.icon} size={12} />
                 {card.kicker}
               </span>
-              <span className="grid size-8 shrink-0 place-items-center rounded-full border border-ink/15 text-ink-4 transition-colors duration-300 group-hover:border-brand-500 group-hover:bg-brand-500 group-hover:text-white">
-                <Icon name="arrowUpRight" size={14} />
-              </span>
+              {card.arrowTo && (
+                <Link
+                  to={card.arrowTo}
+                  aria-label={card.arrowLabel}
+                  className="relative z-10 grid size-8 shrink-0 place-items-center rounded-full border border-ink/15 text-ink-4 transition-[color,background-color,border-color,transform] duration-300 group-hover:border-brand-500 group-hover:bg-brand-500 group-hover:text-white hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                >
+                  <Icon name="arrowUpRight" size={14} />
+                </Link>
+              )}
             </div>
             <h3 className="mt-4 line-clamp-2 font-display text-[1.22rem] leading-snug tracking-tight text-ink">
-              {card.title}
+              <Link to={card.to} className="after:absolute after:inset-0 focus-visible:outline-none">
+                {card.title}
+              </Link>
             </h3>
             {card.body && <p className="mt-2.5 line-clamp-3 text-[13.5px] leading-relaxed text-ink-3">{card.body}</p>}
             {card.meta && <p className="mt-3 text-[12px] text-ink-4">{card.meta}</p>}
@@ -126,7 +155,7 @@ function FloatCard({ card, index }) {
               <Icon name="arrow" size={14} className="transition-transform duration-200 group-hover:translate-x-0.5" />
             </span>
           </div>
-        </Link>
+        </div>
       </div>
     </StaggerItem>
   );
@@ -164,6 +193,8 @@ export default function Explore() {
     cards.push({
       key: `a-${a.id}`,
       to: `/blog/${a.slug}`,
+      arrowTo: ARTICLES_SECTION,
+      arrowLabel: c.more_link,
       icon: 'message',
       kicker: c.blog_kicker,
       title: a.title,
@@ -177,7 +208,7 @@ export default function Explore() {
   // a gap where two thirds of the section used to be.
   if (blogCount > 0 && shownArticles.length === 0) {
     cards.push({
-      key: 'a-empty', to: '/blog', icon: 'message', kicker: c.blog_kicker,
+      key: 'a-empty', to: '/blog', arrowTo: ARTICLES_SECTION, arrowLabel: c.more_link, icon: 'message', kicker: c.blog_kicker,
       title: c.blog_title, body: c.blog_body, cta: c.blog_cta, band: <BlogBand />,
     });
   }
@@ -187,6 +218,8 @@ export default function Explore() {
     cards.push({
       key: `v-${v.id}`,
       to: '/resources#videos',
+      arrowTo: VIDEOS_SECTION,
+      arrowLabel: c.more_link,
       icon: 'play',
       kicker: c.video_kicker,
       title: v.title,
@@ -198,7 +231,7 @@ export default function Explore() {
   }
   if (videoCount > 0 && shownVideos.length === 0) {
     cards.push({
-      key: 'v-empty', to: '/resources#videos', icon: 'play', kicker: c.video_kicker,
+      key: 'v-empty', to: '/resources#videos', arrowTo: VIDEOS_SECTION, arrowLabel: c.more_link, icon: 'play', kicker: c.video_kicker,
       title: c.video_title, body: c.video_body, cta: c.video_cta, band: <VideoBand /> ,
     });
   }
