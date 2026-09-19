@@ -102,10 +102,20 @@ function FloatCard({ card, index }) {
         >
           {card.band}
           <div className="flex flex-1 flex-col p-6">
-            <span className="inline-flex items-center gap-1.5 self-start rounded-full border border-line bg-surface-2 px-2.5 py-1 text-[11px] font-medium text-ink">
-              <Icon name={card.icon} size={12} />
-              {card.kicker}
-            </span>
+            {/* Kicker on the left, the same circular arrow the service cards
+                carry on the right. Both are whole-card links, so they should
+                announce it the same way; the badge sits on the kicker row
+                rather than over the band because a thumbnail underneath it
+                cannot be relied on for contrast. */}
+            <div className="flex items-start justify-between gap-4">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface-2 px-2.5 py-1 text-[11px] font-medium text-ink">
+                <Icon name={card.icon} size={12} />
+                {card.kicker}
+              </span>
+              <span className="grid size-8 shrink-0 place-items-center rounded-full border border-ink/15 text-ink-4 transition-colors duration-300 group-hover:border-brand-500 group-hover:bg-brand-500 group-hover:text-white">
+                <Icon name="arrowUpRight" size={14} />
+              </span>
+            </div>
             <h3 className="mt-4 line-clamp-2 font-display text-[1.22rem] leading-snug tracking-tight text-ink">
               {card.title}
             </h3>
