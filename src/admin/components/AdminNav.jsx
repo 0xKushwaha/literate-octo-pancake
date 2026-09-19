@@ -4,8 +4,6 @@ import { brand } from '../../data/site';
 
 const navItems = [
   { to: '/admin/dashboard', label: 'Dashboard', icon: '⊞' },
-  { to: '/admin/bookings', label: 'Bookings', icon: '📋' },
-  { to: '/admin/community', label: 'Community', icon: '✻' },
   { to: '/admin/blog', label: 'Blog', icon: '✍' },
   { to: '/admin/breathing', label: 'Breathing', icon: '◎' },
   { to: '/admin/youtube', label: 'YouTube', icon: '▶' },

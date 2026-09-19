@@ -15,13 +15,13 @@ import { useFeatures } from '../lib/features';
  * few items and links to the page that holds the rest — every service, the
  * resource library and the FAQ all live on their own pages.
  *
- * The order is deliberate, and it is not the order the money is in. What
- * other people say comes first, immediately under the hero: a stranger
- * deciding whether to trust a practice reads the reviews before they read the
- * prospectus, and burying them eight screens down was asking them to take the
- * site's word for it until then. Then the thing they were afraid to say, then
- * a minute of breathing they can have right now for nothing, and only then
- * what we do and how.
+ * The order is deliberate, and it is not the order the money is in. The
+ * reasons people put this off come first: a visitor who has been meaning to
+ * do this for two years should meet their own sentence before they meet
+ * anyone else's, because recognition is what earns the next scroll and praise
+ * from strangers is not. The reviews follow, answering the doubt the quotes
+ * just named. Then a minute of breathing they can have right now for nothing,
+ * and only then what we do and how.
  *
  * The explore cards — articles and short videos — now sit directly under the
  * hero, where the community email capture used to be. The free, useful thing
@@ -39,8 +39,8 @@ export default function HomePage() {
     <>
       <Hero />
       <Explore />
-      {features.testimonials && <Testimonials limit={3} tinted={false} />}
       <HeardYou limit={3} />
+      {features.testimonials && <Testimonials limit={3} tinted={false} />}
       <BreathePrompt />
       <Services onBook={openBooking} limit={3} teaser />
       <Approach teaser />

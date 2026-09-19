@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase, isDemo } from '../../lib/supabase';
-import { demoArticles, demoExercises, demoVideos, demoBookings } from '../../lib/demoData';
+import { demoArticles, demoExercises, demoVideos } from '../../lib/demoData';
 import { PageHeader } from '../components/ui';
 
 function StatCard({ label, value, to, loading }) {
@@ -30,7 +30,6 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (isDemo) {
       setStats({
-        bookings: demoBookings.list().length,
         articles: demoArticles.listAll().length,
         exercises: demoExercises.listAll().length,
         videos: demoVideos.listAll().length,
@@ -39,14 +38,12 @@ export default function AdminDashboard() {
       return;
     }
     async function load() {
-      const [bookings, articles, exercises, videos] = await Promise.all([
-        supabase.from('booking_submissions').select('id', { count: 'exact', head: true }),
+      const [articles, exercises, videos] = await Promise.all([
         supabase.from('articles').select('id', { count: 'exact', head: true }),
         supabase.from('breathing_exercises').select('id', { count: 'exact', head: true }),
         supabase.from('youtube_resources').select('id', { count: 'exact', head: true }),
       ]);
       setStats({
-        bookings: bookings.count,
         articles: articles.count,
         exercises: exercises.count,
         videos: videos.count,
@@ -70,8 +67,7 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Booking requests" value={stats.bookings} to="/admin/bookings" loading={loading} />
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <StatCard label="Blog articles" value={stats.articles} to="/admin/blog" loading={loading} />
         <StatCard label="Breathing exercises" value={stats.exercises} to="/admin/breathing" loading={loading} />
         <StatCard label="YouTube resources" value={stats.videos} to="/admin/youtube" loading={loading} />
@@ -82,7 +78,6 @@ export default function AdminDashboard() {
         <div className="mt-3 flex flex-wrap gap-2">
           {[
             { to: '/admin/blog/new', label: 'New blog post' },
-            { to: '/admin/bookings', label: 'View bookings' },
             { to: '/admin/content', label: 'Edit site text' },
             { to: '/admin/faqs', label: 'Edit FAQs' },
           ].map(({ to, label }) => (
