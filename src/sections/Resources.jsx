@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getLatestArticles, getArticleBySlug } from '../lib/queries/articles';
 import { listActiveVideos } from '../lib/queries/youtube';
+import { listActiveInfographics } from '../lib/queries/infographics';
 import { MoreLink, Section, SectionHeading, Stagger, StaggerItem, sectionPad } from '../components/primitives';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { sanitizeHtml } from '../lib/sanitizeHtml';
@@ -63,6 +64,54 @@ function VideoCard({ video, onPlay }) {
           {video.curator_note && (
             <p className="line-clamp-2 text-[12.5px] italic leading-relaxed text-ink-4">{video.curator_note}</p>
           )}
+        </div>
+      </button>
+    </StaggerItem>
+  );
+}
+
+/* ----------------------------------------------------------- infographics */
+
+/**
+ * An infographic is a picture that is meant to be read, which makes it a
+ * different object from a video thumbnail or an article cover.
+ *
+ * Two consequences in here. The card crops to 4:3 rather than 16:9, because
+ * these are usually portrait and a wide crop shows the title of the graphic
+ * and nothing else. And the full image opens in a dialog instead of linking
+ * away: the whole resource IS the picture, so a page to hold it would only be
+ * the same picture with the site's chrome around it.
+ */
+function InfographicCard({ item, onOpen, cta }) {
+  return (
+    <StaggerItem className="h-full">
+      <button
+        onClick={() => onOpen(item)}
+        className="group flex h-full w-full flex-col overflow-hidden rounded-3xl border border-line bg-surface text-left shadow-[var(--shadow-card)] transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-lift)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+      >
+        <span className="block aspect-[4/3] w-full overflow-hidden bg-peach-50">
+          <img
+            src={item.image_url}
+            alt={item.image_alt || ''}
+            loading="lazy"
+            decoding="async"
+            className="h-full w-full object-cover object-top transition-transform duration-500 group-hover:scale-[1.03]"
+          />
+        </span>
+        <div className="flex flex-1 flex-col gap-2 p-5">
+          {item.category && (
+            <span className="inline-flex items-center self-start rounded-full bg-brand-100 px-2.5 py-0.5 text-[11px] font-medium text-ink">
+              {item.category}
+            </span>
+          )}
+          <h4 className="line-clamp-2 font-display text-[1.05rem] leading-snug tracking-tight text-ink">{item.title}</h4>
+          {item.description && (
+            <p className="line-clamp-3 text-[12.5px] leading-relaxed text-ink-3">{item.description}</p>
+          )}
+          <span className="mt-auto flex items-center gap-1.5 pt-3 text-[13px] font-medium text-accent-strong">
+            {cta}
+            <Icon name="arrow" size={13} className="transition-transform duration-200 group-hover:translate-x-0.5" />
+          </span>
         </div>
       </button>
     </StaggerItem>
@@ -154,7 +203,7 @@ function ArticleReader({ article, onClose, labels }) {
  * Featured videos and the latest articles. Used as a teaser nowhere and as the
  * body of /resources, which is where the nav's Resources menu points.
  */
-export default function Resources({ withHeading = true, videoLimit = 12, articleLimit = 3, teaser = false, showEmpty = false }) {
+export default function Resources({ withHeading = true, videoLimit = 12, articleLimit = 3, infographicLimit = 12, teaser = false, showEmpty = false }) {
   const content = useSiteContent('resources');
   const blogContent = useSiteContent('blog');
   const ui = useSiteContent('ui');
@@ -166,8 +215,10 @@ export default function Resources({ withHeading = true, videoLimit = 12, article
   };
   const [videos, setVideos] = useState([]);
   const [articles, setArticles] = useState([]);
+  const [infographics, setInfographics] = useState([]);
   const [loading, setLoading] = useState(true);
   const [playing, setPlaying] = useState(null);
+  const [viewing, setViewing] = useState(null);
   const [activeArticle, setActiveArticle] = useState(null);
   const [loadingArticle, setLoadingArticle] = useState(false);
 
@@ -177,8 +228,8 @@ export default function Resources({ withHeading = true, videoLimit = 12, article
     // the order here rather than whether a video is visible at all: a video
     // added in the admin and never ticked as featured used to save fine and
     // then appear nowhere, which reads as the admin being broken.
-    Promise.allSettled([listActiveVideos(), getLatestArticles(articleLimit)])
-      .then(([v, a]) => {
+    Promise.allSettled([listActiveVideos(), getLatestArticles(articleLimit), listActiveInfographics()])
+      .then(([v, a, g]) => {
         if (!alive) return;
         if (v.status === 'fulfilled') {
           const rows = v.value ?? [];
@@ -187,10 +238,15 @@ export default function Resources({ withHeading = true, videoLimit = 12, article
         } else console.error('[lumen] could not load video resources', v.reason);
         if (a.status === 'fulfilled') setArticles(a.value ?? []);
         else console.error('[lumen] could not load articles', a.reason);
+        // allSettled, so a missing migration 011 cannot take the videos and
+        // articles down with it. The query already answers an absent table
+        // with an empty list; this covers the network failing outright.
+        if (g.status === 'fulfilled') setInfographics((g.value ?? []).slice(0, infographicLimit));
+        else console.error('[lumen] could not load infographics', g.reason);
       })
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
-  }, [videoLimit, articleLimit]);
+  }, [videoLimit, articleLimit, infographicLimit]);
 
   const openArticle = async (article) => {
     if (article.content) { setActiveArticle(article); return; }
@@ -208,9 +264,10 @@ export default function Resources({ withHeading = true, videoLimit = 12, article
 
   const hasVideos = videos.length > 0;
   const hasArticles = articles.length > 0;
+  const hasInfographics = infographics.length > 0;
   // The homepage hides itself when there is nothing; the Resources page says
   // so instead, because an empty page with no explanation looks broken.
-  if (!loading && !hasVideos && !hasArticles && !showEmpty) return null;
+  if (!loading && !hasVideos && !hasArticles && !hasInfographics && !showEmpty) return null;
 
   return (
     <>
@@ -243,6 +300,24 @@ export default function Resources({ withHeading = true, videoLimit = 12, article
               </div>
             )}
 
+            {(hasInfographics || showEmpty) && (
+              <div id="infographics" className="mt-14 scroll-mt-28">
+                <h3 className="flex items-center gap-2 text-[13px] font-semibold uppercase tracking-[0.12em] text-ink-3">
+                  <Icon name="image" size={13} />
+                  {content.infographics_title}
+                </h3>
+                {hasInfographics ? (
+                  <Stagger className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {infographics.map((i) => (
+                      <InfographicCard key={i.id} item={i} onOpen={setViewing} cta={content.infographics_cta} />
+                    ))}
+                  </Stagger>
+                ) : (
+                  <p className="mt-4 text-[15px] text-ink-3">{content.infographics_empty}</p>
+                )}
+              </div>
+            )}
+
             {(hasArticles || showEmpty) && (
               <div id="articles" className="mt-14 scroll-mt-28">
                 <div className="flex items-end justify-between gap-4">
@@ -269,7 +344,7 @@ export default function Resources({ withHeading = true, videoLimit = 12, article
           </>
         )}
 
-        {teaser && (hasVideos || hasArticles) && (
+        {teaser && (hasVideos || hasArticles || hasInfographics) && (
           <div className="mt-10 flex justify-center">
             <MoreLink to="/resources">{content.headline}</MoreLink>
           </div>
@@ -291,6 +366,27 @@ export default function Resources({ withHeading = true, videoLimit = 12, article
                 className="h-full w-full"
               />
             </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* The infographic at full size. `max-h` with object-contain rather than a
+          fixed aspect, because these arrive in every shape and cropping the
+          one thing the visitor clicked to read would be the whole bug. */}
+      <Dialog open={!!viewing} onOpenChange={(open) => { if (!open) setViewing(null); }}>
+        <DialogContent className="max-h-[92dvh] max-w-3xl overflow-y-auto rounded-3xl border-line bg-surface p-0">
+          <DialogTitle className="sr-only">{viewing?.title ?? 'Infographic'}</DialogTitle>
+          <DialogDescription className="sr-only">{viewing?.image_alt || 'Infographic, shown full size'}</DialogDescription>
+          {viewing && (
+            <figure className="m-0">
+              <img src={viewing.image_url} alt={viewing.image_alt || ''} className="max-h-[70dvh] w-full bg-peach-50 object-contain" />
+              <figcaption className="p-6">
+                <h3 className="font-display text-[1.3rem] leading-snug tracking-tight text-ink">{viewing.title}</h3>
+                {viewing.description && (
+                  <p className="mt-2 text-[14.5px] leading-relaxed text-ink-3">{viewing.description}</p>
+                )}
+              </figcaption>
+            </figure>
           )}
         </DialogContent>
       </Dialog>

@@ -7,6 +7,7 @@ const navItems = [
   { to: '/admin/blog', label: 'Blog', icon: '✍' },
   { to: '/admin/breathing', label: 'Breathing', icon: '◎' },
   { to: '/admin/youtube', label: 'YouTube', icon: '▶' },
+  { to: '/admin/infographics', label: 'Infographics', icon: '▦' },
   { to: '/admin/faqs', label: 'FAQs', icon: '?' },
   { to: '/admin/content', label: 'Site Content', icon: '✦' },
   { to: '/admin/account', label: 'Your account', icon: '⚿' },

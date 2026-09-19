@@ -33,6 +33,7 @@ function useMenu(navContent, services, features) {
         to: '/resources',
         items: [
           { label: navContent.videos_label, to: '/resources#videos' },
+          { label: navContent.infographics_label, to: '/resources#infographics' },
           { label: navContent.blog_label, to: '/blog' },
           { label: navContent.breathing_label, to: '/breathe' },
         ],
