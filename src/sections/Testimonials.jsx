@@ -1,7 +1,7 @@
 import { Section, SectionHeading, Stagger, StaggerItem } from '../components/primitives';
 import Icon from '../components/Icon';
 import { useSiteContent } from '../lib/queries/siteContent';
-import { safeExternalUrl } from '../lib/safeUrl';
+import { safeMediaUrl } from '../lib/safeUrl';
 
 /**
  * `tinted` exists because of what this section touches on the homepage: the
@@ -11,9 +11,9 @@ import { safeExternalUrl } from '../lib/safeUrl';
  * was first switched off for the same reason against the hero above, back
  * when the reviews sat directly under it.) Everywhere else they stay tinted.
  */
-/** Only an https clip is ever played; anything else counts as no recording. */
+/** An uploaded clip (https) or one served from this site; nothing else. */
 function audioOf(t) {
-  return safeExternalUrl(t?.audio_url) ?? '';
+  return safeMediaUrl(t?.audio_url) ?? '';
 }
 
 export default function Testimonials({ limit = 6, tinted = true }) {

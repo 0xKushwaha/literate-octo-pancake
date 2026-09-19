@@ -81,6 +81,11 @@ let _bookings = [
 ];
 
 let _siteContent = [
+  // Demo only. demoData.js is replaced by an empty stub in every build
+  // (stripDemo, vite.config.js) and isDemo needs a dev build, so this sample
+  // clip cannot reach production. The recording says out loud that it is a
+  // sample and not a client, which is the other half of making that safe.
+  { key: 'testimonials.items', section: 'testimonials', label: 'Quotes', type: 'json', value: "[{\"quote\": \"I had put this off for two years. The intake took four minutes and someone actually read it.\", \"name\": \"R.\", \"meta\": \"Client, 8 months\", \"audio_url\": \"/audio/sample-testimonial.m4a\"}, {\"quote\": \"Being able to switch to phone on a bad week is the reason I am still going.\", \"name\": \"J.\", \"meta\": \"Client, 14 months\"}, {\"quote\": \"No surprise bill three weeks later. I knew what it cost before I booked.\", \"name\": \"M.\", \"meta\": \"Client, 5 months\"}]", updated_at: '2026-09-20T00:00:00Z' },
   // Hero
   { key: 'hero.tagline', section: 'hero', label: 'Hero tagline', type: 'text', value: 'Therapy that meets you where you are.', updated_at: '2026-09-01T00:00:00Z' },
   { key: 'hero.subheadline', section: 'hero', label: 'Hero subheadline', type: 'text', value: 'Licensed clinicians, matched to you by a human in under a day. Video, phone or in person — and a first session this week, not next quarter.', updated_at: '2026-09-01T00:00:00Z' },
