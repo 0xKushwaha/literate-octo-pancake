@@ -330,16 +330,24 @@ export const CONTENT_SCHEMA = [
   f('explore.headline', 'Headline', 'Something to take with you.'),
   f('explore.lead', 'Lead paragraph', 'Articles and short videos from the clinical team. Free, no account, no appointment.', 'richtext'),
   f('explore.more_link', 'Link under the cards', 'See everything in Resources', 'text', 'Points at the Resources page. Leave blank to hide it.'),
-  f('explore.blog_count', 'How many articles on the homepage', 3, 'number', 'Which ones: tick "Show on homepage" in Blog → the article. None ticked means the newest posts. 0 hides them.'),
+  // One of each by default. Three articles and two videos filled the row with
+  // the same two kinds of thing; one apiece shows the practice offers three,
+  // and is the difference between a shelf and a blog roll.
+  f('explore.blog_count', 'How many articles on the homepage', 1, 'number', 'Which ones: tick "Show on homepage" in Blog → the article. None ticked means the newest posts. 0 hides them.'),
   f('explore.blog_kicker', 'Label on an article card', 'Blog'),
   f('explore.blog_cta', 'Link on an article card', 'Read the article'),
   f('explore.blog_title', 'Article card heading when nothing is published yet', 'Read something useful'),
   f('explore.blog_body', 'Article card body when nothing is published yet', 'Articles written and reviewed by our clinicians, on the things people actually bring to a first session.', 'richtext'),
-  f('explore.video_count', 'How many videos on the homepage', 2, 'number', 'Which ones: tick "Show on homepage" in Videos. None ticked means the first active videos. 0 hides them.'),
+  f('explore.video_count', 'How many videos on the homepage', 1, 'number', 'Which ones: tick "Show on homepage" in Videos. None ticked means the first active videos. 0 hides them.'),
   f('explore.video_kicker', 'Label on a video card', 'Video'),
   f('explore.video_cta', 'Link on a video card', 'Watch'),
   f('explore.video_title', 'Video card heading when there are no videos yet', 'Watch a short one'),
   f('explore.video_body', 'Video card body when there are no videos yet', 'Five-minute explainers on anxiety, sleep and getting started, picked by the clinical team.', 'richtext'),
+  f('explore.infographic_count', 'How many infographics on the homepage', 1, 'number', 'Which ones: tick "Show on homepage" in Infographics. None ticked means the first active ones. 0 hides them.'),
+  f('explore.infographic_kicker', 'Label on an infographic card', 'Infographic'),
+  f('explore.infographic_cta', 'Link on an infographic card', 'Take a look'),
+  f('explore.infographic_title', 'Infographic card heading when there are none yet', 'See it at a glance'),
+  f('explore.infographic_body', 'Infographic card body when there are none yet', 'One picture and the few words that go with it, for the things that are easier shown than explained.', 'richtext'),
 
   // ── Breathing band (homepage) ─────────────────────────────────────────────
   f('breathe_home.eyebrow', 'Eyebrow', 'One minute'),

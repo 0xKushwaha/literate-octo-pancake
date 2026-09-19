@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getHomepageArticles } from '../lib/queries/articles';
 import { getHomepageVideos } from '../lib/queries/youtube';
+import { getHomepageInfographics } from '../lib/queries/infographics';
 import { MoreLink, Reveal, Section, SectionHeading, Stagger, StaggerItem } from '../components/primitives';
 import { useSiteContent } from '../lib/queries/siteContent';
 import Icon from '../components/Icon';
@@ -32,6 +33,7 @@ const OFFSETS = ['', 'lg:mt-10', 'lg:mt-5'];
  */
 const ARTICLES_SECTION = '/resources#articles';
 const VIDEOS_SECTION = '/resources#videos';
+const INFOGRAPHICS_SECTION = '/resources#infographics';
 
 /** Counts are CMS text, so they arrive as "3" as often as 3. */
 function count(value, fallback, max) {
@@ -71,6 +73,30 @@ function BlogBand({ cover, alt }) {
           <span className="absolute -right-8 -top-10 size-32 rounded-full bg-surface/45" />
           <span className="absolute -bottom-12 -left-6 size-28 rounded-full bg-surface/30" />
           <Icon name="message" size={38} className="relative text-ink/30" />
+        </>
+      )}
+    </div>
+  );
+}
+
+function InfographicBand({ image, alt }) {
+  return (
+    <div className="relative flex h-28 items-center justify-center overflow-hidden bg-brand-100">
+      {image ? (
+        <img
+          src={image}
+          alt={alt || ''}
+          loading="lazy"
+          decoding="async"
+          // object-top, because an infographic's title is at the top of the
+          // picture and a centred crop of a tall image shows its middle.
+          className="absolute inset-0 h-full w-full object-cover object-top transition-transform duration-500 group-hover:scale-[1.04]"
+        />
+      ) : (
+        <>
+          <span className="absolute -left-8 -top-10 size-32 rounded-full bg-surface/40" />
+          <span className="absolute -bottom-12 -right-6 size-28 rounded-full bg-surface/25" />
+          <Icon name="image" size={38} className="relative text-ink/30" />
         </>
       )}
     </div>
@@ -165,26 +191,31 @@ function FloatCard({ card, index }) {
 
 export default function Explore() {
   const c = useSiteContent('explore');
-  const blogCount = count(c.blog_count, 3, 6);
-  const videoCount = count(c.video_count, 2, 6);
+  const blogCount = count(c.blog_count, 1, 6);
+  const videoCount = count(c.video_count, 1, 6);
+  const infographicCount = count(c.infographic_count, 1, 6);
 
   const [articles, setArticles] = useState([]);
   const [videos, setVideos] = useState([]);
+  const [infographics, setInfographics] = useState([]);
 
   useEffect(() => {
     let alive = true;
     Promise.allSettled([
       getHomepageArticles(blogCount),
       getHomepageVideos(videoCount),
-    ]).then(([a, v]) => {
+      getHomepageInfographics(infographicCount),
+    ]).then(([a, v, g]) => {
       if (!alive) return;
       if (a.status === 'fulfilled') setArticles(a.value ?? []);
       else console.error('[lumen] could not load homepage articles', a.reason);
       if (v.status === 'fulfilled') setVideos(v.value ?? []);
       else console.error('[lumen] could not load homepage videos', v.reason);
+      if (g.status === 'fulfilled') setInfographics(g.value ?? []);
+      else console.error('[lumen] could not load homepage infographics', g.reason);
     });
     return () => { alive = false; };
-  }, [blogCount, videoCount]);
+  }, [blogCount, videoCount, infographicCount]);
 
   const cards = [];
 
@@ -233,6 +264,30 @@ export default function Explore() {
     cards.push({
       key: 'v-empty', to: '/resources#videos', arrowTo: VIDEOS_SECTION, arrowLabel: c.more_link, icon: 'play', kicker: c.video_kicker,
       title: c.video_title, body: c.video_body, cta: c.video_cta, band: <VideoBand /> ,
+    });
+  }
+
+  const shownInfographics = infographics.slice(0, infographicCount);
+  for (const g of shownInfographics) {
+    cards.push({
+      key: `g-${g.id}`,
+      to: INFOGRAPHICS_SECTION,
+      arrowTo: INFOGRAPHICS_SECTION,
+      arrowLabel: c.more_link,
+      icon: 'image',
+      kicker: c.infographic_kicker,
+      title: g.title,
+      body: g.description,
+      meta: g.category || null,
+      cta: c.infographic_cta,
+      band: <InfographicBand image={g.image_url} alt={g.image_alt} />,
+    });
+  }
+  if (infographicCount > 0 && shownInfographics.length === 0) {
+    cards.push({
+      key: 'g-empty', to: INFOGRAPHICS_SECTION, arrowTo: INFOGRAPHICS_SECTION, arrowLabel: c.more_link,
+      icon: 'image', kicker: c.infographic_kicker,
+      title: c.infographic_title, body: c.infographic_body, cta: c.infographic_cta, band: <InfographicBand />,
     });
   }
 
