@@ -87,7 +87,7 @@ export default function BlogIndexPage() {
         title={content.headline}
         lead={content.lead}
         image={resources.image_url}
-        imageAlt="A person holding a warm mug at a table"
+        imageAlt={resources.image_alt}
       />
 
       <Section className="py-12 sm:py-16">

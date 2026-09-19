@@ -20,14 +20,14 @@ import { useCommunity, useFeatures } from '../lib/features';
 // redirected — the palette is meant to be faster than the menu, and sending
 // someone home is not faster.
 const PAGES = [
-  { to: '/services', label: 'What we treat', icon: 'pulse' },
-  { to: '/resources', label: 'Videos & articles', icon: 'play' },
-  { to: '/blog', label: 'Blog', icon: 'message' },
-  { to: '/breathe', label: 'Breathing exercises', icon: 'spark' },
-  { to: '/how-it-works', label: 'How it works', icon: 'shuffle' },
-  { to: '/how-it-works#faq', label: 'Questions', icon: 'smile' },
-  { to: '/therapists', label: 'Our therapists', icon: 'person', feature: 'therapists' },
-  { to: '/pricing', label: 'Pricing & insurance', icon: 'coins', feature: 'pricing' },
+  { to: '/services', labelKey: 'palette_page_services', icon: 'pulse' },
+  { to: '/resources', labelKey: 'palette_page_resources', icon: 'play' },
+  { to: '/blog', labelKey: 'palette_page_blog', icon: 'message' },
+  { to: '/breathe', labelKey: 'palette_page_breathe', icon: 'spark' },
+  { to: '/how-it-works', labelKey: 'palette_page_how', icon: 'shuffle' },
+  { to: '/how-it-works#faq', labelKey: 'palette_page_faq', icon: 'smile' },
+  { to: '/therapists', labelKey: 'palette_page_therapists', icon: 'person', feature: 'therapists' },
+  { to: '/pricing', labelKey: 'palette_page_pricing', icon: 'coins', feature: 'pricing' },
 ];
 
 /**
@@ -44,7 +44,9 @@ export default function CommandPalette({ onBook, initialOpen = false }) {
   const community = useCommunity();
   const services = Array.isArray(servicesContent.items) ? servicesContent.items : [];
   const therapists = features.therapists && Array.isArray(therapistsContent.items) ? therapistsContent.items : [];
-  const pages = PAGES.filter((p) => !p.feature || features[p.feature]);
+  const pages = PAGES
+    .filter((p) => !p.feature || features[p.feature])
+    .map((p) => ({ ...p, label: ui[p.labelKey] }));
   const navigate = useNavigate();
   const [open, setOpen] = useState(initialOpen);
   const [isMac] = useState(() => /mac|iphone|ipad/i.test(navigator.platform || navigator.userAgent));

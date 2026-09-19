@@ -162,7 +162,7 @@ export const CONTENT_SCHEMA = [
   // the old accent_color / button_color rows are still in site_content with
   // the pastel values this site shipped with, and reusing the keys would have
   // meant the stored pink quietly overriding the new palette on the live site.
-  f('brand.brand_color', 'Brand colour (hex)', '#0E6E7E', 'text', 'The one brand colour: buttons, links, focus rings, and every soft wash on the site is this mixed with white. Keep it dark enough for white text on top — anything that reads well as a button will work.'),
+  f('brand.brand_color', 'Brand colour (hex)', '#055F81', 'text', 'The one brand colour: buttons, links, focus rings, and every soft wash on the site is this mixed with white. Keep it dark enough for white text on top — anything that reads well as a button will work.'),
   f('brand.highlight_color', 'Highlight colour (hex)', '#FFBF00', 'text', 'The loud colour, used sparingly: the crisis banner, the button on the dark closing band, the exhale in the breathing player. It always carries black text, so keep it bright.'),
   f('brand.peach_color', 'Peach accent (hex)', '#FFCBA4', 'text', 'The warm third colour, and the only one used sparingly on purpose: the status pill in the hero, the small bar beside each section label, one of the quote cards and the community chips. It never carries type, so it can be as soft as you like.'),
 
@@ -177,6 +177,7 @@ export const CONTENT_SCHEMA = [
   f('nav.resources_label', 'Menu: Resources (dropdown)', 'Resources'),
   f('nav.breathing_label', 'Resources dropdown: Breathe', 'Breathing exercises'),
   f('nav.videos_label', 'Resources dropdown: Videos', 'Videos'),
+  f('nav.infographics_label', 'Resources dropdown: Infographics', 'Infographics', 'text', 'Rename this together with the section heading under Resources & blog, so the menu and the page agree.'),
   f('nav.blog_label', 'Resources dropdown: Blog', 'Blog'),
   f('nav.pricing_label', 'Menu: Pricing', 'Pricing'),
   f('nav.badge_text', 'Small badge above a menu item', 'New'),
@@ -225,6 +226,7 @@ export const CONTENT_SCHEMA = [
   f('approach.headline', 'Headline', 'Four steps. No waiting rooms.'),
   f('approach.lead', 'Lead paragraph', 'Most people give up on finding a therapist somewhere between the third voicemail and the second waitlist. We removed that part.', 'richtext'),
   f('approach.image_url', 'How it works page photo (URL)', IMAGES.approach),
+  f('approach.image_alt', 'How it works page photo description (for screen readers)', 'A person smiling during a video call at home'),
   f('approach.home_cta', 'Homepage "learn more" link', 'How matching works'),
   f('approach.header_cta', 'Button in the page header', 'Start the intake'),
   f('approach.steps', 'Steps', process, LIST, 'Four cards in a row. Add or remove and the row re-flows.', {
@@ -256,6 +258,7 @@ export const CONTENT_SCHEMA = [
   f('breathing.headline', 'Headline', 'A moment, right now.'),
   f('breathing.lead', 'Lead paragraph', 'Guided breathing exercises from our clinical team. Each session takes under five minutes.', 'richtext'),
   f('breathing.image_url', 'Breathe page photo (URL)', IMAGES.breathing),
+  f('breathing.image_alt', 'Breathe page photo description (for screen readers)', 'A person with a hand on their chest, eyes closed'),
   f('breathing.inhale_label', 'Prompt: breathe in', 'Breathe in'),
   f('breathing.hold_label', 'Prompt: hold', 'Hold'),
   f('breathing.exhale_label', 'Prompt: breathe out', 'Breathe out'),
@@ -269,6 +272,7 @@ export const CONTENT_SCHEMA = [
   f('services.eyebrow', 'Eyebrow', 'What we treat'),
   f('services.headline', 'Headline', 'Care built around the thing you actually came for.'),
   f('services.image_url', 'Services page photo (URL)', IMAGES.services),
+  f('services.image_alt', 'Services page photo description (for screen readers)', 'Two people sitting together, one comforting the other'),
   f('services.home_cta', 'Homepage "see all" link', 'See every service'),
   f('services.header_cta', 'Button in the page header', 'Book a session'),
   f('services.price_prefix', 'Word before the price on a card', 'from'),
@@ -293,6 +297,7 @@ export const CONTENT_SCHEMA = [
   f('therapists.headline', 'Headline', 'People, not profiles.'),
   f('therapists.lead', 'Lead paragraph', 'Read them properly before you choose. Every therapist here offers a free fifteen-minute intro call, because fit is not something you can tell from a headshot.', 'richtext'),
   f('therapists.image_url', 'Therapists page photo (URL)', IMAGES.therapists),
+  f('therapists.image_alt', 'Therapists page photo description (for screen readers)', 'A quiet therapy room with two armchairs and a plant'),
   f('therapists.home_cta', 'Homepage "meet everyone" link', 'Meet the whole team'),
   f('therapists.items', 'Therapist cards', therapists, LIST, null, {
     itemLabel: 'Therapist',
@@ -349,6 +354,7 @@ export const CONTENT_SCHEMA = [
   f('resources.headline', 'Headline', 'Worth your time between sessions.'),
   f('resources.lead', 'Lead paragraph', 'Videos and articles reviewed by our clinical team, on anxiety, sleep, relationships and more.', 'richtext'),
   f('resources.image_url', 'Resources page photo (URL)', IMAGES.resources),
+  f('resources.image_alt', 'Resources page photo description (for screen readers)', 'A person holding a warm mug at a table'),
   f('resources.videos_title', 'Videos sub-heading', 'Watch'),
   f('resources.videos_empty', 'Shown when there are no active videos', 'No videos yet. Add one from the admin and it appears here.'),
   f('resources.articles_empty', 'Shown when no articles are published', 'No articles yet.'),
@@ -356,6 +362,14 @@ export const CONTENT_SCHEMA = [
   f('resources.open_page', 'Link inside the article pop-up', 'Open as a page'),
   f('resources.default_category', 'Category shown when an article has none', 'Mental health'),
   f('resources.articles_title', 'Articles sub-heading', 'Read'),
+  // The infographics heading is a content field rather than a constant because
+  // "Infographics" is jargon a practice may not want on a page aimed at people
+  // who are nervous about booking. Rename it to "Guides", "At a glance" or
+  // anything else and the heading, the anchor label and the Resources menu
+  // entry all follow.
+  f('resources.infographics_title', 'Infographics sub-heading', 'Infographics', 'text', 'The name of the picture-and-text section on the Resources page. Rename it to whatever the practice calls these.'),
+  f('resources.infographics_empty', 'Shown when there are no infographics', 'No infographics yet.'),
+  f('resources.infographics_cta', 'Link on an infographic card', 'View full size'),
 
   // ── Testimonials ──────────────────────────────────────────────────────────
   f('testimonials.eyebrow', 'Eyebrow', 'In their words'),
@@ -392,6 +406,7 @@ export const CONTENT_SCHEMA = [
   f('pricing.headline', 'Headline', 'Priced plainly, before you book.'),
   f('pricing.lead', 'Lead paragraph', 'You see your exact out-of-pocket cost on the booking screen — insurance applied, nothing surfacing on a statement three weeks later.', 'richtext'),
   f('pricing.image_url', 'Pricing page photo (URL)', IMAGES.pricing),
+  f('pricing.image_alt', 'Pricing page photo description (for screen readers)', 'A person walking a stone labyrinth above the sea'),
   f('pricing.plans', 'Plans', plans, LIST, null, {
     itemLabel: 'Plan',
     summaryKey: 'name',
@@ -470,6 +485,18 @@ export const CONTENT_SCHEMA = [
   f('footer.col1_title', 'First column heading', 'Practice'),
   f('footer.col2_title', 'Second column heading', 'Resources'),
   f('footer.col3_title', 'Third column heading', 'Legal'),
+  // The first two columns' link labels. They were the last user-visible
+  // strings written into a component, left behind because they duplicate page
+  // names rather than reading like body copy. A practice that renames a page
+  // still has to be able to rename it here.
+  f('footer.link_services', 'Practice column: services link', 'Our services'),
+  f('footer.link_how', 'Practice column: how it works link', 'How it works'),
+  f('footer.link_therapists', 'Practice column: therapists link', 'Our therapists'),
+  f('footer.link_pricing', 'Practice column: pricing link', 'Pricing & insurance'),
+  f('footer.link_resources', 'Resources column: resources link', 'Videos & articles'),
+  f('footer.link_breathe', 'Resources column: breathing link', 'Breathing exercises'),
+  f('footer.link_blog', 'Resources column: blog link', 'Blog'),
+  f('footer.link_faq', 'Resources column: questions link', 'Questions'),
   f('footer.privacy_label', 'Legal link 1: label', 'Privacy policy'),
   f('footer.privacy_url', 'Legal link 1: address', '/privacy', 'text', 'A page on this site (like /privacy) or a full https link. Leave empty to hide the link.'),
   f('footer.terms_label', 'Legal link 2: label', 'Terms of use'),
@@ -566,6 +593,17 @@ export const CONTENT_SCHEMA = [
   f('ui.palette_group_therapists', 'Cmd-K palette: group heading', 'Therapists'),
   f('ui.palette_group_pages', 'Cmd-K palette: group heading', 'Go to'),
   f('ui.palette_group_contact', 'Cmd-K palette: group heading', 'Contact'),
+  // The destinations listed in the Cmd-K palette. Same reasoning as the footer
+  // links: page names, so they were missed, but they are still words a visitor
+  // reads.
+  f('ui.palette_page_services', 'Cmd-K: services entry', 'What we treat'),
+  f('ui.palette_page_resources', 'Cmd-K: resources entry', 'Videos & articles'),
+  f('ui.palette_page_blog', 'Cmd-K: blog entry', 'Blog'),
+  f('ui.palette_page_breathe', 'Cmd-K: breathing entry', 'Breathing exercises'),
+  f('ui.palette_page_how', 'Cmd-K: how it works entry', 'How it works'),
+  f('ui.palette_page_faq', 'Cmd-K: questions entry', 'Questions'),
+  f('ui.palette_page_therapists', 'Cmd-K: therapists entry', 'Our therapists'),
+  f('ui.palette_page_pricing', 'Cmd-K: pricing entry', 'Pricing & insurance'),
 ];
 
 /** Defaults for one section as the shortKey → value map components consume. */

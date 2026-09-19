@@ -12,7 +12,7 @@ export default function BreathePage() {
         title={content.headline}
         lead={content.lead}
         image={content.image_url}
-        imageAlt="A person with a hand on their chest, eyes closed"
+        imageAlt={content.image_alt}
       />
       <Breathing withHeading={false} tinted={false} />
       <CtaBand />

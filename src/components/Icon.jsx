@@ -33,6 +33,10 @@ const paths = {
   users: 'M9 12a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm0 2c-3.6 0-6 1.9-6 4.1V20h12v-1.9C15 15.9 12.6 14 9 14Zm7-3a3 3 0 1 0-.1-6M17 14c2.7.3 4 1.9 4 3.9V20h-3',
   smile: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18ZM9 10h.01M15 10h.01M8.5 14.5a4.5 4.5 0 0 0 7 0',
   chatHeart: 'M4 5.5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-8.5L7 20.5V16.5H4a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1Zm8 8.3-2.6-2.5a1.6 1.6 0 0 1 2.3-2.3l.3.3.3-.3a1.6 1.6 0 0 1 2.3 2.3L12 13.8Z',
+  // Frame, horizon and sun in one path. Added for the infographics
+  // section; Icon renders nothing at all for an unknown name, so a
+  // missing entry here is a silently blank heading rather than an error.
+  image: 'M4 5.5h16a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-11a1 1 0 0 1 1-1Zm-1 11 5-4.5 3.5 3L15 12l6 5.5M9 9.6a1.2 1.2 0 1 1-2.4 0 1.2 1.2 0 0 1 2.4 0Z',
   star: 'm12 3.6 2.5 5.4 5.9.7-4.4 4 1.2 5.8L12 16.6l-5.2 2.9L8 13.7l-4.4-4 5.9-.7L12 3.6Z',
 };
 

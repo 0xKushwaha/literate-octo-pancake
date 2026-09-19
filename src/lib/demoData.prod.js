@@ -8,6 +8,7 @@ const empty = new Proxy({}, { get: () => () => null });
 export const demoArticles = empty;
 export const demoExercises = empty;
 export const demoVideos = empty;
+export const demoInfographics = empty;
 export const demoFaqs = empty;
 export const demoBookings = empty;
 export const demoSiteContent = empty;

@@ -36,6 +36,11 @@ const vercel = {
   // /services/ → /services, so each page has one address and the rewrites
   // above (which list paths without a slash) always match.
   trailingSlash: false,
+  // Housekeeping. `prune_rate_limits()` has existed since migration 006 and
+  // had no caller, so the rate_limits table grew without bound. Daily at
+  // 03:10 UTC, which is a quiet hour for a practice based in India.
+  // The endpoint itself refuses anything without the CRON_SECRET bearer token.
+  crons: [{ path: '/api/cron/prune-rate-limits', schedule: '10 3 * * *' }],
   rewrites,
   headers: [
     // More specific sources first: Vercel applies every match, and the

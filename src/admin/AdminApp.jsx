@@ -13,6 +13,7 @@ const AdminBlog = lazy(() => import('./pages/AdminBlog'));
 const AdminBlogEditor = lazy(() => import('./pages/AdminBlogEditor'));
 const AdminBreathing = lazy(() => import('./pages/AdminBreathing'));
 const AdminYouTube = lazy(() => import('./pages/AdminYouTube'));
+const AdminInfographics = lazy(() => import('./pages/AdminInfographics'));
 const AdminContent = lazy(() => import('./pages/AdminContent'));
 const AdminFaqs = lazy(() => import('./pages/AdminFaqs'));
 const AdminAccount = lazy(() => import('./pages/AdminAccount'));
@@ -73,6 +74,7 @@ export default function AdminApp() {
                 <Route path="blog/:id" element={<AdminBlogEditor />} />
                 <Route path="breathing" element={<AdminBreathing />} />
                 <Route path="youtube" element={<AdminYouTube />} />
+                <Route path="infographics" element={<AdminInfographics />} />
                 <Route path="content" element={<AdminContent />} />
                 <Route path="faqs" element={<AdminFaqs />} />
                 <Route path="account" element={<AdminAccount />} />

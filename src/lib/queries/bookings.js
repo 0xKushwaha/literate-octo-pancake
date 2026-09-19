@@ -88,43 +88,9 @@ export async function submitBooking(form, meta = {}) {
   return payload.reference;
 }
 
-// Admin only
-export async function listBookings({ status = null } = {}) {
-  if (isDemo) return demoBookings.list({ status });
-
-  let query = supabase
-    .from('booking_submissions')
-    .select('id, reference, name, email, concerns, who, format, preferred_date, preferred_time, insurer, status, submitted_at, contacted_at')
-    .order('submitted_at', { ascending: false });
-
-  if (status) query = query.eq('status', status);
-
-  const { data, error } = await query;
-  if (error) throw error;
-  return data ?? [];
-}
-
-export async function getBookingById(id) {
-  if (isDemo) return demoBookings.getById(id);
-
-  const { data, error } = await supabase
-    .from('booking_submissions')
-    .select('*')
-    .eq('id', id)
-    .single();
-  if (error) throw error;
-  return data;
-}
-
-export async function updateBookingStatus(id, status) {
-  if (isDemo) return demoBookings.updateStatus(id, status);
-
-  const update = { status };
-  if (status === 'contacted') update.contacted_at = new Date().toISOString();
-
-  const { error } = await supabase
-    .from('booking_submissions')
-    .update(update)
-    .eq('id', id);
-  if (error) throw error;
-}
+/*
+ * The admin-side readers (listBookings, getBookingById, updateBookingStatus)
+ * were removed with the Bookings screen. /api/booking still writes here, so
+ * the rows exist; nothing in the app reads them back. If the practice ever
+ * turns booking on again, those three functions come back with the screen.
+ */

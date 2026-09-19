@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { Counter, Pill } from '../components/primitives';
 import Avatar from '../components/Avatar';
 import HeroVisual from './HeroVisual';
-import Icon from '../components/Icon';
 import { useSiteContent } from '../lib/queries/siteContent';
 import { useFeatures } from '../lib/features';
 

@@ -157,6 +157,45 @@ export const demoExercises = {
 };
 
 // ── Videos ──
+let _infographics = [
+  {
+    id: 'ig-1',
+    title: 'What a first session actually looks like',
+    description: 'The fifty minutes, broken down. No homework, no diagnosis on day one, and you can stop at any point.',
+    image_url: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=1200&q=80&auto=format&fit=crop',
+    image_alt: 'Illustrated timeline of a first therapy session',
+    category: 'Getting Started',
+    is_active: true,
+    sort_order: 0,
+  },
+  {
+    id: 'ig-2',
+    title: 'Grounding when the room gets loud',
+    description: 'Five senses, one minute. Something to keep on your phone for the moments you cannot think your way out of.',
+    image_url: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=1200&q=80&auto=format&fit=crop',
+    image_alt: 'Five-step grounding exercise laid out as a card',
+    category: 'Anxiety',
+    is_active: true,
+    sort_order: 1,
+  },
+];
+
+export const demoInfographics = {
+  listAll: () => [..._infographics].sort((a, b) => a.sort_order - b.sort_order),
+  listActive: ({ category } = {}) => {
+    let r = _infographics.filter((i) => i.is_active);
+    if (category) r = r.filter((i) => i.category === category);
+    return r.sort((a, b) => a.sort_order - b.sort_order);
+  },
+  upsert: (i) => {
+    const idx = _infographics.findIndex((x) => x.id === i.id);
+    const item = { ...i, id: i.id || genId() };
+    if (idx >= 0) _infographics[idx] = item; else _infographics.push(item);
+    return item;
+  },
+  delete: (id) => { _infographics = _infographics.filter((i) => i.id !== id); },
+};
+
 export const demoVideos = {
   listAll: () => [..._videos].sort((a, b) => a.sort_order - b.sort_order),
   listFeatured: (limit = 6) => _videos.filter((v) => v.is_active && v.is_featured).sort((a, b) => a.sort_order - b.sort_order).slice(0, limit),

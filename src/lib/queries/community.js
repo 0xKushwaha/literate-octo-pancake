@@ -1,11 +1,12 @@
 import { supabase, isDemo } from '../supabase';
 
 /**
- * Joining the community, and reading who has.
+ * Joining the community.
  *
  * The write goes through /api/community rather than straight to Supabase: the
- * table has no anonymous INSERT policy, on purpose (see migration 009). The
- * reads are ordinary RLS-guarded queries — only an admin can see the list.
+ * table has no anonymous INSERT policy, on purpose (see migration 009). There
+ * is no read path here any more — the Community admin screen was removed when
+ * the practice moved that job to Discord.
  */
 
 const ENDPOINT = '/api/community';
@@ -54,36 +55,9 @@ export async function joinCommunity({ email, source = null, honeypot = '' } = {}
   return { joined: true, already: Boolean(payload.already) };
 }
 
-/** Admin only. */
-export async function listCommunitySignups() {
-  if (isDemo) return demoRows;
-
-  const { data, error } = await supabase
-    .from('community_signups')
-    .select('id, email, source, created_at')
-    .order('created_at', { ascending: false });
-  if (error) throw error;
-  return data ?? [];
-}
-
-/** Admin only. The count is a HEAD request — it never ships the addresses. */
-export async function countCommunitySignups() {
-  if (isDemo) return demoRows.length;
-
-  const { count, error } = await supabase
-    .from('community_signups')
-    .select('id', { count: 'exact', head: true });
-  if (error) throw error;
-  return count ?? 0;
-}
-
-/** Admin only. */
-export async function deleteCommunitySignup(id) {
-  if (isDemo) {
-    const i = demoRows.findIndex((r) => r.id === id);
-    if (i >= 0) demoRows.splice(i, 1);
-    return;
-  }
-  const { error } = await supabase.from('community_signups').delete().eq('id', id);
-  if (error) throw error;
-}
+/*
+ * listCommunitySignups / countCommunitySignups / deleteCommunitySignup went
+ * with the Community screen. /api/community still records every address, so
+ * the list is intact in the database and can be read in the Supabase table
+ * editor or exported from there. Nothing in this app reads it.
+ */

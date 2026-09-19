@@ -18,7 +18,7 @@ export default function TherapistsPage() {
         title={content.headline}
         lead={content.lead}
         image={content.image_url}
-        imageAlt="A quiet therapy room with two armchairs and a plant"
+        imageAlt={content.image_alt}
       >
         {cta && (
           <Button variant="primary" size="lg" icon="arrow" {...cta.props}>

@@ -53,7 +53,11 @@ export default function BlogPostPage() {
             <div className="h-12 rounded-2xl bg-surface-2 animate-pulse" />
             <div className="h-4 w-48 rounded-full bg-surface-2 animate-pulse" />
             {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="h-4 rounded-full bg-surface-2 animate-pulse" style={{ width: `${80 + Math.random() * 20}%` }} />
+              // Widths come from the index, not Math.random(): a random value
+              // read during render is recomputed on every re-render, so the
+              // skeleton lines twitched to new lengths while the article
+              // loaded. This ragged-edge pattern repeats every 5 lines.
+              <div key={i} className="h-4 rounded-full bg-surface-2 animate-pulse" style={{ width: `${[96, 88, 99, 82, 92][i % 5]}%` }} />
             ))}
           </div>
         </Section>

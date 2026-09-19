@@ -19,19 +19,19 @@ const staticColumns = [
   {
     titleKey: 'col1_title',
     links: [
-      { label: 'Our services', to: '/services' },
-      { label: 'How it works', to: '/how-it-works' },
-      { label: 'Our therapists', to: '/therapists', feature: 'therapists' },
-      { label: 'Pricing & insurance', to: '/pricing', feature: 'pricing' },
+      { labelKey: 'link_services', to: '/services' },
+      { labelKey: 'link_how', to: '/how-it-works' },
+      { labelKey: 'link_therapists', to: '/therapists', feature: 'therapists' },
+      { labelKey: 'link_pricing', to: '/pricing', feature: 'pricing' },
     ],
   },
   {
     titleKey: 'col2_title',
     links: [
-      { label: 'Videos & articles', to: '/resources' },
-      { label: 'Breathing exercises', to: '/breathe' },
-      { label: 'Blog', to: '/blog' },
-      { label: 'Questions', to: '/how-it-works#faq' },
+      { labelKey: 'link_resources', to: '/resources' },
+      { labelKey: 'link_breathe', to: '/breathe' },
+      { labelKey: 'link_blog', to: '/blog' },
+      { labelKey: 'link_faq', to: '/how-it-works#faq' },
     ],
   },
   {
@@ -58,11 +58,11 @@ export default function Footer() {
     title: footerContent[col.titleKey],
     links: col.links
       .filter((l) => !l.feature || features[l.feature])
-      .map((l) =>
-        l.urlKey
-          ? { label: footerContent[l.labelKey], href: safeUrl(footerContent[l.urlKey]) }
-          : l,
-      )
+      .map((l) => {
+        if (l.urlKey) return { label: footerContent[l.labelKey], href: safeUrl(footerContent[l.urlKey]) };
+        // An in-site link: same label lookup, no URL to validate.
+        return l.labelKey ? { ...l, label: footerContent[l.labelKey] } : l;
+      })
       // A legal link with no address yet is left out rather than shown as a
       // dead "#" link.
       .filter((l) => !l.urlKey || l.href),
