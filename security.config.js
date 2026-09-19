@@ -38,6 +38,12 @@ export const csp = {
   // cannot execute — and every other directive stays locked down.
   'img-src': ["'self'", 'data:', 'https:'],
   'font-src': ["'self'"],
+  // Audio testimonials. Narrower than img-src on purpose: pictures accept any
+  // https host because their URL is an admin field, but audio has no
+  // paste-a-link path — every clip is uploaded to our own bucket, so nothing
+  // else needs to be reachable. Without this, <audio> falls back to
+  // default-src 'self' and every clip is blocked.
+  'media-src': ["'self'", 'https://*.supabase.co'],
   // Supabase API calls from the browser.
   'connect-src': ["'self'", 'https://*.supabase.co'],
   'object-src': ["'none'"],

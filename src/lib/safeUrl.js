@@ -22,6 +22,18 @@ export function safeUrl(value, { allowPaths = true } = {}) {
   return null;
 }
 
+/**
+ * A URL safe to hand to <audio src>: an https clip, or a file served from this
+ * site. Uploaded recordings are the first; a sample dropped in public/ is the
+ * second. mailto: and tel: pass safeUrl and are meaningless here, so this is
+ * its own function rather than a call to safeUrl with a flag.
+ */
+export function safeMediaUrl(value) {
+  const url = safeUrl(value, { allowPaths: true });
+  if (!url) return null;
+  return url.startsWith('https://') || url.startsWith('/') ? url : null;
+}
+
 /** An https link to another site, or null. For the community invite. */
 export function safeExternalUrl(value) {
   const url = safeUrl(value, { allowPaths: false });

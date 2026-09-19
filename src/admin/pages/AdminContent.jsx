@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useMemo, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { deleteContent, getAllContent, upsertContent } from '../../lib/queries/siteContent';
 import { parseJsonValue, stringifyContentValue } from '../../lib/contentMerge';
@@ -7,6 +7,7 @@ import {
   SCHEMA_BY_KEY, SECTION_ORDER, SECTION_PAGE, SECTION_TITLES,
 } from '../../data/contentSchema';
 import { isFeatureOn } from '../../lib/featureFlag';
+import { uploadAudio } from '../../lib/queries/media';
 import { iconNames } from '../../components/Icon';
 import { useSearch } from '../hooks';
 import { Button, EmptyState, PageHeader, Panel, SearchInput, TableSkeleton } from '../components/ui';
@@ -57,6 +58,64 @@ function blankItem(spec) {
 
 /* ------------------------------------------------------------- item fields */
 
+/**
+ * An audio field inside a list row: upload a clip, hear it back, remove it.
+ *
+ * There is no paste-a-link box, and that is deliberate — the same decision the
+ * article covers ended up at. A linked file is one someone else can move,
+ * delete or put behind a sign-in, and the failure shows up as a silent player
+ * on the public site rather than as an error anyone sees.
+ */
+function AudioField({ value, onChange, hint }) {
+  const [busy, setBusy] = useState(false);
+  const fileRef = useRef(null);
+
+  const pick = async (file) => {
+    if (!file) return;
+    setBusy(true);
+    try {
+      onChange(await uploadAudio(file, 'testimonials'));
+      toast.success('Clip uploaded');
+    } catch (err) {
+      toast.error(err?.message || 'Could not upload that clip');
+    } finally {
+      setBusy(false);
+      if (fileRef.current) fileRef.current.value = '';
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      {value ? (
+        <>
+          {/* preload="none" so a page of testimonials does not fetch every
+              clip before anyone presses play. */}
+          <audio controls preload="none" src={value} className="h-9 w-full" />
+          <button
+            type="button"
+            onClick={() => onChange('')}
+            className="text-[11px] text-red-500 hover:underline"
+          >
+            Remove clip
+          </button>
+        </>
+      ) : (
+        <p className="text-[11px] text-gray-400">No clip yet.</p>
+      )}
+      <input
+        ref={fileRef}
+        type="file"
+        accept="audio/*,.mp3,.m4a,.wav,.ogg,.webm"
+        disabled={busy}
+        onChange={(e) => pick(e.target.files?.[0])}
+        className="block w-full text-[11px] file:mr-2 file:rounded-md file:border-0 file:bg-gray-900 file:px-3 file:py-1.5 file:text-[11px] file:text-white disabled:opacity-50"
+      />
+      {busy && <p className="text-[11px] text-gray-500">Uploading…</p>}
+      {hint && <p className="text-[10.5px] text-gray-400">{hint}</p>}
+    </div>
+  );
+}
+
 function ItemField({ field, value, onChange }) {
   // A stable id per input: a fresh random one on every render would relabel the
   // field mid-keystroke.
@@ -81,6 +140,8 @@ function ItemField({ field, value, onChange }) {
           value={Array.isArray(value) ? value.join(', ') : (value ?? '')}
           onChange={(e) => onChange(e.target.value.split(',').map((x) => x.trim()).filter(Boolean))}
         />
+      ) : field.type === 'audio' ? (
+        <AudioField value={value ?? ''} onChange={onChange} hint={field.hint} />
       ) : field.type === 'icon' ? (
         <select {...common} value={value ?? ''} onChange={(e) => onChange(e.target.value)}>
           <option value="">None</option>
@@ -91,7 +152,9 @@ function ItemField({ field, value, onChange }) {
       ) : (
         <input {...common} type="text" value={value ?? ''} onChange={(e) => onChange(e.target.value)} />
       )}
-      {field.hint && <span className="mt-1 block text-[10.5px] text-gray-400">{field.hint}</span>}
+      {field.hint && field.type !== 'audio' && (
+        <span className="mt-1 block text-[10.5px] text-gray-400">{field.hint}</span>
+      )}
     </label>
   );
 }
