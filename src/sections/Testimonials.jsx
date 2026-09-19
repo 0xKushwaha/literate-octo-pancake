@@ -55,15 +55,29 @@ export default function Testimonials({ limit = 6, tinted = true }) {
                     <Icon name="play" size={11} filled />
                     {content.audio_label}
                   </figcaption>
+                  {/* controlsList="nodownload" takes Download out of the
+                      player's overflow menu. Be clear about what that is: the
+                      clip sits at a public URL in a public bucket, so anyone
+                      determined can still pull it out of the network tab. It
+                      removes the invitation, not the possibility. A recording
+                      that genuinely must not leave the page needs a private
+                      bucket and signed URLs, which is a different job.
+
+                      Chrome and Edge honour it. Firefox and Safari ignore it,
+                      and Safari's player has no download control to begin
+                      with. */}
                   <audio
                     controls
+                    controlsList="nodownload"
                     preload="none"
                     src={audioOf(t)}
                     className="h-9 w-full"
                   >
-                    {/* Shown only by a browser with no audio support at all;
-                        the quote above is already the real fallback. */}
-                    <a href={audioOf(t)}>{content.audio_label}</a>
+                    {/* A browser with no <audio> support at all lands here.
+                        Plain text rather than a link to the file, because a
+                        link is the download this is trying not to offer, and
+                        the written quote above is already the real fallback. */}
+                    {content.audio_label}
                   </audio>
                 </figure>
               )}
