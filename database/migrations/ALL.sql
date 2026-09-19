@@ -1276,6 +1276,7 @@ CREATE TABLE IF NOT EXISTS infographics (
     image_url       TEXT NOT NULL,
     image_alt       TEXT,
     category        TEXT,
+    is_featured     BOOLEAN NOT NULL DEFAULT FALSE,
     is_active       BOOLEAN NOT NULL DEFAULT TRUE,
     sort_order      INTEGER NOT NULL DEFAULT 0,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT (NOW() AT TIME ZONE 'utc'),
@@ -1287,8 +1288,20 @@ COMMENT ON TABLE infographics IS
 COMMENT ON COLUMN infographics.image_alt IS
     'Read aloud by screen readers. An infographic carries its meaning in the picture, so this matters more here than on a decorative image.';
 
+-- Added after the table shipped, so it is also an ALTER: re-running this file
+-- on a database where CREATE TABLE IF NOT EXISTS already no-ops still picks
+-- the column up. Safe either way.
+ALTER TABLE infographics
+    ADD COLUMN IF NOT EXISTS is_featured BOOLEAN NOT NULL DEFAULT FALSE;
+
+COMMENT ON COLUMN infographics.is_featured IS
+    'Ticked in Admin -> Infographics. Offers the infographic to the homepage cards; /resources lists every active one.';
+
 CREATE INDEX IF NOT EXISTS idx_infographics_active ON infographics(sort_order)
     WHERE is_active = TRUE;
+
+CREATE INDEX IF NOT EXISTS idx_infographics_homepage ON infographics(sort_order)
+    WHERE is_featured = TRUE AND is_active = TRUE;
 
 ALTER TABLE infographics ENABLE ROW LEVEL SECURITY;
 

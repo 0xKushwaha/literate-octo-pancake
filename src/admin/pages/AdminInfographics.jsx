@@ -17,7 +17,7 @@ const CATEGORIES = ['Getting Started', 'Anxiety', 'Depression', 'Mindfulness', '
 
 const EMPTY = {
   title: '', description: '', image_url: '', image_alt: '', category: '',
-  is_active: true, sort_order: 0,
+  is_featured: false, is_active: true, sort_order: 0,
 };
 
 const inputCls =
@@ -42,8 +42,12 @@ function InfographicForm({ initial, onSave, onCancel, ready, checking, onRecheck
     }
     setSaving(true);
     try {
-      await upsertInfographic({ ...form, sort_order: Number(form.sort_order) || 0 });
-      toast.success(initial?.id ? 'Infographic updated' : 'Infographic added');
+      const saved = await upsertInfographic({ ...form, sort_order: Number(form.sort_order) || 0 });
+      if (saved?.featuredSaved === false) {
+        toast('Saved, but the homepage tick needs migration 011 re-run.', { icon: '⚠️' });
+      } else {
+        toast.success(initial?.id ? 'Infographic updated' : 'Infographic added');
+      }
       onSave();
     } catch (err) {
       toast.error(err?.message || 'Could not save that infographic');
@@ -103,10 +107,16 @@ function InfographicForm({ initial, onSave, onCancel, ready, checking, onRecheck
         </div>
       </div>
 
-      <label className="flex cursor-pointer items-center gap-2">
-        <input type="checkbox" checked={form.is_active} onChange={(e) => set('is_active', e.target.checked)} className="rounded" />
-        <span className="text-sm text-gray-700">Active (visible on the Resources page)</span>
-      </label>
+      <div className="flex flex-col gap-2">
+        <label className="flex cursor-pointer items-center gap-2">
+          <input type="checkbox" checked={form.is_featured} onChange={(e) => set('is_featured', e.target.checked)} className="rounded" />
+          <span className="text-sm text-gray-700">Show on homepage (the picture card in &ldquo;Something to take with you&rdquo;)</span>
+        </label>
+        <label className="flex cursor-pointer items-center gap-2">
+          <input type="checkbox" checked={form.is_active} onChange={(e) => set('is_active', e.target.checked)} className="rounded" />
+          <span className="text-sm text-gray-700">Active (visible on the Resources page)</span>
+        </label>
+      </div>
 
       <div className="flex gap-3 pt-2">
         <button type="submit" disabled={saving}
@@ -155,13 +165,14 @@ export default function AdminInfographics() {
   };
 
   const active = rows.filter((i) => i.is_active).length;
+  const featured = rows.filter((i) => i.is_featured).length;
 
   return (
     <>
       <PageHeader
         title="Infographics"
         count={rows.length}
-        subtitle={rows.length ? `${active} live on the Resources page` : null}
+        subtitle={rows.length ? `${active} live on the Resources page · ${featured} on the homepage` : null}
       >
         <Button onClick={() => setEditing('new')} disabled={editing === 'new'}>+ Add infographic</Button>
       </PageHeader>
@@ -207,7 +218,7 @@ export default function AdminInfographics() {
 
       <Panel>
         {loading ? (
-          <TableSkeleton rows={4} cols={5} />
+          <TableSkeleton rows={4} cols={6} />
         ) : error ? (
           <ErrorState message={error} onRetry={reload} />
         ) : rows.length === 0 ? (
@@ -229,6 +240,7 @@ export default function AdminInfographics() {
                   <Th className="w-24">Image</Th>
                   <Th sortKey="title" sort={sort} onSort={toggle}>Title</Th>
                   <Th sortKey="category" sort={sort} onSort={toggle}>Category</Th>
+                  <Th sortKey="is_featured" sort={sort} onSort={toggle}>Homepage</Th>
                   <Th sortKey="is_active" sort={sort} onSort={toggle}>Status</Th>
                   <Th align="right">Actions</Th>
                 </tr>
@@ -242,6 +254,9 @@ export default function AdminInfographics() {
                     </td>
                     <td className="max-w-xs truncate px-5 py-3 font-medium text-gray-900">{i.title}</td>
                     <td className="px-5 py-3 text-gray-500">{i.category || '\u2014'}</td>
+                    <td className="px-5 py-3 text-gray-500">
+                      {i.is_featured ? <span title="Shown on the homepage">★</span> : '\u2014'}
+                    </td>
                     <td className="px-5 py-3"><StatusBadge status={i.is_active ? 'active' : 'inactive'} /></td>
                     <td className="px-5 py-3 text-right">
                       <div className="flex justify-end gap-3">
