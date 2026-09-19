@@ -15,8 +15,6 @@ const AdminBreathing = lazy(() => import('./pages/AdminBreathing'));
 const AdminYouTube = lazy(() => import('./pages/AdminYouTube'));
 const AdminContent = lazy(() => import('./pages/AdminContent'));
 const AdminFaqs = lazy(() => import('./pages/AdminFaqs'));
-const AdminBookings = lazy(() => import('./pages/AdminBookings'));
-const AdminCommunity = lazy(() => import('./pages/AdminCommunity'));
 const AdminAccount = lazy(() => import('./pages/AdminAccount'));
 
 /**
@@ -77,8 +75,6 @@ export default function AdminApp() {
                 <Route path="youtube" element={<AdminYouTube />} />
                 <Route path="content" element={<AdminContent />} />
                 <Route path="faqs" element={<AdminFaqs />} />
-                <Route path="bookings" element={<AdminBookings />} />
-                <Route path="community" element={<AdminCommunity />} />
                 <Route path="account" element={<AdminAccount />} />
               </Routes>
             </AdminShell>

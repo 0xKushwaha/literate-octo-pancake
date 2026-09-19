@@ -3,11 +3,12 @@ import Icon from '../components/Icon';
 import { useSiteContent } from '../lib/queries/siteContent';
 
 /**
- * `tinted` exists because of where this section sits on the homepage now:
- * directly under the hero, which is already a tinted band. Two of them
- * touching read as one very tall band with a stats strip floating in the
- * middle of it, so on the homepage the reviews sit on paper and the hero
- * keeps its edge. Everywhere else they stay tinted.
+ * `tinted` exists because of what this section touches on the homepage: the
+ * breathing band directly below it, which is already tinted. Two tinted bands
+ * meeting read as one very tall band rather than two sections, so on the
+ * homepage the reviews sit on paper and the band below keeps its edge. (It
+ * was first switched off for the same reason against the hero above, back
+ * when the reviews sat directly under it.) Everywhere else they stay tinted.
  */
 export default function Testimonials({ limit = 6, tinted = true }) {
   const content = useSiteContent('testimonials');
