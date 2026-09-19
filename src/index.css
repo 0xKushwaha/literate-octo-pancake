@@ -521,6 +521,50 @@
   }
 }
 
+/* ============================================================
+   audio seek bar
+   ============================================================
+   A range input styled down to a hairline. The filled part is painted with a
+   gradient stop at --seek rather than by a second element, so there is one
+   node to position and nothing to keep in sync.
+
+   The thumb is deliberately small and only appears on hover or focus: at rest
+   this should read as a progress line on a testimonial card, not as a control
+   demanding to be used. It stays 16px of hit area either way, because a
+   4px target is not a target.
+   ============================================================ */
+.audio-seek {
+  background-image: linear-gradient(to right, var(--accent) 0%, var(--accent) var(--seek, 0%), transparent var(--seek, 0%));
+}
+
+.audio-seek::-webkit-slider-thumb {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 9999px;
+  background: var(--accent);
+  border: 3px solid var(--color-surface);
+  transform: scale(0);
+  transition: transform var(--dur-quick) ease;
+}
+
+.audio-seek::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  border: 3px solid var(--color-surface);
+  border-radius: 9999px;
+  background: var(--accent);
+  transform: scale(0);
+  transition: transform var(--dur-quick) ease;
+}
+
+.audio-seek:hover::-webkit-slider-thumb,
+.audio-seek:focus-visible::-webkit-slider-thumb { transform: scale(1); }
+.audio-seek:hover::-moz-range-thumb,
+.audio-seek:focus-visible::-moz-range-thumb { transform: scale(1); }
+
+.audio-seek:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
