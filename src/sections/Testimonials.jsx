@@ -1,5 +1,6 @@
 import { Section, SectionHeading, Stagger, StaggerItem } from '../components/primitives';
 import Icon from '../components/Icon';
+import AudioNote from '../components/AudioNote';
 import { useSiteContent } from '../lib/queries/siteContent';
 import { safeMediaUrl } from '../lib/safeUrl';
 
@@ -51,34 +52,19 @@ export default function Testimonials({ limit = 6, tinted = true }) {
                   https-only check is cheap. */}
               {audioOf(t) && (
                 <figure className="mt-4 m-0">
-                  <figcaption className="mb-1.5 flex items-center gap-1.5 text-[11.5px] font-medium text-ink-4">
-                    <Icon name="play" size={11} filled />
+                  {/* No icon here: the button two lines down is a play
+                      triangle, and two of them side by side is one too many
+                      for a label that is already quiet. */}
+                  <figcaption className="mb-2 text-[11.5px] font-medium text-ink-4">
                     {content.audio_label}
                   </figcaption>
-                  {/* controlsList="nodownload" takes Download out of the
-                      player's overflow menu. Be clear about what that is: the
-                      clip sits at a public URL in a public bucket, so anyone
-                      determined can still pull it out of the network tab. It
-                      removes the invitation, not the possibility. A recording
-                      that genuinely must not leave the page needs a private
-                      bucket and signed URLs, which is a different job.
-
-                      Chrome and Edge honour it. Firefox and Safari ignore it,
-                      and Safari's player has no download control to begin
-                      with. */}
-                  <audio
-                    controls
-                    controlsList="nodownload"
-                    preload="none"
-                    src={audioOf(t)}
-                    className="h-9 w-full"
-                  >
-                    {/* A browser with no <audio> support at all lands here.
-                        Plain text rather than a link to the file, because a
-                        link is the download this is trying not to offer, and
-                        the written quote above is already the real fallback. */}
-                    {content.audio_label}
-                  </audio>
+                  {/* Our own control rather than the browser's. It also
+                      settles the download question for good: with no native
+                      controls there is no overflow menu to offer it, on every
+                      browser rather than only the two that honour
+                      controlsList. The file is still at a public URL, so this
+                      remains a matter of not inviting it. */}
+                  <AudioNote src={audioOf(t)} label={content.audio_label} />
                 </figure>
               )}
               <figcaption className="mt-5 flex items-center gap-3 border-t border-line pt-4">
