@@ -166,11 +166,18 @@ BEGIN
             TO authenticated
             USING (bucket_id = 'media' AND public.is_admin());
 
-        -- Pictures only, 10 MB. SVG stays out: it can carry script.
+        -- Raster images and the audio types 012 added, 20 MB. SVG stays out:
+        -- it can carry script. This used to be images-only / 10 MB, which
+        -- undid 012 whenever this file was run after it and broke testimonial
+        -- clip uploads — keep this list in step with 012.
         UPDATE storage.buckets
            SET public = TRUE,
-               file_size_limit = 10485760,
-               allowed_mime_types = ARRAY['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif']
+               file_size_limit = 20971520,
+               allowed_mime_types = ARRAY[
+                   'image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif',
+                   'audio/mpeg', 'audio/mp4', 'audio/x-m4a', 'audio/aac',
+                   'audio/wav', 'audio/x-wav', 'audio/ogg', 'audio/webm'
+               ]
          WHERE id = 'media';
     END IF;
 END $$;

@@ -41,10 +41,11 @@ VALUES (
     10485760,  -- 10 MB; a cover photo has no business being larger
     ARRAY['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif']
 )
+-- On a re-run only `public` is reasserted. Resetting the size limit and the
+-- mime list here used to undo 012 (audio) whenever this file was run again,
+-- which silently broke testimonial clip uploads.
 ON CONFLICT (id) DO UPDATE
-    SET public = EXCLUDED.public,
-        file_size_limit = EXCLUDED.file_size_limit,
-        allowed_mime_types = EXCLUDED.allowed_mime_types;
+    SET public = EXCLUDED.public;
 
 -- Policies cannot be written IF NOT EXISTS, so they are dropped first. That is
 -- what makes this file safe to re-run.
