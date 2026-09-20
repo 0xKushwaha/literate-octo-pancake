@@ -30,9 +30,9 @@ import Icon from '../components/Icon';
  * thing printed three times.
  */
 const MEDALLIONS = [
-  'bg-brand-100 text-accent-strong',
-  'bg-peach-100 text-ink',
-  'bg-sand-100 text-ink',
+  'bg-tone-1 text-accent-strong',
+  'bg-tone-3 text-ink',
+  'bg-tone-4 text-ink',
 ];
 
 function fill(template, values) {
@@ -60,7 +60,7 @@ function BreathingCircle() {
       <span className="absolute size-32 rounded-full border border-brand-300" />
       <span className="absolute size-24 rounded-full bg-brand-200 breathe-echo opacity-40" />
       <span className="absolute size-24 rounded-full bg-brand-200 breathe-echo opacity-40" style={{ animationDelay: '3s' }} />
-      <span className="relative grid size-16 place-items-center rounded-full bg-brand-500 text-white">
+      <span className="relative grid size-16 place-items-center rounded-full bg-brand-500 text-on-brand">
         <Icon name="wave" size={22} />
       </span>
     </div>

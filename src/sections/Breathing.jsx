@@ -17,9 +17,9 @@ import { useSiteContent } from '../lib/queries/siteContent';
  * is a gradient by another name and turned to soup against a light card.
  */
 const PHASE = {
-  inhale: { fill: 'bg-brand-300', stroke: 'var(--color-brand-300)', dot: 'bg-brand-300' },
-  hold: { fill: 'bg-sand-100', stroke: 'var(--color-sand-100)', dot: 'bg-sand-100' },
-  exhale: { fill: 'bg-amber-500', stroke: 'var(--color-amber-500)', dot: 'bg-amber-500' },
+  inhale: { fill: 'bg-breath-in', stroke: 'var(--color-breath-in)', dot: 'bg-breath-in' },
+  hold: { fill: 'bg-breath-hold', stroke: 'var(--color-breath-hold)', dot: 'bg-breath-hold' },
+  exhale: { fill: 'bg-breath-out', stroke: 'var(--color-breath-out)', dot: 'bg-breath-out' },
 };
 
 const R = 104;
@@ -138,30 +138,30 @@ function BreathingGuide({ exercise, onClose, content }) {
         <span className="grid size-16 place-items-center rounded-full bg-amber-500 text-ink">
           <Icon name="check" size={26} />
         </span>
-        <p className="mt-6 font-display text-[26px] leading-tight tracking-tight text-white">{content.done_title}</p>
-        <p className="mt-2 max-w-[30ch] text-[14px] leading-relaxed text-white/70">{content.done_body}</p>
+        <p className="mt-6 font-display text-[26px] leading-tight tracking-tight text-on-deep">{content.done_title}</p>
+        <p className="mt-2 max-w-[30ch] text-[14px] leading-relaxed text-on-deep/70">{content.done_body}</p>
 
-        <dl className="mt-8 grid w-full max-w-[17rem] grid-cols-2 gap-px overflow-hidden rounded-2xl border border-white/15 bg-white/15">
+        <dl className="mt-8 grid w-full max-w-[17rem] grid-cols-2 gap-px overflow-hidden rounded-2xl border border-on-deep/15 bg-on-deep/15">
           <div className="bg-deep px-4 py-3">
-            <dd className="font-display text-[20px] leading-none text-white">{exercise.cycles}</dd>
-            <dt className="mt-1.5 text-[11px] uppercase tracking-[0.12em] text-white/60">cycles</dt>
+            <dd className="font-display text-[20px] leading-none text-on-deep">{exercise.cycles}</dd>
+            <dt className="mt-1.5 text-[11px] uppercase tracking-[0.12em] text-on-deep/60">cycles</dt>
           </div>
           <div className="bg-deep px-4 py-3">
-            <dd className="font-display text-[20px] leading-none text-white">{minutesLabel(seconds)}</dd>
-            <dt className="mt-1.5 text-[11px] uppercase tracking-[0.12em] text-white/60">breathing</dt>
+            <dd className="font-display text-[20px] leading-none text-on-deep">{minutesLabel(seconds)}</dd>
+            <dt className="mt-1.5 text-[11px] uppercase tracking-[0.12em] text-on-deep/60">breathing</dt>
           </div>
         </dl>
 
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <button
             onClick={restart}
-            className="rounded-full bg-amber-500 px-6 py-2.5 text-sm font-semibold text-ink transition hover:brightness-105"
+            className="rounded-full bg-btn-3 px-6 py-2.5 text-sm font-semibold text-btn-3-ink transition hover:brightness-105"
           >
             {content.again_label}
           </button>
           <button
             onClick={onClose}
-            className="rounded-full border border-white/30 px-6 py-2.5 text-sm font-medium text-white transition hover:bg-white/10"
+            className="rounded-full border border-on-deep/30 px-6 py-2.5 text-sm font-medium text-on-deep transition hover:bg-on-deep/10"
           >
             {content.close_label}
           </button>
@@ -173,14 +173,14 @@ function BreathingGuide({ exercise, onClose, content }) {
   return (
     <div className="flex flex-col items-center px-7 pb-10 pt-8 text-center">
       {/* how far through the whole exercise */}
-      <div className="h-0.5 w-full overflow-hidden rounded-full bg-white/15">
+      <div className="h-0.5 w-full overflow-hidden rounded-full bg-on-deep/15">
         <div
-          className="h-full rounded-full bg-white/80 transition-[width] duration-500 ease-out"
+          className="h-full rounded-full bg-on-deep/80 transition-[width] duration-500 ease-out"
           style={{ width: `${progress * 100}%` }}
         />
       </div>
 
-      <p className="mt-5 text-[12px] font-semibold uppercase tracking-[0.16em] text-white/55">
+      <p className="mt-5 text-[12px] font-semibold uppercase tracking-[0.16em] text-on-deep/55">
         {String(content.cycle_label ?? '').replace('{n}', cycleNum).replace('{total}', exercise.cycles)}
       </p>
 
@@ -188,7 +188,7 @@ function BreathingGuide({ exercise, onClose, content }) {
         {/* the ring: a static track, and one stroke swept over the length of
             this phase — a clock you read without counting */}
         <svg viewBox="0 0 240 240" className="absolute inset-0 size-full -rotate-90" aria-hidden="true">
-          <circle cx="120" cy="120" r={R} fill="none" stroke="rgba(255,255,255,0.14)" strokeWidth="2" />
+          <circle cx="120" cy="120" r={R} fill="none" stroke="color-mix(in srgb, var(--color-on-deep) 14%, transparent)" strokeWidth="2" />
           <circle
             key={`${runId}-${phaseIdx}`}
             className={prefersReduced ? '' : 'arc-sweep'}
@@ -248,17 +248,17 @@ function BreathingGuide({ exercise, onClose, content }) {
           <span
             key={i}
             className={`block size-1.5 rounded-full transition-colors duration-500 ${
-              i < cycleNum ? 'bg-white' : 'bg-white/25'
+              i < cycleNum ? 'bg-on-deep' : 'bg-on-deep/25'
             }`}
           />
         ))}
       </div>
 
-      <p className="mt-4 text-[13px] text-white/60">{exercise.name}</p>
+      <p className="mt-4 text-[13px] text-on-deep/60">{exercise.name}</p>
 
       <button
         onClick={onClose}
-        className="mt-7 rounded-full border border-white/25 px-5 py-2 text-[13px] text-white/80 transition hover:border-white/60 hover:text-white"
+        className="mt-7 rounded-full border border-on-deep/25 px-5 py-2 text-[13px] text-on-deep/80 transition hover:border-on-deep/60 hover:text-on-deep"
       >
         {content.end_label}
       </button>
@@ -278,7 +278,7 @@ function ExerciseCard({ exercise, onStart }) {
           <span className="text-[12px] font-semibold uppercase tracking-[0.1em] text-ink-4">
             {exercise.technique}
           </span>
-          <span className="inline-flex size-9 items-center justify-center rounded-full border border-line text-ink-3 transition-colors duration-300 group-hover:border-brand-500 group-hover:bg-brand-500 group-hover:text-white">
+          <span className="inline-flex size-9 items-center justify-center rounded-full border border-line text-ink-3 transition-colors duration-300 group-hover:border-brand-500 group-hover:bg-brand-500 group-hover:text-on-brand">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
           </span>
         </div>
@@ -363,7 +363,7 @@ export default function Breathing({ withHeading = true, tinted = true }) {
       <Dialog open={!!active} onOpenChange={(open) => { if (!open) setActive(null); }}>
         <DialogContent
           showCloseButton={false}
-          className="on-deep max-h-[90dvh] max-w-sm overflow-y-auto rounded-4xl border-white/10 p-0"
+          className="on-deep max-h-[90dvh] max-w-sm overflow-y-auto rounded-4xl border-on-deep/10 p-0"
         >
           <DialogTitle className="sr-only">
             {active?.name ?? 'Breathing exercise'}

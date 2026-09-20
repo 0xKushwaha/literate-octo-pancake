@@ -499,7 +499,7 @@ function DetailsStep({ form, set, errors }) {
           checked={form.consent}
           onCheckedChange={(v) => set({ consent: v === true })}
           aria-invalid={!!errors.consent}
-          className="mt-0.5 size-5 rounded-md border-line-2 data-[state=checked]:border-brand-500 data-[state=checked]:bg-brand-500 data-[state=checked]:text-white"
+          className="mt-0.5 size-5 rounded-md border-line-2 data-[state=checked]:border-brand-500 data-[state=checked]:bg-brand-500 data-[state=checked]:text-on-brand"
         />
         <Label
           htmlFor={ids.consent}

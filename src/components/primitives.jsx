@@ -109,11 +109,11 @@ function useInViewOnce(amount = 0.15) {
  * feel answered, not enough to move the layout.
  */
 const PRIMARY =
-  'bg-[#FFBF00] text-ink shadow-[var(--shadow-card)] hover:-translate-y-0.5 hover:shadow-[var(--shadow-lift)] hover:brightness-[1.04]';
+  'bg-btn text-btn-ink shadow-[var(--shadow-card)] hover:-translate-y-0.5 hover:shadow-[var(--shadow-lift)] hover:brightness-[1.04]';
 const ACCENT =
-  'bg-amber-500 text-ink shadow-[var(--shadow-card)] hover:-translate-y-0.5 hover:shadow-[var(--shadow-lift)] hover:brightness-[1.04]';
+  'bg-btn-3 text-btn-3-ink shadow-[var(--shadow-card)] hover:-translate-y-0.5 hover:shadow-[var(--shadow-lift)] hover:brightness-[1.04]';
 const SECONDARY =
-  'border border-line-2 bg-surface text-ink hover:-translate-y-0.5 hover:border-ink hover:shadow-[var(--shadow-card)]';
+  'border border-btn-2-line bg-btn-2 text-btn-2-ink hover:-translate-y-0.5 hover:border-btn-2-ink hover:shadow-[var(--shadow-card)]';
 const variants = {
   primary: PRIMARY,
   glow: PRIMARY,
@@ -166,7 +166,7 @@ export function Eyebrow({ children, className = '' }) {
           section label is not an alarm. Peach reads warm at this size on
           every ground the site has, and it is four pixels wide, which is the
           brief for this colour. */}
-      <span className="h-3 w-1 rounded-full bg-peach-200" />
+      <span className="h-3 w-1 rounded-full bg-label-bar" />
       <span className="eyebrow">{children}</span>
     </div>
   );
@@ -294,7 +294,7 @@ export function Photo({ src, alt = '', ratio = '4 / 3', className = '', priority
     <div className={`relative ${className}`}>
       <div
         aria-hidden
-        className="pointer-events-none absolute -bottom-4 -left-4 h-full w-full rounded-[2rem] bg-brand-200"
+        className="pointer-events-none absolute -bottom-4 -left-4 h-full w-full rounded-[2rem] bg-photo-frame"
       />
       <div className="relative">{img}</div>
     </div>
@@ -331,7 +331,7 @@ export function sectionPad(withHeading) {
 export function MoreLink({ to, children, className = '' }) {
   return (
     <Link to={to} className={`group inline-flex items-center gap-2 text-[15px] font-semibold text-ink ${className}`}>
-      <span className="underline decoration-amber-500 decoration-2 underline-offset-4 transition-colors group-hover:decoration-ink">{children}</span>
+      <span className="underline decoration-link-mark decoration-2 underline-offset-4 transition-colors group-hover:decoration-ink">{children}</span>
       <Icon name="arrow" size={16} className="transition-transform duration-200 group-hover:translate-x-0.5" />
     </Link>
   );

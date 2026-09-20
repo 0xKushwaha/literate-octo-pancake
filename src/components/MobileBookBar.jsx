@@ -36,7 +36,7 @@ export default function MobileBookBar() {
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       aria-hidden={!show}
     >
-          <div className="flex items-center gap-3 rounded-full border border-line bg-surface/95 p-2 pl-5 shadow-[var(--shadow-float)] backdrop-blur-md">
+          <div className="zone-mobilebar flex items-center gap-3 rounded-full border border-line bg-surface/95 p-2 pl-5 shadow-[var(--shadow-float)] backdrop-blur-md">
             {brand.phone ? (
               <a
                 href={telHref(brand.phone)}

@@ -45,7 +45,7 @@ export default function CtaBand() {
             no fill, no blend — decoration that cannot muddy the colour. */}
         <span
           aria-hidden
-          className="pointer-events-none absolute -right-24 -top-28 size-[22rem] rounded-full border border-white/10"
+          className="pointer-events-none absolute -right-24 -top-28 size-[22rem] rounded-full border border-on-deep/10"
         />
         <span
           aria-hidden
@@ -57,7 +57,7 @@ export default function CtaBand() {
             {content.headline}{' '}
             <span className="italic text-amber-500">{content.headline_accent}</span>
           </h2>
-          <p className="mx-auto mt-6 max-w-[46ch] text-[16.5px] leading-relaxed text-white/80">{content.body}</p>
+          <p className="mx-auto mt-6 max-w-[46ch] text-[16.5px] leading-relaxed text-on-deep/80">{content.body}</p>
 
           {/* The email capture lives just under the hero, not here — see
               CommunityBand. This band keeps the pair of buttons it always had;
@@ -75,7 +75,7 @@ export default function CtaBand() {
                 as="a"
                 href={telHref(brand.phone)}
                 iconLeft="phone"
-                className="border border-white/30 bg-transparent !text-white hover:border-white hover:bg-white/10 hover:!text-white"
+                className="border border-on-deep/30 bg-transparent !text-on-deep hover:border-on-deep hover:bg-on-deep/10 hover:!text-on-deep"
                 variant="quiet"
               >
                 {content.secondary}
@@ -83,7 +83,7 @@ export default function CtaBand() {
             )}
           </div>
 
-          <p className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[12.5px] text-white/70">
+          <p className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[12.5px] text-on-deep/70">
             {reassurances.map((r, i) => (
               <span key={`${r}-${i}`} className="flex items-center gap-2">
                 <Icon name="check" size={12} className={booking ? 'text-amber-500' : 'text-peach-100'} />

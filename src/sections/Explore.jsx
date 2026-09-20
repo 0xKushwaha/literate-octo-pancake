@@ -163,7 +163,7 @@ function FloatCard({ card, index }) {
                 <Link
                   to={card.arrowTo}
                   aria-label={card.arrowLabel}
-                  className="relative z-10 grid size-8 shrink-0 place-items-center rounded-full border border-ink/15 text-ink-4 transition-[color,background-color,border-color,transform] duration-300 group-hover:border-brand-500 group-hover:bg-brand-500 group-hover:text-white hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                  className="relative z-10 grid size-8 shrink-0 place-items-center rounded-full border border-ink/15 text-ink-4 transition-[color,background-color,border-color,transform] duration-300 group-hover:border-brand-500 group-hover:bg-brand-500 group-hover:text-on-brand hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                 >
                   <Icon name="arrowUpRight" size={14} />
                 </Link>

@@ -10,6 +10,7 @@ const navItems = [
   { to: '/admin/infographics', label: 'Infographics', icon: '▦' },
   { to: '/admin/faqs', label: 'FAQs', icon: '?' },
   { to: '/admin/content', label: 'Site Content', icon: '✦' },
+  { to: '/admin/colours', label: 'Colour palette', icon: '◐' },
   { to: '/admin/account', label: 'Your account', icon: '⚿' },
 ];
 

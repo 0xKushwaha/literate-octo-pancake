@@ -15,6 +15,7 @@ const AdminBreathing = lazy(() => import('./pages/AdminBreathing'));
 const AdminYouTube = lazy(() => import('./pages/AdminYouTube'));
 const AdminInfographics = lazy(() => import('./pages/AdminInfographics'));
 const AdminContent = lazy(() => import('./pages/AdminContent'));
+const AdminPalette = lazy(() => import('./pages/AdminPalette'));
 const AdminFaqs = lazy(() => import('./pages/AdminFaqs'));
 const AdminAccount = lazy(() => import('./pages/AdminAccount'));
 
@@ -76,6 +77,7 @@ export default function AdminApp() {
                 <Route path="youtube" element={<AdminYouTube />} />
                 <Route path="infographics" element={<AdminInfographics />} />
                 <Route path="content" element={<AdminContent />} />
+                <Route path="colours" element={<AdminPalette />} />
                 <Route path="faqs" element={<AdminFaqs />} />
                 <Route path="account" element={<AdminAccount />} />
               </Routes>

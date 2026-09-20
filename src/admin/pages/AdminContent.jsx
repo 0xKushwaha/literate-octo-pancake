@@ -10,6 +10,7 @@ import { isFeatureOn } from '../../lib/featureFlag';
 import { uploadAudio } from '../../lib/queries/media';
 import { iconNames } from '../../components/Icon';
 import { useSearch } from '../hooks';
+import { CORE_KEYS } from '../../lib/palette';
 import { Button, EmptyState, PageHeader, Panel, SearchInput, TableSkeleton } from '../components/ui';
 
 const SEARCH_FIELDS = ['label', 'key', 'value', 'section', 'sectionTitle', 'pageTitle', 'hint'];
@@ -454,10 +455,19 @@ function ContentRow({ item, onSave, onReset, expandAll = false }) {
 
 /* -------------------------------------------------------------- the page */
 
+/**
+ * Colours live on their own page (Admin → Colour palette), which reads and
+ * writes these rows. Listing them here as well would mean two editors for one
+ * value — and the theme.* rows, not being in the schema, would otherwise show
+ * up below as "no longer used", one Reset away from deleting the palette.
+ */
+const PALETTE_OWNED = new Set(Object.values(CORE_KEYS));
+const ownedByPalette = (key) => PALETTE_OWNED.has(key) || String(key).startsWith('theme.');
+
 /** Builds the admin rows: every schema field, with stored values layered on. */
 function buildItems(remote = []) {
   const remoteMap = Object.fromEntries(remote.map((r) => [r.key, r]));
-  const items = CONTENT_SCHEMA.map((d) => {
+  const items = CONTENT_SCHEMA.filter((d) => !ownedByPalette(d.key)).map((d) => {
     const r = remoteMap[d.key];
     const page = SECTION_PAGE[d.section] ?? 'everywhere';
     const base = {
@@ -483,7 +493,7 @@ function buildItems(remote = []) {
   // Keys stored in the database that the schema does not know about (from an
   // older version of the site) are still shown so they can be edited or reset.
   remote.forEach((r) => {
-    if (SCHEMA_BY_KEY[r.key]) return;
+    if (SCHEMA_BY_KEY[r.key] || ownedByPalette(r.key)) return;
     const section = r.section ?? r.key.split('.')[0];
     items.push({
       key: r.key,
@@ -588,7 +598,7 @@ export default function AdminContent() {
       <PageHeader
         title="Site content"
         count={items.length}
-        subtitle={`Every word, photo and list on the public site, grouped by the page it appears on. ${edited} changed from the default. Saved edits go live on the next page load — no rebuild.`}
+        subtitle={`Every word, photo and list on the public site, grouped by the page it appears on. ${edited} changed from the default. Saved edits go live on the next page load — no rebuild. Colours are under Colour palette.`}
       />
 
       {!loading && items.length > 0 && (

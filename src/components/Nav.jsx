@@ -89,7 +89,7 @@ function Dropdown({ item, open, setOpen, badge }) {
         <Icon name="chevron" size={14} className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
       {isOpen && (
-        <div role="menu" className="menu-panel absolute left-1/2 top-full z-50 mt-2 min-w-[220px] -translate-x-1/2 rounded-3xl border border-line bg-surface p-2 shadow-[var(--shadow-float)]">
+        <div role="menu" className="zone-popup menu-panel absolute left-1/2 top-full z-50 mt-2 min-w-[220px] -translate-x-1/2 rounded-3xl border border-line bg-surface p-2 shadow-[var(--shadow-float)]">
           {item.items.map((sub) => (
             <Link
               key={sub.to + sub.label}
@@ -116,7 +116,7 @@ function Dropdown({ item, open, setOpen, badge }) {
 
 function Badge({ text }) {
   return (
-    <span className="pointer-events-none absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-amber-500 px-2 py-px text-[10.5px] font-semibold text-ink">
+    <span className="pointer-events-none absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-badge px-2 py-px text-[10.5px] font-semibold text-badge-ink">
       {text}
     </span>
   );
@@ -162,7 +162,7 @@ export default function Nav() {
 
   return (
     <>
-      <header className={`sticky top-0 z-50 transition-[background-color,box-shadow,border-color] duration-300 ${scrolled ? 'border-b border-line bg-bg/90 shadow-[0_1px_0_rgba(0,0,0,0.02)] backdrop-blur-md' : 'border-b border-transparent bg-bg'}`}>
+      <header className={`zone-header sticky top-0 z-50 transition-[background-color,box-shadow,border-color] duration-300 ${scrolled ? 'border-b border-line bg-bg/90 shadow-[0_1px_0_rgba(0,0,0,0.02)] backdrop-blur-md' : 'border-b border-transparent bg-bg'}`}>
         <nav className="mx-auto flex h-[68px] max-w-[1280px] items-center justify-between gap-6 px-5 sm:px-8">
           <Link to="/" className="flex items-center gap-2.5" aria-label={`${brand.name} home`}>
             <img src="/logo/logo.svg" alt={brand.name} className="h-12 w-auto mix-blend-multiply" />
@@ -215,7 +215,7 @@ export default function Nav() {
       {drawer && (
         <div className="fixed inset-0 z-[80] lg:hidden" role="dialog" aria-modal="true" aria-label="Menu">
           <div className="absolute inset-0 bg-ink/25 backdrop-blur-sm" onClick={() => setDrawer(false)} />
-          <div className="absolute inset-x-3 top-3 max-h-[calc(100svh-1.5rem)] overflow-y-auto rounded-4xl border border-line bg-surface p-5 shadow-[var(--shadow-float)] animate-in fade-in slide-in-from-top-4 duration-200">
+          <div className="zone-popup absolute inset-x-3 top-3 max-h-[calc(100svh-1.5rem)] overflow-y-auto rounded-4xl border border-line bg-surface p-5 shadow-[var(--shadow-float)] animate-in fade-in slide-in-from-top-4 duration-200">
             <div className="flex items-center justify-between">
               <span className="font-display text-[22px] font-semibold tracking-tight">{brand.name}</span>
               <button onClick={() => setDrawer(false)} className="grid size-10 place-items-center rounded-full text-ink-2 hover:bg-ink/[0.06] hover:text-ink" aria-label="Close menu">

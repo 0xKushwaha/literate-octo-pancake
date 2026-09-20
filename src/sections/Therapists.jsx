@@ -63,9 +63,9 @@ export default function Therapists({ onBook, limit, teaser = false, withHeading 
             key={f.id}
             value={f.id}
             aria-label={f.label}
-            className={`min-w-0 rounded-full border px-4 py-2 text-[13px] transition-colors duration-200 data-[state=on]:bg-ink data-[state=on]:text-white ${
+            className={`min-w-0 rounded-full border px-4 py-2 text-[13px] transition-colors duration-200 data-[state=on]:bg-ink data-[state=on]:text-on-ink ${
               filter === f.id
-                ? 'border-ink bg-ink text-white'
+                ? 'border-ink bg-ink text-on-ink'
                 : 'border-line bg-surface text-ink-3 hover:border-line-2 hover:bg-surface hover:text-ink'
             }`}
           >
