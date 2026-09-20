@@ -123,7 +123,7 @@ export default function CommunityJoin({ inviteUrl, content, tone = 'light' }) {
           disabled={state === 'sending'}
           className={`h-[3.4rem] min-w-0 flex-1 rounded-full px-6 text-[15.5px] text-ink outline-none transition placeholder:text-ink-4 disabled:opacity-60 ${
             deep
-              ? 'border border-white/25 bg-white/95 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/50'
+              ? 'border border-on-deep/25 bg-surface/95 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/50'
               : 'border border-line-2 bg-surface focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30'
           }`}
         />
@@ -158,7 +158,7 @@ export default function CommunityJoin({ inviteUrl, content, tone = 'light' }) {
           className={`mt-3.5 flex items-center justify-center gap-2 text-[13px] ${
             message.tone === 'error'
               ? deep ? 'text-amber-500' : 'text-accent-strong'
-              : deep ? 'text-white/85' : 'text-ink-3'
+              : deep ? 'text-on-deep/85' : 'text-ink-3'
           }`}
         >
           <Icon name={message.tone === 'error' ? 'pulse' : 'check'} size={13} />
@@ -166,7 +166,7 @@ export default function CommunityJoin({ inviteUrl, content, tone = 'light' }) {
         </p>
       ) : (
         content.privacy_note && (
-          <p className={`mt-3.5 text-center text-[12.5px] leading-relaxed ${deep ? 'text-white/60' : 'text-ink-4'}`}>
+          <p className={`mt-3.5 text-center text-[12.5px] leading-relaxed ${deep ? 'text-on-deep/60' : 'text-ink-4'}`}>
             {content.privacy_note}
           </p>
         )

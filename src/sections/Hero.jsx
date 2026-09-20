@@ -81,7 +81,7 @@ export default function Hero() {
   return (
     <section
       id="top"
-      className={`backdrop-soft relative overflow-hidden pt-10 sm:pt-14 lg:flex lg:min-h-[calc(100svh-4.75rem)] lg:flex-col lg:justify-center lg:pt-6 ${
+      className={`backdrop-soft zone-hero relative overflow-hidden pt-10 sm:pt-14 lg:flex lg:min-h-[calc(100svh-4.75rem)] lg:flex-col lg:justify-center lg:pt-6 ${
         hasProofStrip ? 'pb-2 lg:pb-6' : 'pb-20 sm:pb-28'
       }`}
     >

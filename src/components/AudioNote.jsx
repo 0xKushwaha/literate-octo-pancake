@@ -79,7 +79,7 @@ export default function AudioNote({ src, label, className = '' }) {
         type="button"
         onClick={toggle}
         aria-label={playing ? `Pause: ${label}` : `Play: ${label}`}
-        className="grid size-9 shrink-0 place-items-center rounded-full bg-brand-500 text-white transition-[transform,background-color] duration-200 hover:bg-brand-600 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+        className="grid size-9 shrink-0 place-items-center rounded-full bg-brand-500 text-on-brand transition-[transform,background-color] duration-200 hover:bg-brand-600 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
       >
         {/* The pause bars sit on the centre; the play triangle needs a hair of
             left padding or it reads as off-centre inside a circle. */}

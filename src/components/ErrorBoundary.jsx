@@ -52,7 +52,7 @@ function CrashScreen() {
         <div className="flex flex-wrap items-center justify-center gap-3">
           <button
             onClick={() => window.location.reload()}
-            className="inline-flex h-12 items-center rounded-full bg-ink px-6 text-[15px] font-medium text-white transition-colors hover:bg-ink-2"
+            className="inline-flex h-12 items-center rounded-full bg-ink px-6 text-[15px] font-medium text-on-ink transition-colors hover:bg-ink-2"
           >
             {ui.error_button}
           </button>

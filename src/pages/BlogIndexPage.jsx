@@ -99,7 +99,7 @@ export default function BlogIndexPage() {
               onClick={() => { setCategory(cat === 'All' ? null : cat); setPage(1); }}
               className={`rounded-full px-4 py-1.5 text-[13px] transition-all duration-200 ${
                 (cat === 'All' && !category) || cat === category
-                  ? 'bg-ink text-white'
+                  ? 'bg-ink text-on-ink'
                   : 'bg-surface-2 text-ink-3 hover:bg-surface-3 hover:text-ink'
               }`}
             >

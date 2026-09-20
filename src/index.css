@@ -84,7 +84,7 @@
   /* grounds — warm paper, so the teal reads calm rather than clinical */
   --color-bg: #FAF9F6;
   --color-bg-2: color-mix(in oklab, var(--accent) 20%, white);
-  --color-bg-3: color-mix(in oklab, var(--accent) 20%, white);
+  --color-bg-3: var(--color-bg-2);
   --color-surface: #ffffff;
   --color-surface-2: color-mix(in oklab, var(--accent) 10%, white);
   --color-surface-3: color-mix(in oklab, var(--accent) 22%, white);
@@ -95,8 +95,8 @@
   --color-deep-2: color-mix(in oklab, var(--accent) 88%, #06171A);
 
   /* hairlines — ink at an alpha, so they read on every ground in the set */
-  --color-line: rgba(8, 29, 38, 0.10);
-  --color-line-2: rgba(8, 29, 38, 0.20);
+  --color-line: color-mix(in srgb, var(--color-ink) 10%, transparent);
+  --color-line-2: color-mix(in srgb, var(--color-ink) 20%, transparent);
 
   /* Text, strongest first. Ink is a very dark blue rather than black: on warm
      paper pure black reads as a hole, and this clears 16.4:1. It moved with
@@ -104,9 +104,12 @@
      every caption a few degrees off the hue around it, which is the kind of
      thing nobody can name and everybody can see. */
   --color-ink: #081D26;
-  --color-ink-2: rgba(8, 29, 38, 0.80);
-  --color-ink-3: rgba(8, 29, 38, 0.68);
-  --color-ink-4: rgba(8, 29, 38, 0.58);
+  /* The three quieter steps are the text colour at an alpha, so changing
+     "Main text" in the admin palette carries all of them with it. Identical to
+     the rgba() values they replaced for the default ink. */
+  --color-ink-2: color-mix(in srgb, var(--color-ink) 80%, transparent);
+  --color-ink-3: color-mix(in srgb, var(--color-ink) 68%, transparent);
+  --color-ink-4: color-mix(in srgb, var(--color-ink) 58%, transparent);
 
   /* brand family — one hue, mixed with white. Every step is a fill for ink
      type; brand-500 and brand-600 are the two that can carry white type.
@@ -160,6 +163,63 @@
      primary actions on the dark band, the crisis banner, the exhale.
      Always with ink type on it (10.3:1), never as type itself. */
   --color-amber-500: var(--highlight);
+
+  /* ============================================================
+     COMPONENT COLOURS — every one editable in Admin → Colour palette
+     ============================================================
+     Each of these starts as one of the tokens above, so the site looks
+     exactly as it did until someone changes one. They are what lets the
+     palette page reach "the colour of the button" or "the bar beside a
+     section label" without that change leaking anywhere else.
+
+     src/lib/palette.js lists every token in this file with the same default;
+     tests/palette.test.js fails the build if the two ever disagree. */
+
+  /* type sitting on a solid colour */
+  --color-on-brand: #ffffff;
+  --color-on-deep: #ffffff;
+  --color-on-ink: #ffffff;
+  --color-overlay: color-mix(in srgb, #000000 50%, transparent);
+
+  /* buttons: primary, secondary (outlined) and the one on the dark band */
+  --color-btn: #FFBF00;
+  --color-btn-ink: var(--color-ink);
+  --color-btn-2: var(--color-surface);
+  --color-btn-2-ink: var(--color-ink);
+  --color-btn-2-line: var(--color-line-2);
+  --color-btn-3: var(--color-amber-500);
+  --color-btn-3-ink: var(--color-ink);
+
+  /* the small things */
+  --color-badge: var(--color-amber-500);
+  --color-badge-ink: var(--color-ink);
+  --color-label-bar: var(--color-peach-200);
+  --color-link-mark: var(--color-amber-500);
+  --color-focus: var(--accent);
+  --color-selection: color-mix(in oklab, var(--color-amber-500) 45%, transparent);
+  --color-mark: color-mix(in oklab, var(--highlight) 60%, transparent);
+  --color-scrollbar: var(--color-line-2);
+  --color-field-line: var(--color-line-2);
+  --color-photo-frame: var(--color-brand-200);
+
+  /* the rotating card colours (services, quotes, breathing medallions) */
+  --color-tone-1: var(--color-brand-100);
+  --color-tone-2: var(--color-surface);
+  --color-tone-3: var(--color-peach-100);
+  --color-tone-4: var(--color-sand-100);
+
+  /* the breathing player's three phases */
+  --color-breath-in: var(--color-brand-300);
+  --color-breath-hold: var(--color-sand-100);
+  --color-breath-out: var(--color-amber-500);
+
+  /* blog articles */
+  --color-article-text: var(--color-ink-2);
+  --color-article-heading: var(--color-ink);
+  --color-article-link: var(--color-link-mark);
+  --color-article-quote: var(--color-amber-500);
+  --color-article-code: var(--color-surface-2);
+  --color-article-pre: var(--color-ink);
 
   --radius-4xl: 2rem;
   --radius-5xl: 2.75rem;
@@ -215,8 +275,8 @@
   --color-destructive-foreground: var(--color-ink);
 
   --color-border: var(--color-line);
-  --color-input: var(--color-line-2);
-  --color-ring: var(--accent);
+  --color-input: var(--color-field-line);
+  --color-ring: var(--color-focus);
 }
 
 @layer base {
@@ -271,7 +331,7 @@
   }
 
   ::selection {
-    background: color-mix(in oklab, var(--color-amber-500) 45%, transparent);
+    background: var(--color-selection);
     color: var(--color-ink);
   }
 
@@ -291,7 +351,7 @@
   }
 
   :focus-visible {
-    outline: 2px solid var(--accent);
+    outline: 2px solid var(--color-focus);
     outline-offset: 3px;
     border-radius: 6px;
   }
@@ -300,11 +360,193 @@
   ::-webkit-scrollbar { width: 10px; height: 10px; }
   ::-webkit-scrollbar-track { background: var(--color-bg); }
   ::-webkit-scrollbar-thumb {
-    background: var(--color-line-2);
+    background: var(--color-scrollbar);
     border-radius: 99px;
     border: 2px solid var(--color-bg);
   }
   ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+}
+
+/* ============================================================
+   ZONES — recolouring one region of the page from the admin palette
+   ============================================================
+   Each region below can be given its own background and text colour in
+   Admin → Colour palette. The admin writes --<zone>-bg / --<zone>-ink (and
+   the quieter text and hairlines, derived in src/lib/palette.js) onto <html>
+   only when they have been set. Until then every declaration here falls back
+   to --root-*, which is the site-wide value, so a region that nobody has
+   touched is exactly what it was.
+
+   Why --root-* exists: custom properties are resolved where they are
+   declared, so "the site-wide ink" has to be captured once on :root before a
+   region redefines --color-ink for everything inside it. Every zone also
+   restores the variables it does NOT own, so a zone inside another (a menu
+   inside the header, the crisis strip inside the footer) never inherits its
+   parent's colours by accident.
+
+   Each zone also sets `color`, because text with no colour class of its own
+   inherits the colour <body> resolved, not the variable.
+
+   Generated by hand from the table in src/lib/palette.js (ZONES). If a zone is
+   added there, add its block here.
+   ============================================================ */
+@layer base {
+  :root {
+    --root-bg: var(--color-bg);
+    --root-bg-2: var(--color-bg-2);
+    --root-surface: var(--color-surface);
+    --root-surface-2: var(--color-surface-2);
+    --root-surface-3: var(--color-surface-3);
+    --root-amber-500: var(--color-amber-500);
+    --root-ink: var(--color-ink);
+    --root-ink-2: var(--color-ink-2);
+    --root-ink-3: var(--color-ink-3);
+    --root-ink-4: var(--color-ink-4);
+    --root-line: var(--color-line);
+    --root-line-2: var(--color-line-2);
+  }
+
+  /* header: the bar across the top of every page */
+  .zone-header {
+    --color-bg: var(--header-bg, var(--root-bg));
+    --color-bg-2: var(--root-bg-2);
+    --color-surface: var(--root-surface);
+    --color-surface-2: var(--header-hover, var(--root-surface-2));
+    --color-surface-3: var(--header-active, var(--root-surface-3));
+    --color-amber-500: var(--root-amber-500);
+    --color-ink: var(--header-ink, var(--root-ink));
+    --color-ink-2: var(--header-ink-2, var(--root-ink-2));
+    --color-ink-3: var(--header-ink-3, var(--root-ink-3));
+    --color-ink-4: var(--header-ink-4, var(--root-ink-4));
+    --color-line: var(--header-line, var(--root-line));
+    --color-line-2: var(--header-line-2, var(--root-line-2));
+    color: var(--color-ink);
+  }
+
+  /* crisis: the crisis line strip */
+  .zone-crisis {
+    --color-bg: var(--root-bg);
+    --color-bg-2: var(--root-bg-2);
+    --color-surface: var(--root-surface);
+    --color-surface-2: var(--root-surface-2);
+    --color-surface-3: var(--root-surface-3);
+    --color-amber-500: var(--crisis-bg, var(--root-amber-500));
+    --color-ink: var(--crisis-ink, var(--root-ink));
+    --color-ink-2: var(--crisis-ink-2, var(--root-ink-2));
+    --color-ink-3: var(--crisis-ink-3, var(--root-ink-3));
+    --color-ink-4: var(--crisis-ink-4, var(--root-ink-4));
+    --color-line: var(--crisis-line, var(--root-line));
+    --color-line-2: var(--crisis-line-2, var(--root-line-2));
+    color: var(--color-ink);
+  }
+
+  /* footer: the foot of every page */
+  .zone-footer {
+    --color-bg: var(--footer-bg, var(--root-bg));
+    --color-bg-2: var(--root-bg-2);
+    --color-surface: var(--root-surface);
+    --color-surface-2: var(--root-surface-2);
+    --color-surface-3: var(--root-surface-3);
+    --color-amber-500: var(--root-amber-500);
+    --color-ink: var(--footer-ink, var(--root-ink));
+    --color-ink-2: var(--footer-ink-2, var(--root-ink-2));
+    --color-ink-3: var(--footer-ink-3, var(--root-ink-3));
+    --color-ink-4: var(--footer-ink-4, var(--root-ink-4));
+    --color-line: var(--footer-line, var(--root-line));
+    --color-line-2: var(--footer-line-2, var(--root-line-2));
+    color: var(--color-ink);
+  }
+
+  /* band: tinted bands: page headers, the breathing band, legal pages, 404 */
+  .backdrop-soft {
+    --color-bg: var(--root-bg);
+    --color-bg-2: var(--band-bg, var(--root-bg-2));
+    --color-surface: var(--root-surface);
+    --color-surface-2: var(--root-surface-2);
+    --color-surface-3: var(--root-surface-3);
+    --color-amber-500: var(--root-amber-500);
+    --color-ink: var(--band-ink, var(--root-ink));
+    --color-ink-2: var(--band-ink-2, var(--root-ink-2));
+    --color-ink-3: var(--band-ink-3, var(--root-ink-3));
+    --color-ink-4: var(--band-ink-4, var(--root-ink-4));
+    --color-line: var(--band-line, var(--root-line));
+    --color-line-2: var(--band-line-2, var(--root-line-2));
+    color: var(--color-ink);
+  }
+
+  /* hero: the homepage hero (declared after band, so it wins on the hero, which is both) */
+  .zone-hero {
+    --color-bg: var(--root-bg);
+    --color-bg-2: var(--hero-bg, var(--root-bg-2));
+    --color-surface: var(--root-surface);
+    --color-surface-2: var(--root-surface-2);
+    --color-surface-3: var(--root-surface-3);
+    --color-amber-500: var(--root-amber-500);
+    --color-ink: var(--hero-ink, var(--root-ink));
+    --color-ink-2: var(--hero-ink-2, var(--root-ink-2));
+    --color-ink-3: var(--hero-ink-3, var(--root-ink-3));
+    --color-ink-4: var(--hero-ink-4, var(--root-ink-4));
+    --color-line: var(--hero-line, var(--root-line));
+    --color-line-2: var(--hero-line-2, var(--root-line-2));
+    color: var(--color-ink);
+  }
+
+  /* mobilebar: the floating action bar on phones */
+  .zone-mobilebar {
+    --color-bg: var(--root-bg);
+    --color-bg-2: var(--root-bg-2);
+    --color-surface: var(--mobilebar-bg, var(--root-surface));
+    --color-surface-2: var(--root-surface-2);
+    --color-surface-3: var(--root-surface-3);
+    --color-amber-500: var(--root-amber-500);
+    --color-ink: var(--mobilebar-ink, var(--root-ink));
+    --color-ink-2: var(--mobilebar-ink-2, var(--root-ink-2));
+    --color-ink-3: var(--mobilebar-ink-3, var(--root-ink-3));
+    --color-ink-4: var(--mobilebar-ink-4, var(--root-ink-4));
+    --color-line: var(--mobilebar-line, var(--root-line));
+    --color-line-2: var(--mobilebar-line-2, var(--root-line-2));
+    color: var(--color-ink);
+  }
+
+  /* popup: dialogs, menus, the command palette */
+  .zone-popup {
+    --color-bg: var(--popup-bg, var(--root-bg));
+    --color-bg-2: var(--root-bg-2);
+    --color-surface: var(--popup-bg, var(--root-surface));
+    --color-surface-2: var(--root-surface-2);
+    --color-surface-3: var(--root-surface-3);
+    --color-amber-500: var(--root-amber-500);
+    --color-ink: var(--popup-ink, var(--root-ink));
+    --color-ink-2: var(--popup-ink-2, var(--root-ink-2));
+    --color-ink-3: var(--popup-ink-3, var(--root-ink-3));
+    --color-ink-4: var(--popup-ink-4, var(--root-ink-4));
+    --color-line: var(--popup-line, var(--root-line));
+    --color-line-2: var(--popup-line-2, var(--root-line-2));
+    color: var(--color-ink);
+  }
+
+  /* A card, chip or badge that paints its own fill inside a recoloured zone
+     keeps the site-wide colours: those fills were designed for dark ink, and
+     white type on a pale card is the failure this rule exists to prevent.
+     Zero specificity, so a zone class on the same element still wins. */
+  :where(.zone-header, .zone-crisis, .zone-footer, .backdrop-soft, .zone-hero, .zone-mobilebar, .zone-popup)
+    :where(.bg-surface, .bg-surface\/95, .bg-surface-2, .bg-brand-50, .bg-brand-100, .bg-brand-200, .bg-brand-300,
+      .bg-peach-50, .bg-peach-100, .bg-sand-50, .bg-sand-100, .bg-rose-100, .bg-amber-500, .bg-badge,
+      .bg-tone-1, .bg-tone-2, .bg-tone-3, .bg-tone-4, .zone-reset) {
+    --color-bg: var(--root-bg);
+    --color-bg-2: var(--root-bg-2);
+    --color-surface: var(--root-surface);
+    --color-surface-2: var(--root-surface-2);
+    --color-surface-3: var(--root-surface-3);
+    --color-amber-500: var(--root-amber-500);
+    --color-ink: var(--root-ink);
+    --color-ink-2: var(--root-ink-2);
+    --color-ink-3: var(--root-ink-3);
+    --color-ink-4: var(--root-ink-4);
+    --color-line: var(--root-line);
+    --color-line-2: var(--root-line-2);
+    color: var(--color-ink);
+  }
 }
 
 /* ============================================================
@@ -325,13 +567,13 @@
   /* A flat amber bar sitting behind the last third of a word. Drawn with an
      inset shadow rather than a background image so it is one solid colour,
      stays behind the glyphs, and wraps with the text. */
-  box-shadow: inset 0 -0.3em 0 0 color-mix(in oklab, var(--highlight) 60%, transparent);
+  box-shadow: inset 0 -0.3em 0 0 var(--color-mark);
 }
 
 @utility card-deep {
   background: var(--color-deep-2);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  color: #ffffff;
+  border: 1px solid color-mix(in srgb, var(--color-on-deep) 14%, transparent);
+  color: var(--color-on-deep);
 }
 
 @utility eyebrow {
@@ -340,7 +582,10 @@
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--color-ink-4);
+  /* --label-ink is only ever set by the admin palette. Without it the label
+     takes the quiet text of wherever it sits, which is what keeps a footer
+     heading legible when the footer is recoloured. */
+  color: var(--label-ink, var(--color-ink-4));
 }
 
 
@@ -478,9 +723,9 @@
    every child to remember. */
 .on-deep {
   background: var(--color-deep);
-  color: #ffffff;
+  color: var(--color-on-deep);
 }
-.on-deep :where(h1, h2, h3, h4) { color: #ffffff; }
+.on-deep :where(h1, h2, h3, h4) { color: var(--color-on-deep); }
 
 
 
@@ -579,7 +824,7 @@
 /* Used in BlogPostPage to render Tiptap-generated HTML */
 
 .prose-lumen {
-  color: var(--color-ink-2);
+  color: var(--color-article-text);
   font-size: 16.5px;
   line-height: 1.75;
   max-width: 68ch;
@@ -591,7 +836,7 @@
   font-weight: 400;
   letter-spacing: -0.02em;
   line-height: 1.2;
-  color: var(--color-ink);
+  color: var(--color-article-heading);
   margin-top: 2.8rem;
   margin-bottom: 0.9rem;
 }
@@ -601,7 +846,7 @@
   font-size: clamp(1.15rem, 2vw, 1.45rem);
   font-weight: 400;
   letter-spacing: -0.015em;
-  color: var(--color-ink);
+  color: var(--color-article-heading);
   margin-top: 2rem;
   margin-bottom: 0.6rem;
 }
@@ -651,7 +896,7 @@
 .prose-lumen a {
   color: var(--color-ink);
   text-decoration: underline;
-  text-decoration-color: var(--color-amber-500);
+  text-decoration-color: var(--color-article-link);
   text-decoration-thickness: 2px;
   text-underline-offset: 3px;
   transition: color 0.2s;
@@ -675,7 +920,7 @@
 }
 
 .prose-lumen blockquote {
-  border-left: 3px solid var(--color-amber-500);
+  border-left: 3px solid var(--color-article-quote);
   padding-left: 1.2rem;
   margin-left: 0;
   color: var(--color-ink-3);
@@ -692,14 +937,14 @@
 .prose-lumen code {
   font-family: var(--font-mono);
   font-size: 0.88em;
-  background: var(--color-surface-2);
+  background: var(--color-article-code);
   border: 1px solid var(--color-line);
   border-radius: 4px;
   padding: 0.1em 0.35em;
 }
 
 .prose-lumen pre {
-  background: var(--color-ink);
+  background: var(--color-article-pre);
   color: var(--color-bg);
   border-radius: 12px;
   padding: 1.2rem 1.4rem;

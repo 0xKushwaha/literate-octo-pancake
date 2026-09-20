@@ -49,7 +49,7 @@ function VideoCard({ video, onPlay }) {
             </span>
           </div>
           {video.duration_sec && (
-            <span className="absolute bottom-2 right-2 rounded-md bg-ink/80 px-1.5 py-0.5 font-mono text-[11px] text-white">
+            <span className="absolute bottom-2 right-2 rounded-md bg-ink/80 px-1.5 py-0.5 font-mono text-[11px] text-on-ink">
               {formatDuration(video.duration_sec)}
             </span>
           )}

@@ -32,7 +32,7 @@ function Shell() {
   const { pathname, hash } = useLocation();
   const [palette, setPalette] = useState(false);
   const ui = useSiteContent('ui');
-  useBrandTheme();
+  const { previewing, exitPreview } = useBrandTheme();
 
   /**
    * Scroll handling for route changes.
@@ -105,7 +105,7 @@ function Shell() {
     <div className="relative min-h-[100svh]">
       <a
         href="#main"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[95] focus:rounded-full focus:bg-ink focus:px-5 focus:py-3 focus:text-sm focus:text-white"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[95] focus:rounded-full focus:bg-ink focus:px-5 focus:py-3 focus:text-sm focus:text-on-ink"
       >
         {ui.skip_link}
       </a>
@@ -116,6 +116,17 @@ function Shell() {
       </main>
       <Footer />
       <MobileBookBar />
+      {previewing && (
+        // Only ever seen in the admin's own browser, while "Preview on site"
+        // is open on the Colour palette page.
+        <div role="status" className="fixed bottom-20 left-3 z-[70] flex items-center gap-3 rounded-full border border-line bg-surface py-2 pl-4 pr-2 text-[13px] text-ink shadow-[var(--shadow-float)] sm:bottom-4 sm:left-4" data-print-hide>
+          <span className="size-2 rounded-full bg-brand-500" aria-hidden="true" />
+          Previewing unsaved colours
+          <button type="button" onClick={exitPreview} className="rounded-full border border-line-2 px-3 py-1 text-[12.5px] font-medium hover:border-ink">
+            Exit preview
+          </button>
+        </div>
+      )}
       {palette && (
         <Suspense fallback={null}>
           <CommandPalette onBook={openBooking} initialOpen />

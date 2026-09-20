@@ -13,6 +13,7 @@ import { useSiteContent } from './lib/queries/siteContent';
 import { useFeatures } from './lib/features';
 import './index.css';
 import { isSetPasswordHash } from './lib/authLinks';
+import { applyPaletteAtBoot } from './lib/theme';
 
 // Password-reset and invitation emails sent from the Supabase dashboard land
 // on the site's home page with the sign-in tokens in the address. Send them to
@@ -20,6 +21,10 @@ import { isSetPasswordHash } from './lib/authLinks';
 if (window.location.pathname !== '/admin/reset-password' && isSetPasswordHash(window.location.hash)) {
   window.location.replace(`/admin/reset-password${window.location.hash}`);
 }
+
+// A recoloured site should not flash the default colours while the saved
+// palette loads: put back the one this browser saw last, before first paint.
+applyPaletteAtBoot();
 
 // Split off the pages most visitors never open, so the first load stays small.
 const ResourcesPage = lazy(() => import('./pages/ResourcesPage'));
@@ -43,7 +48,7 @@ function RouteError() {
       </div>
       <button
         onClick={() => window.location.reload()}
-        className="inline-flex h-12 items-center rounded-full bg-ink px-6 text-[15px] font-medium text-white transition-colors hover:bg-ink-2"
+        className="inline-flex h-12 items-center rounded-full bg-ink px-6 text-[15px] font-medium text-on-ink transition-colors hover:bg-ink-2"
       >
         {ui.error_button}
       </button>

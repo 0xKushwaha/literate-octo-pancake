@@ -8,7 +8,7 @@ const TILTS = ['-rotate-1', 'rotate-1', '-rotate-[0.5deg]', 'rotate-[0.75deg]', 
  * the rest of the site — rose and peach from the reference card, ink on them
  * at better than 12:1. Every other section stays in the brand family.
  */
-const TONES = ['bg-brand-100', 'bg-surface', 'bg-peach-100', 'bg-surface', 'bg-sand-100'];
+const TONES = ['bg-tone-1', 'bg-tone-2', 'bg-tone-3', 'bg-tone-2', 'bg-tone-4'];
 
 /**
  * First-person reasons people delay therapy, in their words. The section

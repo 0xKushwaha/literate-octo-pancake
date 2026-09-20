@@ -69,9 +69,9 @@ export default function Footer() {
   }));
 
   return (
-    <footer className="relative border-t border-line bg-bg">
+    <footer className="zone-footer relative border-t border-line bg-bg">
       {/* crisis banner — the one thing that must never be hard to find */}
-      <div className="border-b border-line bg-amber-500">
+      <div className="zone-crisis border-b border-line bg-amber-500">
         <Section className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 py-4 text-center">
           <span className="text-[13.5px] text-ink">{ui.crisis_prefix}</span>
           <span className="text-[13.5px] text-ink-2">{brand.crisis_line}</span>

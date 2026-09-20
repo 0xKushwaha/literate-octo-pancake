@@ -19,10 +19,10 @@ import { useSiteContent } from '../lib/queries/siteContent';
  * tone carries its own hairline because ink-at-10% disappears on sand.
  */
 const CARD_TONES = [
-  { card: 'bg-brand-100', edge: 'border-ink/[0.08]', tile: 'bg-surface text-accent-strong' },
-  { card: 'bg-surface', edge: 'border-line', tile: 'bg-brand-100 text-accent-strong' },
-  { card: 'bg-peach-100', edge: 'border-ink/[0.10]', tile: 'bg-surface text-accent-strong' },
-  { card: 'bg-sand-100', edge: 'border-ink/[0.10]', tile: 'bg-surface text-accent-strong' },
+  { card: 'bg-tone-1', edge: 'border-ink/[0.08]', tile: 'bg-tone-2 text-accent-strong' },
+  { card: 'bg-tone-2', edge: 'border-line', tile: 'bg-tone-1 text-accent-strong' },
+  { card: 'bg-tone-3', edge: 'border-ink/[0.10]', tile: 'bg-tone-2 text-accent-strong' },
+  { card: 'bg-tone-4', edge: 'border-ink/[0.10]', tile: 'bg-tone-2 text-accent-strong' },
 ];
 
 /**
@@ -87,7 +87,7 @@ export default function Services({ onBook, limit, teaser = false, withHeading = 
                     <Icon name={s.icon} size={20} />
                   </span>
                   {card.live && (
-                    <span className="grid size-8 place-items-center rounded-full border border-ink/15 text-ink-4 transition-colors duration-300 group-hover:border-brand-500 group-hover:bg-brand-500 group-hover:text-white">
+                    <span className="grid size-8 place-items-center rounded-full border border-ink/15 text-ink-4 transition-colors duration-300 group-hover:border-brand-500 group-hover:bg-brand-500 group-hover:text-on-brand">
                       <Icon name="arrowUpRight" size={14} />
                     </span>
                   )}
