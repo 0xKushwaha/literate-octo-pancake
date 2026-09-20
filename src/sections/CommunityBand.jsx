@@ -43,7 +43,7 @@ export default function CommunityBand() {
               <Eyebrow>{content.eyebrow}</Eyebrow>
             </div>
           )}
-          <h2 className="mt-4 font-display text-[clamp(1.6rem,3vw,2.3rem)] leading-[1.12] tracking-[-0.02em] text-ink">
+          <h2 className="t-section-title mt-4 font-display text-[clamp(1.6rem,3vw,2.3rem)] leading-[1.12] tracking-[-0.02em] text-ink">
             {content.headline} <span className="italic text-accent-strong">{content.headline_accent}</span>
           </h2>
           <div className="mt-7">

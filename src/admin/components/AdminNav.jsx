@@ -10,7 +10,10 @@ const navItems = [
   { to: '/admin/infographics', label: 'Infographics', icon: '▦' },
   { to: '/admin/faqs', label: 'FAQs', icon: '?' },
   { to: '/admin/content', label: 'Site Content', icon: '✦' },
+  { heading: 'Design' },
   { to: '/admin/colours', label: 'Colour palette', icon: '◐' },
+  { to: '/admin/fonts', label: 'Fonts & text', icon: 'Aa' },
+  { heading: 'Account' },
   { to: '/admin/account', label: 'Your account', icon: '⚿' },
 ];
 
@@ -36,7 +39,11 @@ export default function AdminNav() {
 
       <nav className="flex-1 overflow-y-auto px-3 py-4">
         <ul className="space-y-0.5">
-          {navItems.map(({ to, label, icon }) => (
+          {navItems.map(({ to, label, icon, heading }) => (heading ? (
+            <li key={heading} className="px-3 pb-1 pt-4 text-[10.5px] font-semibold uppercase tracking-wider text-gray-400">
+              {heading}
+            </li>
+          ) : (
             <li key={to}>
               <NavLink
                 to={to}
@@ -48,11 +55,11 @@ export default function AdminNav() {
                   }`
                 }
               >
-                <span className="text-base">{icon}</span>
+                <span className="w-5 text-center text-base">{icon}</span>
                 {label}
               </NavLink>
             </li>
-          ))}
+          )))}
         </ul>
       </nav>
 

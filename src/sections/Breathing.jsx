@@ -233,10 +233,10 @@ function BreathingGuide({ exercise, onClose, content }) {
 
         {/* label and count sit above the orb and never scale with it */}
         <span className="relative z-10 flex flex-col items-center">
-          <span key={`label-${phaseIdx}`} className="word-swap font-display text-[19px] leading-none tracking-tight text-ink">
+          <span key={`label-${phaseIdx}`} className="t-breath word-swap font-display text-[19px] leading-none tracking-tight text-ink">
             {phase.label}
           </span>
-          <span key={`n-${remaining}-${phaseIdx}`} className="tick-in mt-2 font-display text-[40px] font-medium leading-none tabular-nums text-ink">
+          <span key={`n-${remaining}-${phaseIdx}`} className="t-breath tick-in mt-2 font-display text-[40px] font-medium leading-none tabular-nums text-ink">
             {remaining}
           </span>
         </span>
@@ -283,12 +283,12 @@ function ExerciseCard({ exercise, onStart }) {
           </span>
         </div>
 
-        <h3 className="mt-4 font-display text-[clamp(1.15rem,2vw,1.4rem)] leading-snug tracking-tight text-ink">
+        <h3 className="t-card-title mt-4 font-display text-[clamp(1.15rem,2vw,1.4rem)] leading-snug tracking-tight text-ink">
           {exercise.name}
         </h3>
 
         {exercise.description && (
-          <p className="mt-2.5 line-clamp-2 text-[13.5px] leading-relaxed text-ink-3">
+          <p className="t-card-text mt-2.5 line-clamp-2 text-[13.5px] leading-relaxed text-ink-3">
             {exercise.description}
           </p>
         )}

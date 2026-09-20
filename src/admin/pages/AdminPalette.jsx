@@ -7,9 +7,11 @@ import {
 } from '../../lib/palette';
 import { writePreview } from '../../lib/theme';
 import { SCHEMA_BY_KEY } from '../../data/contentSchema';
-import { brand } from '../../data/site';
 import { useSearch } from '../hooks';
 import { Button, ErrorState, PageHeader, Panel, SearchInput, TableSkeleton } from '../components/ui';
+import { DesignTabs, JumpBar, MiniSite } from '../components/design';
+import { useGroupNav, usePreviewType } from '../designHooks';
+import { TYPE_KEY, parseType } from '../../lib/typography';
 
 /**
  * Admin → Colour palette.
@@ -92,6 +94,9 @@ export default function AdminPalette() {
   const [previewOn, setPreviewOn] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
   const [openAdvanced, setOpenAdvanced] = useState(() => new Set());
+  const [onlyChanged, setOnlyChanged] = useState(false);
+  const [savedType, setSavedType] = useState({});
+  usePreviewType(savedType);
   const [resolved, setResolved] = useState({});
   const [checks, setChecks] = useState([]);
   const previewRef = useRef(null);
@@ -105,6 +110,7 @@ export default function AdminPalette() {
         for (const r of rows) {
           if (r.key.startsWith('brand.')) stored[r.key.slice(6)] = r.value;
           if (r.key === PALETTE_KEY) palette = r.value;
+          if (r.key === TYPE_KEY) setSavedType(parseType(r.value));
         }
         const overrides = overridesFromContent({ brand: stored, palette });
         setSaved(overrides);
@@ -225,6 +231,14 @@ export default function AdminPalette() {
   const searching = query.trim().length > 0;
   const visible = useMemo(() => new Set(filtered.map((r) => r.id)), [filtered]);
   const changedCount = Object.keys(draft).length;
+  const nav = useGroupNav('pal', GROUPS.map((g) => g.id), !loading);
+  const tokenLabels = useMemo(() => Object.fromEntries(GROUPS.map((g) => [g.id, g.title])), []);
+  const pickGroup = (id) => {
+    if (ADVANCED.has(id)) setOpenAdvanced((prev) => new Set(prev).add(id));
+    setQuery('');
+    setOnlyChanged(false);
+    requestAnimationFrame(() => nav.jump(id));
+  };
   const poor = checks.filter((c) => c.ratio < 4.5);
 
   if (loadError) {
@@ -238,20 +252,26 @@ export default function AdminPalette() {
 
   return (
     <>
+      <DesignTabs />
       <PageHeader
         title="Colour palette"
-        subtitle={`Every colour on the public site. ${changedCount} set by hand, the rest follow the main colours. Saved colours go live on the next page load — no rebuild.`}
+        subtitle={`Every colour on the public site. ${changedCount} set by hand, the rest follow the main colours. Click any part of the preview to jump to its colours. Saved colours go live on the next page load — no rebuild.`}
+      />
+
+      <JumpBar
+        groups={GROUPS}
+        active={nav.active}
+        onJump={nav.jump}
+        changedIn={(id) => GROUPS.find((g) => g.id === id).tokens.filter((tok) => draft[tok.id]).length}
+        dirtyCount={dirtyIds.length}
+        saving={saving || loading}
+        onSave={save}
+        onDiscard={() => setDraft(saved)}
       >
-        <Button variant="ghost" onClick={togglePreview} aria-pressed={previewOn}>
+        <Button variant="ghost" onClick={togglePreview} aria-pressed={previewOn} className="!px-3 !py-1.5 !text-xs">
           {previewOn ? '● Previewing — stop' : 'Preview on site ↗'}
         </Button>
-        {dirty && (
-          <Button variant="ghost" onClick={() => setDraft(saved)} disabled={saving}>Discard</Button>
-        )}
-        <Button onClick={save} disabled={!dirty || saving || loading}>
-          {saving ? 'Saving…' : dirty ? `Save ${dirtyIds.length} change${dirtyIds.length === 1 ? '' : 's'}` : 'Saved'}
-        </Button>
-      </PageHeader>
+      </JumpBar>
 
       {previewOn && (
         <div className="mb-4 rounded-lg border border-teal-200 bg-teal-50 px-4 py-3 text-sm text-teal-900">
@@ -291,21 +311,35 @@ export default function AdminPalette() {
             resultCount={filtered.length}
             total={rows.length}
           />
+          <div className="-mt-1 flex flex-wrap items-center gap-4 text-xs text-gray-600">
+            <label className="flex cursor-pointer items-center gap-1.5">
+              <input type="checkbox" checked={onlyChanged} onChange={(e) => setOnlyChanged(e.target.checked)} className="accent-gray-800" />
+              Only colours set by hand ({changedCount})
+            </label>
+            <button
+              type="button"
+              onClick={() => setOpenAdvanced((prev) => (prev.size === ADVANCED.size ? new Set() : new Set(ADVANCED)))}
+              className="underline decoration-gray-300 underline-offset-2 hover:text-gray-900"
+            >
+              {openAdvanced.size === ADVANCED.size ? 'Fold away fine-tuning' : 'Open all fine-tuning'}
+            </button>
+          </div>
 
           {loading ? (
             <Panel><TableSkeleton rows={8} cols={3} /></Panel>
           ) : (
             GROUPS.map((group) => {
-              const tokens = group.tokens.filter((tok) => visible.has(tok.id));
+              const tokens = group.tokens.filter((tok) => visible.has(tok.id) && (!onlyChanged || draft[tok.id]));
               if (!tokens.length) return null;
               const changed = group.tokens.filter((tok) => draft[tok.id]).length;
               const advanced = ADVANCED.has(group.id);
-              const open = searching || !advanced || openAdvanced.has(group.id);
+              const open = searching || onlyChanged || !advanced || openAdvanced.has(group.id);
               return (
-                <Panel key={group.id}>
+                <div key={group.id} id={`pal-${group.id}`} className={`scroll-mt-24 rounded-xl transition-shadow duration-500 ${nav.flash === group.id ? 'ring-2 ring-teal-500 ring-offset-2' : ''}`}>
+                <Panel>
                   <button
                     type="button"
-                    disabled={!advanced || searching}
+                    disabled={!advanced || searching || onlyChanged}
                     onClick={() => setOpenAdvanced((prev) => {
                       const next = new Set(prev);
                       if (next.has(group.id)) next.delete(group.id); else next.add(group.id);
@@ -347,8 +381,12 @@ export default function AdminPalette() {
                     </div>
                   )}
                 </Panel>
+                </div>
               );
             })
+          )}
+          {!loading && onlyChanged && changedCount === 0 && (
+            <Panel className="p-6 text-center text-sm text-gray-500">Nothing is set by hand yet — every colour follows the main colours.</Panel>
           )}
 
           <Panel className="p-5">
@@ -372,14 +410,14 @@ export default function AdminPalette() {
           </Panel>
         </div>
 
-        <aside className="space-y-4 lg:sticky lg:top-6">
+        <aside className="space-y-4 lg:sticky lg:top-20">
           <Panel>
             <div className="flex items-center justify-between border-b border-gray-100 px-4 py-2.5">
               <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">Preview</span>
               {dirty && <span className="text-[11px] text-amber-700">Unsaved</span>}
             </div>
-            <div className="max-h-[calc(100vh-12rem)] overflow-y-auto">
-              <MiniSite ref={previewRef} probeRef={probeRef} />
+            <div className="max-h-[calc(100vh-15rem)] overflow-y-auto">
+              <MiniSite ref={previewRef} probeRef={probeRef} pick="pal" labels={tokenLabels} onPick={pickGroup} />
             </div>
           </Panel>
 
@@ -410,11 +448,25 @@ export default function AdminPalette() {
 
 // ── pieces ──────────────────────────────────────────────────────────────────
 
+const BY_VAR = Object.fromEntries(TOKENS.map((tok) => [tok.cssVar, tok]));
+BY_VAR['--color-amber-500'] = TOKEN_BY_ID.highlight;
+BY_VAR['--color-peach-100'] = TOKEN_BY_ID.peach;
+
+/** "Follows Brand colour" — the colour an Auto token is made from, by name. */
+function followsLabel(token) {
+  if (token.kind !== 'theme' || !token.value.includes('var(')) return null;
+  const name = token.value.match(/var\((--[a-z0-9-]+)\)/)?.[1];
+  const source = BY_VAR[name];
+  return source && source.id !== token.id ? source.label : null;
+}
+
 function Swatch({ color, className = '' }) {
   // A checkerboard under the colour, so a see-through one reads as see-through.
   return (
     <span className={`relative block shrink-0 overflow-hidden bg-[repeating-conic-gradient(#e5e7eb_0_25%,#fff_0_50%)] bg-[length:8px_8px] ${className}`}>
       <span className="absolute inset-0" style={{ backgroundColor: color || 'transparent' }} />
+      {/* an edge, so white on a white page still reads as a swatch */}
+      <span className="absolute inset-0 rounded-[inherit] ring-1 ring-inset ring-black/10" />
     </span>
   );
 }
@@ -452,7 +504,7 @@ function TokenRow({ token, value, resolved, dirty, onChange, onReset }) {
   };
 
   const auto = !value;
-  const follows = token.follows ?? (token.kind === 'theme' && token.value.startsWith('var(') ? 'another colour' : null);
+  const follows = token.follows ?? followsLabel(token);
 
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-2 py-3 sm:flex-nowrap">
@@ -571,133 +623,3 @@ function Backup({ draft, onLoad }) {
     </div>
   );
 }
-
-/**
- * A miniature of the site built from the same classes the real pages use, so
- * it recolours exactly the way they do. The palette variables are set on the
- * outer element by the page (previewVarsFor), which scopes them here.
- */
-const MiniSite = function MiniSite({ ref, probeRef }) {
-  return (
-    <div ref={ref} className="palette-preview relative bg-bg font-sans text-ink" aria-hidden="true">
-      <span ref={probeRef} className="pointer-events-none absolute size-0 opacity-0" />
-
-      {/* header */}
-      <div className="zone-header flex h-11 items-center justify-between gap-2 border-b border-line bg-bg px-3">
-        <span className="font-display text-[14px] font-semibold tracking-tight text-ink">{brand.name}</span>
-        <span className="flex items-center gap-0.5 text-[10.5px] font-medium">
-          <span className="rounded-full bg-surface-3 px-2 py-1 text-ink">Care</span>
-          <span className="relative rounded-full bg-surface-2 px-2 py-1 text-ink-2">
-            Resources
-            <span className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full bg-badge px-1 text-[8px] font-semibold leading-3 text-badge-ink">New</span>
-          </span>
-        </span>
-        <span className="rounded-full bg-btn px-2.5 py-1 text-[10px] font-semibold text-btn-ink">Join</span>
-      </div>
-
-      {/* hero */}
-      <div className="backdrop-soft zone-hero px-4 pb-4 pt-5">
-        <span className="inline-flex items-center rounded-full border border-peach-200/60 bg-peach-100 px-2 py-0.5 text-[9px] font-medium text-ink">Taking new clients</span>
-        <h3 className="mt-2 font-display text-[23px] leading-[1.05] tracking-tight text-ink">
-          Therapy for <span className="mark text-aurora italic">anxiety</span>
-        </h3>
-        <p className="mt-2 text-[11px] leading-relaxed text-ink-2">Licensed clinicians, matched to you by a human in under a day.</p>
-        <div className="mt-3 flex gap-1.5">
-          <span className="rounded-full bg-btn px-3 py-1.5 text-[10.5px] font-semibold text-btn-ink shadow-[var(--shadow-card)]">Join our community</span>
-          <span className="rounded-full border border-btn-2-line bg-btn-2 px-3 py-1.5 text-[10.5px] font-semibold text-btn-2-ink">How it works</span>
-        </div>
-        <div className="mt-4 grid grid-cols-2 border-t border-line pt-2">
-          <div><div className="font-display text-[18px] leading-none text-accent-strong">14,200+</div><div className="mt-1 text-[9.5px] text-ink-3">Sessions held</div></div>
-          <div className="border-l border-line pl-3"><div className="font-display text-[18px] leading-none text-accent-strong">4.9/5</div><div className="mt-1 text-[9.5px] text-ink-3">Client rating</div></div>
-        </div>
-      </div>
-
-      {/* a section of cards */}
-      <div className="bg-bg px-4 py-5">
-        <div className="flex items-center gap-1.5"><span className="h-2.5 w-[3px] rounded-full bg-label-bar" /><span className="eyebrow !text-[9px]">What we treat</span></div>
-        <h4 className="mt-1.5 font-display text-[16px] leading-tight text-ink">Care built around you</h4>
-        <div className="mt-3 grid grid-cols-2 gap-2">
-          {['bg-tone-1', 'bg-tone-2', 'bg-tone-3', 'bg-tone-4'].map((tone, i) => (
-            <div key={tone} className={`rounded-xl border border-line p-2.5 ${tone}`}>
-              <span className="grid size-5 place-items-center rounded-full bg-brand-500 text-[9px] text-on-brand">✓</span>
-              <div className="mt-1.5 text-[10.5px] font-medium text-ink">{['Individual', 'Couples', 'Trauma', 'Teens'][i]}</div>
-              <div className="text-[9px] leading-snug text-ink-3">50 min · Start here</div>
-            </div>
-          ))}
-        </div>
-        <div className="mt-3 flex flex-wrap items-center gap-1.5">
-          <span className="rounded-full border border-brand-300 bg-brand-100 px-2 py-0.5 text-[9px] text-ink">CBT</span>
-          <span className="rounded-full border border-line bg-surface-2 px-2 py-0.5 text-[9px] text-ink-2">DBT</span>
-          <span className="rounded-full bg-ink px-2 py-0.5 text-[9px] text-on-ink">All</span>
-        </div>
-        <p className="mt-3 text-[10.5px] font-semibold text-ink"><span className="underline decoration-link-mark decoration-2 underline-offset-2">See every service</span> →</p>
-      </div>
-
-      {/* tinted band */}
-      <div className="backdrop-soft px-4 py-4">
-        <div className="flex items-center gap-1.5"><span className="h-2.5 w-[3px] rounded-full bg-label-bar" /><span className="eyebrow !text-[9px]">One minute</span></div>
-        <div className="mt-1 font-display text-[14px] text-ink">Before you go: breathe</div>
-        <div className="mt-2 flex items-center gap-2 rounded-xl border border-line bg-surface p-2">
-          <span className="size-5 rounded-full bg-tone-1" />
-          <span className="text-[10px] text-ink">Box breathing <span className="text-ink-4">· 4 cycles</span></span>
-        </div>
-      </div>
-
-      {/* dark band */}
-      <div className="px-3 py-4">
-        <div className="on-deep rounded-2xl px-4 py-4 text-center">
-          <div className="font-display text-[15px] leading-tight">You do not have to wait <span className="italic text-amber-500">in the room.</span></div>
-          <p className="mt-1.5 text-[9.5px] text-on-deep/80">A moderated community for people working on the same things.</p>
-          <span className="mt-2.5 inline-block rounded-full bg-btn-3 px-3 py-1.5 text-[10px] font-semibold text-btn-3-ink">Join our community</span>
-          <div className="mt-2.5 flex items-center justify-center gap-1">
-            <span className="size-2 rounded-full bg-breath-in" /><span className="size-2 rounded-full bg-breath-hold" /><span className="size-2 rounded-full bg-breath-out" />
-            <span className="ml-1 text-[8.5px] text-on-deep/60">in · hold · out</span>
-          </div>
-        </div>
-      </div>
-
-      {/* pop-up and phone bar */}
-      <div className="grid grid-cols-2 gap-2 px-3 pb-4">
-        <div className="zone-popup rounded-xl border border-line bg-surface p-2 shadow-[var(--shadow-card)]">
-          <div className="text-[9px] font-semibold text-ink">Menu</div>
-          <div className="mt-1 rounded-md bg-surface-2 px-1.5 py-0.5 text-[9px] text-ink-2">Anxiety</div>
-          <div className="px-1.5 py-0.5 text-[9px] text-ink-3">Couples</div>
-        </div>
-        <div className="flex items-end">
-          <div className="zone-mobilebar flex w-full items-center gap-1.5 rounded-full border border-line bg-surface/95 p-1 pl-2 shadow-[var(--shadow-card)]">
-            <span className="text-[10px] text-ink-2">☏</span>
-            <span className="flex-1 rounded-full bg-btn px-2 py-1 text-center text-[9px] font-semibold text-btn-ink">Join</span>
-          </div>
-        </div>
-      </div>
-
-      {/* article */}
-      <div className="border-t border-line px-4 py-3">
-        <div className="font-display text-[13px] text-article-heading">From the blog</div>
-        <p className="mt-1 text-[10px] leading-relaxed text-article-text">
-          The first session is mostly <span className="underline decoration-article-link decoration-2 underline-offset-2">getting to know each other</span>.
-        </p>
-        <p className="mt-1.5 border-l-2 border-article-quote pl-2 text-[10px] italic text-ink-3">“I wish I had come sooner.”</p>
-      </div>
-
-      {/* footer */}
-      <div className="zone-footer border-t border-line bg-bg">
-        <div className="zone-crisis border-b border-line bg-amber-500 px-3 py-1.5 text-center text-[9.5px] text-ink">
-          In immediate crisis? <span className="text-ink-2">Call 14416, free, 24/7.</span>
-        </div>
-        <div className="grid grid-cols-2 gap-2 px-4 py-3">
-          <div>
-            <div className="font-display text-[12px] font-semibold text-ink">{brand.name}</div>
-            <div className="mt-1 text-[9px] text-ink-3">{brand.email}</div>
-          </div>
-          <div>
-            <div className="eyebrow !text-[8.5px]">Practice</div>
-            <div className="mt-1 text-[9.5px] text-ink-3">Our services</div>
-            <div className="text-[9.5px] text-ink-3">How it works</div>
-          </div>
-        </div>
-        <div className="border-t border-line px-4 py-2 text-[8.5px] text-ink-4">© {new Date().getFullYear()} {brand.name}</div>
-      </div>
-    </div>
-  );
-};

@@ -31,7 +31,7 @@ export default function HeardYou({ limit }) {
             as="figure"
             className={`w-full max-w-[340px] rounded-3xl border border-line p-6 shadow-[var(--shadow-card)] transition-transform duration-300 hover:rotate-0 sm:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.7rem)] ${TONES[i % TONES.length]} ${TILTS[i % TILTS.length]}`}
           >
-            <blockquote className="font-display text-[19px] font-medium leading-snug tracking-tight text-ink">
+            <blockquote className="t-quote font-display text-[19px] font-medium leading-snug tracking-tight text-ink">
               “{q.quote}”
             </blockquote>
             <figcaption className="mt-4 text-[12.5px] text-ink-4">{q.name}</figcaption>

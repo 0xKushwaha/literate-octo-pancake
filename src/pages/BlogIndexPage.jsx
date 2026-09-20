@@ -36,7 +36,7 @@ function ArticleCard({ article, readMore }) {
         )}
         {date && <span className="text-[12px] text-ink-4">{date}</span>}
       </div>
-      <h2 className="mt-4 font-display text-xl leading-snug tracking-tight text-ink group-hover:text-ink transition-colors">
+      <h2 className="t-card-title mt-4 font-display text-xl leading-snug tracking-tight text-ink group-hover:text-ink transition-colors">
         {article.title}
       </h2>
       {article.excerpt && (

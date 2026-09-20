@@ -39,7 +39,7 @@ export default function Testimonials({ limit = 6, tinted = true }) {
                   <Icon key={k} name="star" size={13} filled />
                 ))}
               </div>
-              <blockquote className="mt-4 flex-1 text-[15.5px] leading-relaxed text-ink-2">“{t.quote}”</blockquote>
+              <blockquote className="t-quote mt-4 flex-1 text-[15.5px] leading-relaxed text-ink-2">“{t.quote}”</blockquote>
               {/* The recording is an addition to the quote, never a
                   replacement for it. Someone scrolling with the sound off, on
                   a train, or using a screen reader gets the same testimonial

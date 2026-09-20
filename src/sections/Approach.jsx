@@ -25,8 +25,8 @@ export default function Approach({ teaser = false, withHeading = true }) {
                 </span>
                 <span className="text-[12px] font-semibold tracking-[0.14em] text-ink-4">{item.step}</span>
               </div>
-              <h3 className="mt-6 font-display text-[21px] leading-tight tracking-tight text-ink">{item.title}</h3>
-              <p className="mt-2.5 flex-1 text-[14.5px] leading-relaxed text-ink-3">{item.body}</p>
+              <h3 className="t-card-title mt-6 font-display text-[21px] leading-tight tracking-tight text-ink">{item.title}</h3>
+              <p className="t-card-text mt-2.5 flex-1 text-[14.5px] leading-relaxed text-ink-3">{item.body}</p>
               {item.detail && (
                 <p className="mt-5 inline-flex w-fit items-center gap-1.5 rounded-full bg-surface-2 px-2.5 py-1 text-[12px] text-ink-2">
                   <Icon name="clock" size={12} />
@@ -74,8 +74,8 @@ export function Why() {
                 <span className="grid size-10 place-items-center rounded-full bg-brand-100 text-ink">
                   <Icon name={c.icon} size={18} />
                 </span>
-                <h3 className="mt-5 font-sans text-[16px] font-semibold tracking-tight text-ink">{c.title}</h3>
-                <p className="mt-2 text-[14.5px] leading-relaxed text-ink-3">{c.body}</p>
+                <h3 className="t-card-title mt-5 font-sans text-[16px] font-semibold tracking-tight text-ink">{c.title}</h3>
+                <p className="t-card-text mt-2 text-[14.5px] leading-relaxed text-ink-3">{c.body}</p>
               </StaggerItem>
             );
           })}

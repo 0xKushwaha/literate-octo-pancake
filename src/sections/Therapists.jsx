@@ -83,7 +83,7 @@ export default function Therapists({ onBook, limit, teaser = false, withHeading 
             <div className="flex items-start gap-4">
               <Avatar name={t.name} hue={t.hue} size="lg" />
               <div className="min-w-0 pt-1">
-                <h3 className="truncate font-display text-[21px] leading-tight tracking-tight text-ink">{t.name}</h3>
+                <h3 className="t-card-title truncate font-display text-[21px] leading-tight tracking-tight text-ink">{t.name}</h3>
                 <p className="mt-1 text-[13px] text-ink-3">{t.credentials}</p>
                 <p className="mt-0.5 text-[12px] text-ink-4">
                   {t.pronouns} · {t.years} yrs

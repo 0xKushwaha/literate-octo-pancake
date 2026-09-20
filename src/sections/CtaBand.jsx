@@ -53,7 +53,7 @@ export default function CtaBand() {
         />
 
         <div className="relative">
-          <h2 className="mx-auto max-w-[20ch] font-display text-[clamp(2.2rem,4.6vw,3.6rem)] leading-[1.06] tracking-[-0.02em]">
+          <h2 className="t-cta-title mx-auto max-w-[20ch] font-display text-[clamp(2.2rem,4.6vw,3.6rem)] leading-[1.06] tracking-[-0.02em]">
             {content.headline}{' '}
             <span className="italic text-amber-500">{content.headline_accent}</span>
           </h2>
