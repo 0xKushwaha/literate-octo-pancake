@@ -43,7 +43,13 @@ function InfographicForm({ initial, onSave, onCancel, ready, checking, onRecheck
     }
     setSaving(true);
     try {
-      const saved = await upsertInfographic({ ...form, sort_order: Number(form.sort_order) || 0 });
+      const saved = await upsertInfographic({
+        ...form,
+        // Same reason as the article cover: store the real default rather
+        // than an empty string when no crop point was picked.
+        image_focal: form.image_focal || '50% 0%',
+        sort_order: Number(form.sort_order) || 0,
+      });
       if (saved?.featuredSaved === false) {
         toast('Saved, but the homepage tick needs migration 011 re-run.', { icon: '⚠️' });
       } else if (saved?.imageFocalSaved === false && form.image_focal) {

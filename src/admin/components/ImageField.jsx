@@ -242,7 +242,7 @@ export default function ImageField({
       {url && !broken && aspect && (
         <p className="mt-1.5 text-[11px] text-gray-400">
           Click the picture to set what stays in frame when it's cropped.
-          {focal && (
+          {focal && focal !== defaultFocal && (
             <>
               {' '}
               <button type="button" onClick={() => set(url, undefined, '')} className="text-teal-700 underline underline-offset-2 hover:text-teal-800">

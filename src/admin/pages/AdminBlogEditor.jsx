@@ -137,7 +137,10 @@ export default function AdminBlogEditor() {
         is_featured: form.is_featured,
         cover_image: form.cover_image.trim() || null,
         cover_alt: form.cover_alt.trim() || null,
-        cover_focal: form.cover_focal || null,
+        // The column is NOT NULL with a default (migration 013), so "no focal
+        // point chosen" has to be sent as the default itself, never null — a
+        // null here fails the whole save, including every new article.
+        cover_focal: form.cover_focal || '50% 50%',
       };
       const { featuredSaved, coverSaved } = await saveArticle(payload);
       if (!featuredSaved && form.is_featured) {
