@@ -576,9 +576,22 @@ function Slider({ prop, value, onChange }) {
  * A font dropdown where every option is drawn in its own font, grouped by
  * where it comes from. Only fonts from the supported list can be chosen.
  */
+/**
+ * A font dropdown where every option is drawn in its own font, grouped by
+ * category. Only fonts from the supported list can be chosen. The list has
+ * grown past what fits without scrolling, so it opens with a small filter
+ * box, and flips upward when there isn't room below the button.
+ */
+const CATEGORY_LABEL = { sans: 'Sans-serif', serif: 'Serif', display: 'Display', mono: 'Monospace' };
+const CATEGORY_ORDER = ['sans', 'serif', 'display', 'mono'];
+
 function FontPicker({ value, autoFont, onChange }) {
   const [open, setOpen] = useState(false);
+  const [openUp, setOpenUp] = useState(false);
+  const [filter, setFilter] = useState('');
   const box = useRef(null);
+  const btn = useRef(null);
+  const search = useRef(null);
   const current = value ? FONT_BY_ID[value] : null;
 
   useEffect(() => {
@@ -590,17 +603,33 @@ function FontPicker({ value, autoFont, onChange }) {
     return () => { document.removeEventListener('pointerdown', onDown); document.removeEventListener('keydown', onKey); };
   }, [open]);
 
+  const openMenu = () => {
+    const rect = btn.current?.getBoundingClientRect();
+    const roomBelow = rect ? window.innerHeight - rect.bottom : Infinity;
+    setOpenUp(roomBelow < 340 && (rect?.top ?? 0) > roomBelow);
+    setFilter('');
+    setOpen(true);
+    requestAnimationFrame(() => search.current?.focus());
+  };
+
   const choose = (id) => { onChange(id); setOpen(false); };
-  const groups = [
-    ['Included with the site', FONTS.filter((f) => f.kind === 'bundled')],
-    ['Standard on every device', FONTS.filter((f) => f.kind === 'device')],
-  ];
+
+  const q = filter.trim().toLowerCase();
+  const bundledFonts = FONTS.filter((f) => f.kind === 'bundled' && f.name.toLowerCase().includes(q));
+  const deviceFonts = FONTS.filter((f) => f.kind === 'device' && f.name.toLowerCase().includes(q));
+  const groups = CATEGORY_ORDER
+    .map((cat) => [CATEGORY_LABEL[cat], bundledFonts.filter((f) => f.category === cat)])
+    .filter(([, list]) => list.length > 0);
+  if (deviceFonts.length > 0) groups.push(['Standard on every device', deviceFonts]);
+  const showAuto = !q || 'auto'.includes(q) || autoFont.name.toLowerCase().includes(q);
+  const empty = !showAuto && groups.length === 0;
 
   return (
     <div ref={box} className="relative">
       <button
+        ref={btn}
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => (open ? setOpen(false) : openMenu())}
         aria-haspopup="listbox"
         aria-expanded={open}
         className="flex w-44 items-center justify-between gap-2 rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-left text-sm text-gray-900 transition hover:border-gray-400"
@@ -611,36 +640,54 @@ function FontPicker({ value, autoFont, onChange }) {
         <span className="text-gray-400">▾</span>
       </button>
       {open && (
-        <div role="listbox" className="absolute right-0 top-full z-40 mt-1 max-h-80 w-72 overflow-y-auto rounded-lg border border-gray-200 bg-white p-1 shadow-lg">
-          <button
-            type="button"
-            role="option"
-            aria-selected={!value}
-            onClick={() => choose(undefined)}
-            className={`flex w-full flex-col rounded-md px-2.5 py-1.5 text-left hover:bg-gray-50 ${!value ? 'bg-gray-100' : ''}`}
-          >
-            <span className="text-sm text-gray-900">Auto</span>
-            <span className="text-[11px] text-gray-500">Follow the site ({autoFont.name})</span>
-          </button>
-          {groups.map(([title, list]) => (
-            <div key={title}>
-              <p className="px-2.5 pb-1 pt-2.5 text-[10.5px] font-semibold uppercase tracking-wide text-gray-400">{title}</p>
-              {list.map((f) => (
-                <button
-                  key={f.id}
-                  type="button"
-                  role="option"
-                  aria-selected={value === f.id}
-                  onClick={() => choose(f.id)}
-                  title={f.kind === 'device' ? DEVICE_NOTE : f.note}
-                  className={`flex w-full items-baseline justify-between gap-2 rounded-md px-2.5 py-1.5 text-left hover:bg-gray-50 ${value === f.id ? 'bg-gray-100' : ''}`}
-                >
-                  <span className="text-[15px] text-gray-900" style={{ fontFamily: f.stack }}>{f.name}</span>
-                  <span className="shrink-0 text-[10.5px] text-gray-400">{f.category}</span>
-                </button>
-              ))}
-            </div>
-          ))}
+        <div
+          role="listbox"
+          className={`absolute right-0 z-40 flex w-72 flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl ring-1 ring-black/5 ${openUp ? 'bottom-full mb-1.5' : 'top-full mt-1.5'}`}
+        >
+          <div className="shrink-0 border-b border-gray-100 p-1.5">
+            <input
+              ref={search}
+              type="text"
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+              placeholder={`Search ${FONTS.length} fonts…`}
+              className="w-full rounded-md border border-gray-200 bg-gray-50 px-2 py-1 text-sm text-gray-900 outline-none focus:border-gray-400 focus:bg-white"
+            />
+          </div>
+          <div className="max-h-72 overflow-y-auto p-1">
+            {showAuto && (
+              <button
+                type="button"
+                role="option"
+                aria-selected={!value}
+                onClick={() => choose(undefined)}
+                className={`flex w-full flex-col rounded-md px-2.5 py-1.5 text-left hover:bg-gray-50 ${!value ? 'bg-gray-100' : ''}`}
+              >
+                <span className="text-sm text-gray-900">Auto</span>
+                <span className="text-[11px] text-gray-500">Follow the site ({autoFont.name})</span>
+              </button>
+            )}
+            {groups.map(([title, list]) => (
+              <div key={title}>
+                <p className="px-2.5 pb-1 pt-2.5 text-[10.5px] font-semibold uppercase tracking-wide text-gray-400">{title}</p>
+                {list.map((f) => (
+                  <button
+                    key={f.id}
+                    type="button"
+                    role="option"
+                    aria-selected={value === f.id}
+                    onClick={() => choose(f.id)}
+                    title={f.kind === 'device' ? DEVICE_NOTE : f.note}
+                    className={`flex w-full items-baseline justify-between gap-2 rounded-md px-2.5 py-1.5 text-left hover:bg-gray-50 ${value === f.id ? 'bg-gray-100' : ''}`}
+                  >
+                    <span className="truncate text-[15px] text-gray-900" style={{ fontFamily: f.stack }}>{f.name}</span>
+                    <span className="shrink-0 text-[10.5px] text-gray-400">{f.category}</span>
+                  </button>
+                ))}
+              </div>
+            ))}
+            {empty && <p className="px-2.5 py-4 text-center text-sm text-gray-400">No fonts match "{filter}"</p>}
+          </div>
         </div>
       )}
     </div>

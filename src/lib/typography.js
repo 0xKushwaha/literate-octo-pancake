@@ -62,6 +62,16 @@ export const FONTS = [
   bundled('eb-garamond', 'EB Garamond', 'EB Garamond Variable', 'serif', [400, 800], true, 'Classic book face.'),
   bundled('instrument-serif', 'Instrument Serif', 'Instrument Serif', 'serif', [400, 400], true, 'Display only: one weight.'),
   bundled('jetbrains-mono', 'JetBrains Mono', 'JetBrains Mono Variable', 'mono', [100, 800]),
+  bundled('space-grotesk', 'Space Grotesk', 'Space Grotesk Variable', 'sans', [300, 700], false, 'Geometric with a technical edge.'),
+  bundled('work-sans', 'Work Sans', 'Work Sans Variable', 'sans', [100, 900], true, 'Warm and humanist, built for screens.'),
+  bundled('outfit', 'Outfit', 'Outfit Variable', 'sans', [100, 900], false, 'Clean, geometric, minimal.'),
+  bundled('rubik', 'Rubik', 'Rubik Variable', 'sans', [300, 900], true, 'Rounded corners — friendly and casual.'),
+  bundled('archivo', 'Archivo', 'Archivo Variable', 'sans', [100, 900], true, 'Grotesque with a huge weight range.'),
+  bundled('crimson-pro', 'Crimson Pro', 'Crimson Pro Variable', 'serif', [200, 900], true, 'Classic book serif, easy to read long.'),
+  bundled('newsreader', 'Newsreader', 'Newsreader Variable', 'serif', [200, 800], true, 'Editorial — built for articles.'),
+  bundled('bitter', 'Bitter', 'Bitter Variable', 'serif', [100, 900], true, 'A slab serif — sturdy and confident.'),
+  bundled('bricolage-grotesque', 'Bricolage Grotesque', 'Bricolage Grotesque Variable', 'display', [200, 800], false, 'Expressive and modern, for headlines.'),
+  bundled('unbounded', 'Unbounded', 'Unbounded Variable', 'display', [200, 900], false, 'Bold and geometric, makes a statement.'),
   device('arial', 'Arial', 'Arial, "Helvetica Neue", Helvetica, "Liberation Sans", sans-serif', 'sans', 'On every device.'),
   device('helvetica', 'Helvetica', '"Helvetica Neue", Helvetica, Arial, "Liberation Sans", sans-serif', 'sans', 'Arial is used where Helvetica is missing (Windows).'),
   device('verdana', 'Verdana', 'Verdana, Geneva, "DejaVu Sans", sans-serif', 'sans', 'Wide and very legible at small sizes.'),
@@ -196,6 +206,10 @@ export const TYPE_PRESETS = [
   { name: 'Friendly', body: { font: 'nunito' }, headings: { font: 'nunito', weight: 800, tracking: -0.01 } },
   { name: 'Clean', body: { font: 'open-sans' }, headings: { font: 'montserrat', weight: 600, tracking: -0.015 } },
   { name: 'Bookish', body: { font: 'lora' }, headings: { font: 'eb-garamond', weight: 500 } },
+  { name: 'Technical', body: { font: 'work-sans' }, headings: { font: 'space-grotesk', weight: 600, tracking: -0.02 } },
+  { name: 'Bold', body: { font: 'archivo' }, headings: { font: 'unbounded', weight: 700, tracking: -0.01 } },
+  { name: 'Warm', body: { font: 'rubik' }, headings: { font: 'rubik', weight: 800, tracking: -0.01 } },
+  { name: 'Literary', body: { font: 'crimson-pro' }, headings: { font: 'bitter', weight: 600 } },
 ];
 
 // ── values ──────────────────────────────────────────────────────────────────
