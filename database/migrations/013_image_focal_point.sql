@@ -30,4 +30,4 @@ ALTER TABLE infographics
     ADD COLUMN IF NOT EXISTS image_focal TEXT NOT NULL DEFAULT '50% 0%';
 
 COMMENT ON COLUMN infographics.image_focal IS
-    'CSS object-position for the card crop ("50% 0%" = top-centred, matching the object-top every infographic card used before this column existed, since an infographic's title usually sits at the top of the picture).';
+    'CSS object-position for the card crop ("50% 0%" = top-centred, matching the object-top every infographic card used before this column existed, since an infographic''s title usually sits at the top of the picture).';
