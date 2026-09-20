@@ -39,9 +39,9 @@ export default function HomePage() {
     <>
       <Hero />
       <Explore />
+      <BreathePrompt />
       <HeardYou limit={3} />
       {features.testimonials && <Testimonials limit={3} tinted={false} />}
-      <BreathePrompt />
       <Services onBook={openBooking} limit={3} teaser />
       <Approach teaser />
       {features.therapists && <Therapists onBook={openBooking} limit={3} teaser />}
