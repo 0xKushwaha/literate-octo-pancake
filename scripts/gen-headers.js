@@ -1,7 +1,7 @@
 /** Regenerates vercel.json and deploy/nginx.conf from security.config.js. */
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { cacheHeaders, noIndexHeaders, securityHeaders } from '../security.config.js';
-import { APP_ROUTES } from '../seo.config.js';
+import { APP_ROUTES, CRAWLER_UA } from '../seo.config.js';
 
 // The SPA fallback, for the app's own routes only.
 //
@@ -10,10 +10,26 @@ import { APP_ROUTES } from '../seo.config.js';
 // else falls through to 404.html (a copy of index.html emitted by the build),
 // which Vercel serves with a genuine 404 status. /api/* and /assets/* are never
 // rewritten, so a missing function or chunk is a plain 404 too.
-const rewrites = APP_ROUTES.filter((r) => r !== '/').map((source) => ({
-  source,
-  destination: '/index.html',
-}));
+//
+// Two function routes come first, because the first matching rewrite wins:
+//  - /sitemap.xml is built live by api/sitemap.js so it lists every published
+//    article (the build no longer writes a static one, which would win over
+//    any rewrite).
+//  - /blog/:slug goes to api/blog-page.js only for link-preview bots and
+//    crawlers, which get the article's own title and picture in the HTML.
+//    People fall through to the plain index.html rule below.
+const rewrites = [
+  { source: '/sitemap.xml', destination: '/api/sitemap' },
+  {
+    source: '/blog/:slug',
+    has: [{ type: 'header', key: 'user-agent', value: CRAWLER_UA }],
+    destination: '/api/blog-page?slug=:slug',
+  },
+  ...APP_ROUTES.filter((r) => r !== '/').map((source) => ({
+    source,
+    destination: '/index.html',
+  })),
+];
 
 // The booking endpoint handles health data. Nothing between the function and
 // the browser may hold on to a response.

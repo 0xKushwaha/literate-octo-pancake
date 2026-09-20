@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import AdminGuard from './AdminGuard';
@@ -6,6 +6,7 @@ import AdminNav from './components/AdminNav';
 import AdminLogin from './pages/AdminLogin';
 import AdminSetPassword from './pages/AdminSetPassword';
 import { isDemo } from '../lib/supabase';
+import { baseMeta } from '../lib/pageMeta';
 import { DemoBanner } from './components/ui';
 
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
@@ -61,6 +62,13 @@ function AdminShell({ children }) {
 }
 
 export default function AdminApp() {
+  // Tell the admin tab apart from the public site's tabs.
+  useEffect(() => {
+    const before = document.title;
+    document.title = `Admin · ${baseMeta.title.split(' — ')[0] || 'Site'}`;
+    return () => { document.title = before; };
+  }, []);
+
   return (
     <Routes>
       <Route path="login" element={<AdminLogin />} />

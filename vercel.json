@@ -15,6 +15,21 @@
   ],
   "rewrites": [
     {
+      "source": "/sitemap.xml",
+      "destination": "/api/sitemap"
+    },
+    {
+      "source": "/blog/:slug",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(bot|Bot|BOT|crawler|Crawler|spider|Spider|facebookexternalhit|facebookcatalog|WhatsApp|Slack|Discord|Telegram|Pinterest|Embedly|Iframely|Skype|LinkedIn|Twitter|redditbot|Applebot|Google-InspectionTool|Bytespider|Preview|preview).*"
+        }
+      ],
+      "destination": "/api/blog-page?slug=:slug"
+    },
+    {
       "source": "/services",
       "destination": "/index.html"
     },

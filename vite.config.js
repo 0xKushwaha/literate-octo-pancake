@@ -3,7 +3,7 @@ import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { cacheHeaders, securityHeaders, serializeCsp } from './security.config.js';
-import { SITEMAP_ROUTES, SITE_URL, jsonLdString, meta } from './seo.config.js';
+import { SITE_URL, jsonLdString, meta } from './seo.config.js';
 import { brand } from './src/data/site.js';
 
 /**
@@ -65,24 +65,14 @@ function security() {
       }
       this.emitFile({ type: 'asset', fileName: '_headers', source: lines.join('\n') + '\n' });
 
-      // robots.txt and sitemap.xml, generated so they always name the real
-      // domain (the hand-written copies pointed at an old one).
-      const today = new Date().toISOString().slice(0, 10);
+      // robots.txt, generated so it always names the real domain (the
+      // hand-written copy pointed at an old one). sitemap.xml is no longer
+      // written here: api/sitemap.js builds it live with every published
+      // article, and a static file would take priority over that rewrite.
       this.emitFile({
         type: 'asset',
         fileName: 'robots.txt',
         source: ['User-agent: *', 'Allow: /', 'Disallow: /admin', 'Disallow: /api/', '', `Sitemap: ${SITE_URL}/sitemap.xml`, ''].join('\n'),
-      });
-      this.emitFile({
-        type: 'asset',
-        fileName: 'sitemap.xml',
-        source: [
-          '<?xml version="1.0" encoding="UTF-8"?>',
-          '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
-          ...SITEMAP_ROUTES.map((r) => `  <url><loc>${SITE_URL}${r === '/' ? '/' : r}</loc><lastmod>${today}</lastmod></url>`),
-          '</urlset>',
-          '',
-        ].join('\n'),
       });
     },
   };

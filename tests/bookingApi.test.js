@@ -96,3 +96,29 @@ describe('POST /api/booking — failure mode', () => {
     expect(res.body.error).toContain('temporarily unavailable');
   });
 });
+
+describe('POST /api/booking — the Booking switch', async () => {
+  const { bookingOpen, BOOKING_SWITCH_DEFAULT } = await import('../api/booking.js');
+  const { defaultsFor } = await import('../src/data/contentSchema.js');
+  const fakeDb = (row, error = null) => ({
+    from: () => ({ select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: row, error }) }) }) }),
+  });
+
+  it('uses the same default as the admin switch', () => {
+    expect(BOOKING_SWITCH_DEFAULT).toBe(defaultsFor('features').booking);
+  });
+
+  it('is closed when nothing is stored (the default is off)', async () => {
+    expect(await bookingOpen(fakeDb(null))).toBe(false);
+    expect(await bookingOpen(fakeDb({ value: '' }))).toBe(false);
+  });
+
+  it('follows the stored switch', async () => {
+    expect(await bookingOpen(fakeDb({ value: 'on' }))).toBe(true);
+    expect(await bookingOpen(fakeDb({ value: 'off' }))).toBe(false);
+  });
+
+  it('throws on a database error so the handler fails closed', async () => {
+    await expect(bookingOpen(fakeDb(null, { code: 'XX' }))).rejects.toBeTruthy();
+  });
+});

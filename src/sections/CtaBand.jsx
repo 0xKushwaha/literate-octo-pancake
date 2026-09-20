@@ -1,7 +1,7 @@
 import { Button, Reveal, Section } from '../components/primitives';
 import Icon from '../components/Icon';
 import { telHref, useBrand, useSiteContent } from '../lib/queries/siteContent';
-import { useCommunity, useFeatures, usePrimaryCta } from '../lib/features';
+import { useFeatures, usePrimaryCta } from '../lib/features';
 
 /**
  * The closing band — the one place on the site that goes dark.
@@ -24,7 +24,6 @@ export default function CtaBand() {
   const communityCopy = useSiteContent('community');
   const brand = useBrand();
   const features = useFeatures();
-  const community = useCommunity();
   const action = usePrimaryCta(bookingCopy.primary);
 
   const booking = features.booking;
@@ -59,10 +58,8 @@ export default function CtaBand() {
           </h2>
           <p className="mx-auto mt-6 max-w-[46ch] text-[16.5px] leading-relaxed text-on-deep/80">{content.body}</p>
 
-          {/* The email capture lives just under the hero, not here — see
-              CommunityBand. This band keeps the pair of buttons it always had;
-              by the time someone reaches the foot of the page they have either
-              joined already or want the phone number. */}
+          {/* The closing pair of buttons: by the time someone reaches the foot
+              of the page they either want to join or want the phone number. */}
           <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
             {action && (
               <Button variant="accent" size="lg" icon="arrow" {...action.props}>

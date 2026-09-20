@@ -493,7 +493,7 @@ export const CONTENT_SCHEMA = [
   // ── Footer ────────────────────────────────────────────────────────────────
   f('footer.blurb', 'Footer blurb', 'A modern practice for people who have been meaning to do this for a while.', 'richtext'),
   f('footer.disclaimer', 'Footer disclaimer', `Articles and exercises on this site are general information, not medical advice. ${brand.name} is not an emergency service: if you are in crisis, call Tele-MANAS on 14416 or 112.`, 'richtext'),
-  f('footer.copyright_suffix', 'Copyright suffix', 'Therapy, PC. All rights reserved.'),
+  f('footer.copyright_suffix', 'Copyright suffix', '· All rights reserved.', 'text', 'Follows "© year" and the practice name. Add the registered legal entity name here if it differs, e.g. "· Zehn Spaces Wellness Pvt. Ltd. All rights reserved."'),
   f('footer.book_label', 'Button in the footer', 'Book a session'),
   f('footer.col1_title', 'First column heading', 'Practice'),
   f('footer.col2_title', 'Second column heading', 'Resources'),

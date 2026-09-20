@@ -3,7 +3,9 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import { getArticleBySlug, getRelatedArticles } from '../lib/queries/articles';
 import { Button, Pill, Section } from '../components/primitives';
 import { usePrimaryCta } from '../lib/features';
-import { useSiteContent } from '../lib/queries/siteContent';
+import { useBrand, useSiteContent } from '../lib/queries/siteContent';
+import { baseMeta, setPageMeta } from '../lib/pageMeta';
+import { summarize } from '../lib/textSummary';
 import { sanitizeHtml } from '../lib/sanitizeHtml';
 import Img from '../components/Img';
 
@@ -23,6 +25,17 @@ export default function BlogPostPage() {
   const [article, setArticle] = useState(null);
   const [related, setRelated] = useState([]);
   const [loading, setLoading] = useState(true);
+  const brand = useBrand();
+
+  // The article's own title and summary in the tab and for search engines.
+  // (Link previews get the same text server-side: api/blog-page.js.)
+  useEffect(() => {
+    if (!article) return;
+    setPageMeta({
+      title: `${article.title} · ${brand.name}`,
+      description: article.excerpt?.trim() || summarize(article.content) || baseMeta.description,
+    });
+  }, [article, brand.name]);
 
   useEffect(() => {
     setLoading(true);

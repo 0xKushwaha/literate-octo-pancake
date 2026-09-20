@@ -41,6 +41,27 @@ import {
   readJson,
 } from './_lib/http.js';
 import { adminLink, notifyPractice } from './_lib/notify.js';
+import { isFeatureOn } from '../src/lib/featureFlag.js';
+
+/**
+ * The default of the Booking switch (features.booking in
+ * src/data/contentSchema.js — that file cannot be loaded here, it uses
+ * Vite-only imports). tests/bookingApi.test.js fails if the two ever differ.
+ */
+export const BOOKING_SWITCH_DEFAULT = 'off';
+
+/**
+ * Whether the practice is taking bookings. With the switch off the site shows
+ * no form, and the Bookings admin screen is gone, so anything accepted here
+ * would sit unread in the table — this endpoint refuses instead. An empty
+ * stored value means "use the default", exactly as the site reads it.
+ */
+export async function bookingOpen(db) {
+  const { data, error } = await db.from('site_content').select('value').eq('key', 'features.booking').maybeSingle();
+  if (error) throw error;
+  const stored = data?.value;
+  return isFeatureOn(stored == null || String(stored).trim() === '' ? BOOKING_SWITCH_DEFAULT : stored);
+}
 
 // ── Bounds the client cannot argue with ─────────────────────────────────────
 const MAX_BODY_BYTES = 16 * 1024;
@@ -124,6 +145,15 @@ export default async function handler(req, res) {
     db = adminDb();
   } catch (err) {
     console.error('[booking]', err.message);
+    return res.status(503).json({ error: 'Bookings are temporarily unavailable. Please call us.' });
+  }
+
+  try {
+    if (!(await bookingOpen(db))) {
+      return res.status(403).json({ error: 'Booking is not open at the moment.' });
+    }
+  } catch (err) {
+    console.error('[booking] could not read the booking switch', err?.code || err?.message);
     return res.status(503).json({ error: 'Bookings are temporarily unavailable. Please call us.' });
   }
 

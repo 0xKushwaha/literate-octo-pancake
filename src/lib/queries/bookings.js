@@ -1,4 +1,4 @@
-import { supabase, isDemo } from '../supabase';
+import { isDemo } from '../supabase';
 import { demoBookings } from '../demoData';
 
 /**

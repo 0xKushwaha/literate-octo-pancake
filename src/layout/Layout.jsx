@@ -6,7 +6,8 @@ import Footer from '../components/Footer';
 import MobileBookBar from '../components/MobileBookBar';
 import { BookingProvider, useBooking } from '../lib/booking';
 import { useBrandTheme } from '../lib/theme';
-import { useSiteContent } from '../lib/queries/siteContent';
+import { useBrand, useSiteContent } from '../lib/queries/siteContent';
+import { baseMeta, setPageMeta, titleForPath } from '../lib/pageMeta';
 
 const CommandPalette = lazy(() => import('../components/CommandPalette'));
 
@@ -33,6 +34,15 @@ function Shell() {
   const [palette, setPalette] = useState(false);
   const ui = useSiteContent('ui');
   const { previewing, exitPreview } = useBrandTheme();
+  const brand = useBrand();
+
+  // Each page its own tab title. Blog posts and the legal pages set theirs
+  // from the content they load (titleForPath returns null for them), and
+  // every other route puts back the site-wide description.
+  useEffect(() => {
+    const title = titleForPath(pathname, brand.name);
+    if (title) setPageMeta({ title, description: baseMeta.description });
+  }, [pathname, brand.name]);
 
   /**
    * Scroll handling for route changes.

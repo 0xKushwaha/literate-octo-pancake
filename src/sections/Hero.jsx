@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Counter, Pill } from '../components/primitives';
+import { Counter } from '../components/primitives';
 import Avatar from '../components/Avatar';
 import HeroVisual from './HeroVisual';
 import { useSiteContent } from '../lib/queries/siteContent';
