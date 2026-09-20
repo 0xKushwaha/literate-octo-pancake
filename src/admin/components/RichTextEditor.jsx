@@ -5,6 +5,7 @@ import Link from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
 import toast from 'react-hot-toast';
 import { ACCEPTED_IMAGE_TYPES, uploadImage } from '../../lib/queries/media';
+import { prepareImageForUpload } from '../../lib/imageResize';
 import { shouldSyncEditorContent } from '../editorSync';
 
 const ToolbarBtn = ({ onClick, active, disabled, title, children }) => (
@@ -46,7 +47,9 @@ export default function RichTextEditor({ value, onChange, canUpload = true }) {
 
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      // Tiptap v3's StarterKit bundles Link; switch that copy off so the one
+      // configured below (openOnClick: false) is the only one registered.
+      StarterKit.configure({ link: false }),
       Link.configure({ openOnClick: false }),
       // `inline: false` keeps a picture a block of its own rather than a very
       // tall character inside a paragraph, which is what the article styles
@@ -102,7 +105,9 @@ export default function RichTextEditor({ value, onChange, canUpload = true }) {
     if (!file) return;
     setUploading(true);
     try {
-      insertImage(await uploadImage(file, 'articles/body'));
+      // Same shrink-before-upload as the cover field: a phone photo dropped
+      // into an article body is otherwise shipped to every reader at full size.
+      insertImage(await uploadImage(await prepareImageForUpload(file), 'articles/body'));
     } catch (err) {
       toast.error(err?.message || 'Could not upload that image.', { duration: 7000 });
     } finally {
