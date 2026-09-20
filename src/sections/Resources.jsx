@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/compone
 import { sanitizeHtml } from '../lib/sanitizeHtml';
 import { useSiteContent } from '../lib/queries/siteContent';
 import Icon from '../components/Icon';
+import Img from '../components/Img';
 
 function formatDuration(sec) {
   if (!sec) return null;
@@ -34,7 +35,7 @@ function VideoCard({ video, onPlay }) {
         className="group flex h-full w-full flex-col overflow-hidden rounded-3xl border border-line bg-surface text-left shadow-[var(--shadow-card)] transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-lift)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
       >
         <div className="relative aspect-video w-full overflow-hidden bg-surface-2">
-          <img
+          <Img
             src={thumb}
             alt=""
             loading="lazy"
@@ -90,12 +91,13 @@ function InfographicCard({ item, onOpen, cta }) {
         className="group flex h-full w-full flex-col overflow-hidden rounded-3xl border border-line bg-surface text-left shadow-[var(--shadow-card)] transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-lift)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
       >
         <span className="block aspect-[4/3] w-full overflow-hidden bg-peach-50">
-          <img
+          <Img
             src={item.image_url}
-            alt={item.image_alt || ''}
+            alt={item.image_alt}
+            focal={item.image_focal || '50% 0%'}
             loading="lazy"
             decoding="async"
-            className="h-full w-full object-cover object-top transition-transform duration-500 group-hover:scale-[1.03]"
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
           />
         </span>
         <div className="flex flex-1 flex-col gap-2 p-5">
@@ -129,9 +131,10 @@ function ArticleCard({ article, onClick, labels }) {
       >
         {article.cover_image && (
           <span className="block aspect-[16/9] w-full overflow-hidden bg-peach-50">
-            <img
+            <Img
               src={article.cover_image}
-              alt={article.cover_alt || ''}
+              alt={article.cover_alt}
+              focal={article.cover_focal}
               loading="lazy"
               decoding="async"
               className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
@@ -175,9 +178,10 @@ function ArticleReader({ article, onClose, labels }) {
         {article.excerpt && <p className="mt-3 max-w-[60ch] text-[15px] leading-relaxed text-ink-3">{article.excerpt}</p>}
       </div>
       {article.cover_image && (
-        <img
+        <Img
           src={article.cover_image}
-          alt={article.cover_alt || ''}
+          alt={article.cover_alt}
+          focal={article.cover_focal}
           className="block max-h-[340px] w-full object-cover"
         />
       )}
@@ -379,7 +383,7 @@ export default function Resources({ withHeading = true, videoLimit = 12, article
           <DialogDescription className="sr-only">{viewing?.image_alt || 'Infographic, shown full size'}</DialogDescription>
           {viewing && (
             <figure className="m-0">
-              <img src={viewing.image_url} alt={viewing.image_alt || ''} className="max-h-[70dvh] w-full bg-peach-50 object-contain" />
+              <Img src={viewing.image_url} alt={viewing.image_alt} className="max-h-[70dvh] w-full bg-peach-50 object-contain" />
               <figcaption className="p-6">
                 <h3 className="t-card-title font-display text-[1.3rem] leading-snug tracking-tight text-ink">{viewing.title}</h3>
                 {viewing.description && (

@@ -3,6 +3,7 @@ import toast from 'react-hot-toast';
 import {
   infographicsReady, listAllInfographics, upsertInfographic, deleteInfographic,
 } from '../../lib/queries/infographics';
+import { cleanupReplacedMedia } from '../../lib/queries/media';
 import { isDemo } from '../../lib/supabase';
 import ImageField from '../components/ImageField';
 import StatusBadge from '../components/StatusBadge';
@@ -16,7 +17,7 @@ const SEARCH_FIELDS = ['title', 'category', 'description'];
 const CATEGORIES = ['Getting Started', 'Anxiety', 'Depression', 'Mindfulness', 'Sleep', 'Relationships', 'Trauma', 'Self-care'];
 
 const EMPTY = {
-  title: '', description: '', image_url: '', image_alt: '', category: '',
+  title: '', description: '', image_url: '', image_alt: '', image_focal: '', category: '',
   is_featured: false, is_active: true, sort_order: 0,
 };
 
@@ -45,9 +46,14 @@ function InfographicForm({ initial, onSave, onCancel, ready, checking, onRecheck
       const saved = await upsertInfographic({ ...form, sort_order: Number(form.sort_order) || 0 });
       if (saved?.featuredSaved === false) {
         toast('Saved, but the homepage tick needs migration 011 re-run.', { icon: '⚠️' });
+      } else if (saved?.imageFocalSaved === false && form.image_focal) {
+        toast('Saved, but the crop point needs migration 013 run in Supabase. The picture is fine; it just crops from the top for now.', { icon: '⚠️' });
       } else {
         toast.success(initial?.id ? 'Infographic updated' : 'Infographic added');
       }
+      // Whatever picture this replaced (or the old crop point it no longer
+      // uses) is safe to delete now that the new one is confirmed stored.
+      if (initial) cleanupReplacedMedia(initial, saved);
       onSave();
     } catch (err) {
       toast.error(err?.message || 'Could not save that infographic');
@@ -71,10 +77,14 @@ function InfographicForm({ initial, onSave, onCancel, ready, checking, onRecheck
       <ImageField
         url={form.image_url}
         alt={form.image_alt}
-        onChange={({ url, alt }) => setForm((f) => ({ ...f, image_url: url, image_alt: alt }))}
+        focal={form.image_focal}
+        aspect="4 / 3"
+        defaultFocal="50% 0%"
+        minWidth={600}
+        onChange={({ url, alt, focal }) => setForm((f) => ({ ...f, image_url: url, image_alt: alt, image_focal: focal ?? f.image_focal }))}
         folder="infographics"
         label="The infographic *"
-        hint="The picture itself. Tall images are fine: the card shows the top and the full thing opens when someone clicks it."
+        hint="Cropped to the card's shape here — click the picture to set what stays in frame. The full picture still opens when someone clicks the card on the site."
         ready={ready !== false}
         canUpload={ready !== false && !isDemo}
         checking={checking}
@@ -158,6 +168,7 @@ export default function AdminInfographics() {
     try {
       await deleteInfographic(item.id);
       toast.success('Infographic deleted');
+      cleanupReplacedMedia(item, null);
     } catch (err) {
       setRows(snapshot);
       toast.error(err?.message || 'Could not delete that infographic');

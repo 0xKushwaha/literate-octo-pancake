@@ -6,6 +6,7 @@ import { getHomepageInfographics } from '../lib/queries/infographics';
 import { MoreLink, Reveal, Section, SectionHeading, Stagger, StaggerItem } from '../components/primitives';
 import { useSiteContent } from '../lib/queries/siteContent';
 import Icon from '../components/Icon';
+import Img from '../components/Img';
 
 /**
  * The homepage's shelf of things to take away: articles and videos, each card
@@ -54,16 +55,17 @@ function formatDuration(sec) {
 
 /* ------------------------------------------------------------------- bands */
 
-function BlogBand({ cover, alt }) {
+function BlogBand({ cover, alt, focal }) {
   return (
     // The article's own cover when it has one, and otherwise a drawn band:
     // peach, not brand blue, because this is the one part of an explore card
     // that is pure decoration — visible on the homepage, load-bearing nowhere.
     <div className="relative flex h-28 items-center justify-center overflow-hidden bg-peach-50">
       {cover ? (
-        <img
+        <Img
           src={cover}
-          alt={alt || ''}
+          alt={alt}
+          focal={focal}
           loading="lazy"
           decoding="async"
           className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
@@ -79,18 +81,19 @@ function BlogBand({ cover, alt }) {
   );
 }
 
-function InfographicBand({ image, alt }) {
+function InfographicBand({ image, alt, focal }) {
   return (
     <div className="relative flex h-28 items-center justify-center overflow-hidden bg-brand-100">
       {image ? (
-        <img
+        <Img
           src={image}
-          alt={alt || ''}
+          alt={alt}
+          // Defaults to the top: an infographic's title usually sits there,
+          // and a centred crop of a tall image shows its middle instead.
+          focal={focal || '50% 0%'}
           loading="lazy"
           decoding="async"
-          // object-top, because an infographic's title is at the top of the
-          // picture and a centred crop of a tall image shows its middle.
-          className="absolute inset-0 h-full w-full object-cover object-top transition-transform duration-500 group-hover:scale-[1.04]"
+          className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
         />
       ) : (
         <>
@@ -107,7 +110,7 @@ function VideoBand({ thumb }) {
   return (
     <div className="relative flex h-28 items-center justify-center overflow-hidden bg-sand-100">
       {thumb && (
-        <img
+        <Img
           src={thumb}
           alt=""
           loading="lazy"
@@ -232,7 +235,7 @@ export default function Explore() {
       body: a.excerpt,
       meta: [a.category, formatDate(a.published_at)].filter(Boolean).join(' · '),
       cta: c.blog_cta,
-      band: <BlogBand cover={a.cover_image} alt={a.cover_alt} />,
+      band: <BlogBand cover={a.cover_image} alt={a.cover_alt} focal={a.cover_focal} />,
     });
   }
   // Nothing published yet: one card that still points at the blog, rather than
@@ -280,7 +283,7 @@ export default function Explore() {
       body: g.description,
       meta: g.category || null,
       cta: c.infographic_cta,
-      band: <InfographicBand image={g.image_url} alt={g.image_alt} />,
+      band: <InfographicBand image={g.image_url} alt={g.image_alt} focal={g.image_focal} />,
     });
   }
   if (infographicCount > 0 && shownInfographics.length === 0) {
