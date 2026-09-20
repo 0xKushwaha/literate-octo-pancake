@@ -86,7 +86,9 @@ export default function AdminApp() {
                 <Route path="account" element={<AdminAccount />} />
                 {/* Unknown admin URLs (including the removed /admin/community and
                     /admin/bookings screens) land on the dashboard, not a blank page. */}
-                <Route path="*" element={<Navigate to="dashboard" replace />} />
+                {/* Absolute on purpose: inside this splat-nested <Routes> a relative
+                    "dashboard" resolves against the unknown URL and loops forever. */}
+                <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
               </Routes>
             </AdminShell>
           </AdminGuard>
