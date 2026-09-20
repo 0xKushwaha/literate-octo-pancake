@@ -1,6 +1,7 @@
 import { forwardRef, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Icon from './Icon';
+import Img from './Img';
 
 /* ---------------------------------------------------------------- Reveal */
 
@@ -279,7 +280,7 @@ export function Photo({ src, alt = '', ratio = '4 / 3', className = '', priority
   if (!src) return null;
   const img = (
     <div className="overflow-hidden rounded-[2rem] bg-surface-2 shadow-[var(--shadow-lift)]" style={{ aspectRatio: ratio }}>
-      <img
+      <Img
         src={src}
         alt={alt}
         loading={priority ? 'eager' : 'lazy'}

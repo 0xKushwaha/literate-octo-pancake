@@ -16,20 +16,28 @@ import { demoInfographics } from '../demoData';
 // relation is not in the schema cache", which is what you actually get first.
 const MISSING_TABLE_CODES = new Set(['42P01', 'PGRST205']);
 
-// The homepage tick arrived after the table did, so a database that ran an
-// earlier copy of 011 has the table but not the column. Same two codes mean
-// "no such column" as well, so the message is what tells them apart.
+// The homepage tick (011) and the focal point (013) both arrived after the
+// table did, so a database can be missing either column independently. Same
+// two codes mean "no such column" for both, so the message — which names the
+// column — is what tells them apart; without that, dropping the wrong one
+// could discard a homepage tick because a focal point was missing, or the
+// reverse.
 const MISSING_COLUMN_CODES = new Set(['42703', 'PGRST204']);
+const OPTIONAL_COLUMNS = /is_featured|image_focal/;
 
 function isMissingTable(err) {
   return MISSING_TABLE_CODES.has(err?.code);
 }
 
-function isMissingFeatured(err) {
+function isMissingColumn(err, pattern) {
   if (!MISSING_COLUMN_CODES.has(err?.code)) return false;
   const text = `${err?.message ?? ''} ${err?.details ?? ''} ${err?.hint ?? ''}`;
-  return /is_featured/.test(text);
+  if (OPTIONAL_COLUMNS.test(text)) return pattern.test(text);
+  return true;
 }
+
+const isMissingFeatured = (err) => isMissingColumn(err, /is_featured/);
+const isMissingImageFocal = (err) => isMissingColumn(err, /image_focal/);
 
 /** True when migration 011 has been run. `null` means "could not tell". */
 export async function infographicsReady() {
@@ -108,37 +116,58 @@ export async function listAllInfographics() {
   return data ?? [];
 }
 
+/**
+ * Saves an infographic and survives a database that is behind on migrations.
+ *
+ * Two optional columns, each added by its own migration: the homepage tick
+ * (011) and the focal point (013). Dropped one at a time and retried — a
+ * database missing only one of them keeps the other — and the flags say which
+ * parts made it, so the caller can name what was lost instead of reporting a
+ * plain success for a save that quietly dropped something.
+ */
 export async function upsertInfographic(item) {
-  if (isDemo) return demoInfographics.upsert({ ...item, featuredSaved: undefined });
+  if (isDemo) return demoInfographics.upsert({ ...item, featuredSaved: undefined, imageFocalSaved: undefined });
 
-  let { data, error } = await supabase
-    .from('infographics')
-    .upsert(item, { onConflict: 'id' })
-    .select()
-    .single();
+  const attempt = async (payload) => supabase.from('infographics').upsert(payload, { onConflict: 'id' }).select().single();
+  const full = { featuredSaved: true, imageFocalSaved: true };
 
-  // One retry without the tick, so an editor on a database that predates the
-  // column still saves their title and picture instead of losing the lot. The
-  // caller is told what was dropped rather than being left to assume it stuck.
-  if (error && isMissingFeatured(error)) {
-    const { is_featured: _dropped, ...rest } = item;
-    ({ data, error } = await supabase
-      .from('infographics')
-      .upsert(rest, { onConflict: 'id' })
-      .select()
-      .single());
-    if (!error) return { ...data, featuredSaved: false };
-  }
+  let { data, error } = await attempt(item);
+  if (!error) return { ...data, ...full };
 
-  if (error) {
-    // Here the missing table IS the answer, because the editor just tried to
-    // save something. Name the file to run rather than showing a PostgREST code.
+  if (!isMissingFeatured(error) && !isMissingImageFocal(error)) {
     if (isMissingTable(error)) {
       throw new Error('Infographics need one setup step: run database/migrations/011_infographics.sql in the Supabase SQL editor.');
     }
     throw error;
   }
-  return data;
+
+  const next = { ...item };
+  const flags = { ...full };
+  if (isMissingFeatured(error)) { delete next.is_featured; flags.featuredSaved = false; }
+  if (isMissingImageFocal(error)) { delete next.image_focal; flags.imageFocalSaved = false; }
+
+  ({ data, error } = await attempt(next));
+  if (!error) return { ...data, ...flags };
+
+  // The first error only ever names one missing column; a database behind on
+  // both migrations needs a second pass to find the other.
+  if (isMissingFeatured(error)) { delete next.is_featured; flags.featuredSaved = false; }
+  else if (isMissingImageFocal(error)) { delete next.image_focal; flags.imageFocalSaved = false; }
+  else {
+    if (isMissingTable(error)) {
+      throw new Error('Infographics need one setup step: run database/migrations/011_infographics.sql in the Supabase SQL editor.');
+    }
+    throw error;
+  }
+
+  ({ data, error } = await attempt(next));
+  if (error) {
+    if (isMissingTable(error)) {
+      throw new Error('Infographics need one setup step: run database/migrations/011_infographics.sql in the Supabase SQL editor.');
+    }
+    throw error;
+  }
+  return { ...data, ...flags };
 }
 
 export async function deleteInfographic(id) {

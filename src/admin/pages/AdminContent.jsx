@@ -7,7 +7,7 @@ import {
   SCHEMA_BY_KEY, SECTION_ORDER, SECTION_PAGE, SECTION_TITLES,
 } from '../../data/contentSchema';
 import { isFeatureOn } from '../../lib/featureFlag';
-import { uploadAudio } from '../../lib/queries/media';
+import { cleanupReplacedMedia, uploadAudio } from '../../lib/queries/media';
 import { iconNames } from '../../components/Icon';
 import { useSearch } from '../hooks';
 import { CORE_KEYS } from '../../lib/palette';
@@ -319,6 +319,11 @@ function ContentRow({ item, onSave, onReset, expandAll = false }) {
       const toStore = isJson ? JSON.stringify(JSON.parse(next), null, 2) : next;
       await upsertContent({ key: item.key, value: toStore, section: item.section, label: item.label, type: item.type });
       toast.success(`Saved "${item.label ?? item.key}"`);
+      // A row can hold a single picture/clip, or — for a list, like
+      // testimonials — several nested inside its JSON. Either shape is
+      // covered the same way: scan both strings for this bucket's own URLs
+      // and drop whichever stopped appearing.
+      cleanupReplacedMedia(saved, toStore);
       onSave(item.key, toStore);
     } catch (err) {
       // Surface the real reason — an RLS denial and a dropped connection are
@@ -336,6 +341,7 @@ function ContentRow({ item, onSave, onReset, expandAll = false }) {
     try {
       await deleteContent(item.key);
       toast.success(`"${item.label ?? item.key}" reset to default`);
+      cleanupReplacedMedia(saved, item.defaultValue);
       onReset(item.key);
     } catch (err) {
       toast.error(err?.message || 'Reset failed');

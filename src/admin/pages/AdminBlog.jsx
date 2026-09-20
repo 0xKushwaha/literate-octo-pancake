@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { listAllArticles, deleteArticle } from '../../lib/queries/articles';
+import { getArticleById, listAllArticles, deleteArticle } from '../../lib/queries/articles';
+import { cleanupReplacedMedia } from '../../lib/queries/media';
 import StatusBadge from '../components/StatusBadge';
 import { useList, useSearch, useSort } from '../hooks';
 import {
@@ -17,12 +18,17 @@ export default function AdminBlog() {
   const handleDelete = async (id, title) => {
     if (!window.confirm(`Delete “${title}”? This cannot be undone.`)) return;
     const snapshot = rows;
+    // Fetched before the row disappears: the list itself only carries the
+    // columns a table needs, not the cover or body, and both can hold
+    // pictures this delete should take with it rather than leave behind.
+    const full = await getArticleById(id).catch(() => null);
     // Optimistic: the row goes immediately and comes back if the delete failed,
     // which is far less jarring than a table that sits still for a second.
     setRows((prev) => prev.filter((a) => a.id !== id));
     try {
       await deleteArticle(id);
       toast.success(`Deleted “${title}”`);
+      if (full) cleanupReplacedMedia(full, null);
     } catch (err) {
       setRows(snapshot);
       toast.error(err?.message || 'Could not delete that article');

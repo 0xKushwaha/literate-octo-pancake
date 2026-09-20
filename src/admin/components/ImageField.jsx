@@ -1,9 +1,12 @@
 import { useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { ACCEPTED_IMAGE_TYPES, uploadImage } from '../../lib/queries/media';
+import { prepareImageForUpload } from '../../lib/imageResize';
 
 /**
- * Pick a picture: choose a file, and that is the whole interaction.
+ * Pick a picture: choose a file, see it cropped the way the site will
+ * actually crop it, click to say what matters if the crop is wrong, and that
+ * is the whole interaction.
  *
  * There was a "paste an image link" box next to the upload button for one
  * afternoon and it was removed on purpose. Every link people reach for — a
@@ -19,6 +22,19 @@ import { ACCEPTED_IMAGE_TYPES, uploadImage } from '../../lib/queries/media';
  * load, or a reader using a screen reader, gets whatever is typed here. Left
  * empty the picture is marked decorative (`alt=""`), which is the correct and
  * honest answer for a photograph that repeats the headline.
+ *
+ * Two things this field does beyond "upload a file":
+ *  - Every picture on the site gets cropped to a fixed shape (a 16:9 card, a
+ *    4:3 infographic) no matter what shape was uploaded. `aspect` makes the
+ *    preview crop the same way, so what the editor sees here is what a
+ *    visitor sees — not the picture's own shape in a small box, which used to
+ *    hide a bad crop until publish.
+ *  - Clicking the preview sets the focal point (`onChange`'s `focal`), for
+ *    when the fixed crop would otherwise cut off whatever the picture is
+ *    actually of.
+ *  - A large photo is shrunk and re-encoded in the browser before it
+ *    uploads (see imageResize.js) — a phone photo has no business shipping
+ *    at 6 MB to show a few hundred pixels of card.
  */
 
 /**
@@ -53,9 +69,37 @@ function NotReadyNotice({ onRecheck, checking }) {
   );
 }
 
+/** Decodes just enough of a file to know its pixel size. Never throws. */
+async function naturalSize(file) {
+  try {
+    if (typeof createImageBitmap === 'function') {
+      const bmp = await createImageBitmap(file);
+      const size = { width: bmp.width, height: bmp.height };
+      bmp.close?.();
+      return size;
+    }
+    return await new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => { URL.revokeObjectURL(url); resolve({ width: img.naturalWidth, height: img.naturalHeight }); };
+      img.onerror = (e) => { URL.revokeObjectURL(url); reject(e); };
+      img.src = url;
+    });
+  } catch {
+    return null;
+  }
+}
+
+/** "50% 30%" -> [50, 30]. Falls back to centre for anything unparsable. */
+function parseFocal(value) {
+  const [x, y] = String(value ?? '').trim().split(/\s+/).map((p) => parseFloat(p));
+  return [Number.isFinite(x) ? x : 50, Number.isFinite(y) ? y : 50];
+}
+
 export default function ImageField({
   url,
   alt,
+  focal,
   onChange,
   folder = 'articles',
   label = 'Cover image',
@@ -64,20 +108,44 @@ export default function ImageField({
   canUpload = true,
   onRecheck,
   checking = false,
+  // The shape the site will actually crop this picture to (a CSS
+  // aspect-ratio value, e.g. "16 / 9"), so the preview crops the same way.
+  // Left unset, the preview just shows the picture as uploaded.
+  aspect,
+  // What the crop defaults to when no focal point has been set — "50% 50%"
+  // for a centred crop, "50% 0%" for one that favours the top. Only matters
+  // when `aspect` is set.
+  defaultFocal = '50% 50%',
+  // Below this width (px), a note says the picture may look soft in this
+  // spot. Omit to skip the check.
+  minWidth,
 }) {
   const [uploading, setUploading] = useState(false);
   const [broken, setBroken] = useState(false);
+  const [softWarning, setSoftWarning] = useState(null);
   const fileRef = useRef(null);
 
-  const set = (nextUrl, nextAlt) => onChange({ url: nextUrl, alt: nextAlt ?? alt ?? '' });
+  const set = (nextUrl, nextAlt, nextFocal) => onChange({
+    url: nextUrl,
+    alt: nextAlt ?? alt ?? '',
+    ...(aspect ? { focal: nextFocal ?? focal ?? '' } : {}),
+  });
 
   const handleFile = async (file) => {
     if (!file) return;
     setUploading(true);
+    setSoftWarning(null);
     try {
-      const publicUrl = await uploadImage(file, folder);
+      const prepared = await prepareImageForUpload(file);
+      const size = await naturalSize(prepared);
+      const publicUrl = await uploadImage(prepared, folder);
       setBroken(false);
-      set(publicUrl);
+      // A freshly uploaded picture starts at the default crop — any focal
+      // point set for the picture it replaced would not mean anything here.
+      set(publicUrl, undefined, '');
+      if (minWidth && size?.width && size.width < minWidth) {
+        setSoftWarning(`This picture is ${size.width}px wide. Most places this shows want at least ${minWidth}px, so it may look a little soft stretched to fill the card.`);
+      }
       toast.success('Image uploaded');
     } catch (err) {
       toast.error(err?.message || 'Could not upload that image.', { duration: 7000 });
@@ -86,6 +154,17 @@ export default function ImageField({
       // Clear the input, or choosing the same file twice in a row does nothing.
       if (fileRef.current) fileRef.current.value = '';
     }
+  };
+
+  const effectiveFocal = aspect ? (focal || defaultFocal) : undefined;
+  const [focalX, focalY] = parseFocal(effectiveFocal);
+
+  const pickFocal = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+    const x = Math.round(Math.min(100, Math.max(0, ((e.clientX - rect.left) / rect.width) * 100)));
+    const y = Math.round(Math.min(100, Math.max(0, ((e.clientY - rect.top) / rect.height) * 100)));
+    set(url, undefined, `${x}% ${y}%`);
   };
 
   // `null` is "could not tell" — offline, or an error that was not about a
@@ -105,7 +184,10 @@ export default function ImageField({
       <label className="mb-1 block text-xs font-medium text-gray-600">{label}</label>
 
       {url ? (
-        <div className="relative overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
+        <div
+          className="relative overflow-hidden rounded-lg border border-gray-200 bg-gray-50"
+          style={aspect ? { aspectRatio: aspect } : undefined}
+        >
           {broken ? (
             // An upload URL that stops loading means the file went away, or an
             // older article is still carrying a link from before this field
@@ -113,6 +195,27 @@ export default function ImageField({
             <p className="px-3 py-6 text-center text-[11.5px] leading-relaxed text-gray-600">
               This picture is no longer loading. Remove it and upload the file again.
             </p>
+          ) : aspect ? (
+            <button
+              type="button"
+              onClick={pickFocal}
+              title="Click where the important part of the picture is"
+              className="block h-full w-full cursor-crosshair"
+            >
+              <img
+                src={url}
+                alt=""
+                style={{ objectPosition: effectiveFocal }}
+                className="h-full w-full object-cover"
+                onError={() => setBroken(true)}
+                onLoad={() => setBroken(false)}
+              />
+              <span
+                aria-hidden
+                className="pointer-events-none absolute size-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-teal-500 shadow-[0_0_0_1px_rgba(0,0,0,0.15)]"
+                style={{ left: `${focalX}%`, top: `${focalY}%` }}
+              />
+            </button>
           ) : (
             <img
               src={url}
@@ -124,7 +227,7 @@ export default function ImageField({
           )}
           <button
             type="button"
-            onClick={() => { setBroken(false); set('', ''); }}
+            onClick={() => { setBroken(false); setSoftWarning(null); onChange({ url: '', alt: '', ...(aspect ? { focal: '' } : {}) }); }}
             className="absolute right-2 top-2 rounded-full bg-white/90 px-2 py-1 text-[11px] font-medium text-gray-700 shadow-sm transition hover:bg-white hover:text-red-600"
           >
             Remove
@@ -134,6 +237,26 @@ export default function ImageField({
         <div className="rounded-lg border border-dashed border-gray-300 px-3 py-5 text-center">
           <p className="text-[11.5px] text-gray-400">No image yet</p>
         </div>
+      )}
+
+      {url && !broken && aspect && (
+        <p className="mt-1.5 text-[11px] text-gray-400">
+          Click the picture to set what stays in frame when it's cropped.
+          {focal && (
+            <>
+              {' '}
+              <button type="button" onClick={() => set(url, undefined, '')} className="text-teal-700 underline underline-offset-2 hover:text-teal-800">
+                Reset to the default crop
+              </button>
+            </>
+          )}
+        </p>
+      )}
+
+      {softWarning && (
+        <p className="mt-1.5 rounded-md bg-amber-50 px-2 py-1.5 text-[11px] leading-relaxed text-amber-800">
+          {softWarning}
+        </p>
       )}
 
       {/* Without this the panel is a placeholder and an alt-text box with no

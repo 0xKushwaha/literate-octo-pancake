@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { listPublishedArticles } from '../lib/queries/articles';
 import { Button, PageHeader, Pill, Section } from '../components/primitives';
 import { useSiteContent } from '../lib/queries/siteContent';
+import Img from '../components/Img';
 
 function ArticleCard({ article, readMore }) {
   const date = article.published_at
@@ -20,9 +21,10 @@ function ArticleCard({ article, readMore }) {
           look like a blog where half the images are broken. */}
       {article.cover_image && (
         <div className="aspect-[16/9] w-full overflow-hidden bg-peach-50">
-          <img
+          <Img
             src={article.cover_image}
-            alt={article.cover_alt || ''}
+            alt={article.cover_alt}
+            focal={article.cover_focal}
             loading="lazy"
             decoding="async"
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"

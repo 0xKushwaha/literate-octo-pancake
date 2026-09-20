@@ -10,10 +10,10 @@ import { demoArticles } from '../demoData';
  * pictures — would go blank on a database that is one migration behind. The
  * same shape as the `is_featured` fallback below, for the same reason.
  */
-const COVER_COLUMNS = 'cover_image, cover_alt';
+const COVER_COLUMNS = 'cover_image, cover_alt, cover_focal';
 
 const MISSING_COLUMN_CODES = new Set(['42703', 'PGRST204']);
-const OPTIONAL_COLUMNS = /cover_image|cover_alt|is_featured/;
+const OPTIONAL_COLUMNS = /cover_image|cover_alt|cover_focal|is_featured/;
 
 /**
  * Does this error mean *this particular* column is not in the database?
@@ -35,7 +35,7 @@ function isMissingColumn(err, pattern) {
   return true;
 }
 
-const isMissingCoverColumn = (err) => isMissingColumn(err, /cover_image|cover_alt/);
+const isMissingCoverColumn = (err) => isMissingColumn(err, /cover_image|cover_alt|cover_focal/);
 
 /** Runs `run(coverColumns)`, retrying with no cover columns if they are absent. */
 async function withCover(run) {
@@ -234,6 +234,7 @@ export async function saveArticle(article) {
     if (missingCover) {
       delete next.cover_image;
       delete next.cover_alt;
+      delete next.cover_focal;
       flags.coverSaved = false;
     }
     if (missingFeatured) {
@@ -249,6 +250,7 @@ export async function saveArticle(article) {
       if (isMissingCoverColumn(err2)) {
         delete next.cover_image;
         delete next.cover_alt;
+        delete next.cover_focal;
         flags.coverSaved = false;
       } else if (isMissingFeaturedColumn(err2)) {
         delete next.is_featured;

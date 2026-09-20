@@ -1,6 +1,7 @@
 import { Component, Suspense, lazy, useCallback, useState } from 'react';
 import { useInView } from '../lib/hooks';
 import { useQuality } from '../motion/useQuality';
+import Img from '../components/Img';
 
 /**
  * The hero's right-hand column: the organic form on a device that can carry
@@ -42,9 +43,8 @@ class FormBoundary extends Component {
 }
 
 function Photo({ src, alt }) {
-  if (!src) return null;
   return (
-    <img
+    <Img
       src={src}
       alt={alt}
       fetchPriority="high"

@@ -147,3 +147,76 @@ function friendlyAudioError(err) {
   }
   return new Error(err?.message || 'Could not upload that clip.');
 }
+
+/* -------------------------------------------------------- orphan cleanup */
+
+/**
+ * Nothing here used to delete anything. Replacing a cover, an infographic
+ * picture, a testimonial clip, or an image dropped into an article body left
+ * the old file sitting in the bucket forever — every "Replace" a practice has
+ * ever clicked is still in there.
+ *
+ * The fix works by pattern, not by field: this bucket's public URLs have one
+ * recognisable shape (…/storage/v1/object/public/media/…), so a save can
+ * scan whatever it is about to store — a single field, a whole article
+ * including its rich-text body, a JSON list of testimonials — for that shape
+ * before and after, and remove whichever of our own URLs stopped appearing.
+ * That covers every field that holds one of our files, present or future,
+ * without needing to special-case each one.
+ */
+const OWN_MEDIA_URL_RE = /https?:\/\/[^\s"'()]+\/storage\/v1\/object\/public\/media\/[^\s"'()]+/g;
+
+/** Every one of this bucket's own URLs found anywhere inside a value — a
+ *  string, HTML, or a JSON-shaped object/array, walked recursively. */
+export function mediaUrlsIn(value) {
+  const found = new Set();
+  const scan = (s) => { for (const m of s.matchAll(OWN_MEDIA_URL_RE)) found.add(m[0]); };
+  const walk = (v) => {
+    if (typeof v === 'string') scan(v);
+    else if (Array.isArray(v)) v.forEach(walk);
+    else if (v && typeof v === 'object') Object.values(v).forEach(walk);
+  };
+  walk(value);
+  return found;
+}
+
+function pathFromMediaUrl(url) {
+  const m = /\/storage\/v1\/object\/public\/media\/(.+)$/.exec(url);
+  return m ? decodeURIComponent(m[1]) : null;
+}
+
+/**
+ * Best-effort delete of our own uploaded files. Never throws: a file that
+ * fails to clean up is a few stray kilobytes, which is a far better outcome
+ * than a save that fails, or an editor watching a delete error for a picture
+ * they already stopped using.
+ */
+export async function deleteMediaUrls(urls) {
+  const list = urls instanceof Set ? [...urls] : Array.isArray(urls) ? urls : [urls].filter(Boolean);
+  if (isDemo || !list.length) return;
+  const paths = list.map(pathFromMediaUrl).filter(Boolean);
+  if (!paths.length) return;
+  try {
+    const { error } = await supabase.storage.from(BUCKET).remove(paths);
+    if (error) console.warn('[lumen] could not remove old media file(s)', error);
+  } catch (err) {
+    console.warn('[lumen] could not remove old media file(s)', err);
+  }
+}
+
+/**
+ * Call this after a save has already succeeded, never before — the old file
+ * has to keep working until the new content is confirmed stored, or a save
+ * that fails partway (or is never actually submitted) would break a picture
+ * that is still the live one.
+ *
+ * `before` / `after` are whatever was saved — a plain URL, an article object,
+ * a JSON string — in the same shape on both sides.
+ */
+export async function cleanupReplacedMedia(before, after) {
+  const beforeUrls = mediaUrlsIn(before);
+  if (!beforeUrls.size) return;
+  const afterUrls = mediaUrlsIn(after);
+  const removed = [...beforeUrls].filter((u) => !afterUrls.has(u));
+  await deleteMediaUrls(removed);
+}

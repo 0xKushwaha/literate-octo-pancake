@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { articleImagesReady, getArticleById, saveArticle } from '../../lib/queries/articles';
+import { cleanupReplacedMedia } from '../../lib/queries/media';
 import { supabase, isDemo } from '../../lib/supabase';
 import RichTextEditor from '../components/RichTextEditor';
 import ImageField from '../components/ImageField';
@@ -9,7 +10,7 @@ import { publishedAtFor } from '../articlePublishDate';
 import { useSaveShortcut, useUnsavedChanges } from '../hooks';
 import { Button, FormSkeleton } from '../components/ui';
 
-const EMPTY = { title: '', slug: '', excerpt: '', category: '', content: '', is_published: false, is_featured: false, cover_image: '', cover_alt: '' };
+const EMPTY = { title: '', slug: '', excerpt: '', category: '', content: '', is_published: false, is_featured: false, cover_image: '', cover_alt: '', cover_focal: '' };
 
 const CATEGORIES = ['Anxiety', 'Depression', 'Relationships', 'Mindfulness', 'Trauma', 'Sleep', 'Psychiatry', 'Self-care'];
 
@@ -85,6 +86,7 @@ export default function AdminBlogEditor() {
           is_featured: a.is_featured ?? false,
           cover_image: a.cover_image ?? '',
           cover_alt: a.cover_alt ?? '',
+          cover_focal: a.cover_focal ?? '',
         };
         setBaseline(JSON.stringify(loaded));
         setForm(loaded);
@@ -135,6 +137,7 @@ export default function AdminBlogEditor() {
         is_featured: form.is_featured,
         cover_image: form.cover_image.trim() || null,
         cover_alt: form.cover_alt.trim() || null,
+        cover_focal: form.cover_focal || null,
       };
       const { featuredSaved, coverSaved } = await saveArticle(payload);
       if (!featuredSaved && form.is_featured) {
@@ -149,6 +152,14 @@ export default function AdminBlogEditor() {
       setBaseline(JSON.stringify({ ...form, is_published: payload.is_published }));
       allowLeaving();
       toast.success(publish ? 'Article published' : 'Saved as draft');
+      // Whatever picture(s) the article no longer points to — the cover, or
+      // any image swapped or removed from the body in the editor above —
+      // stopped being live the moment this save landed, so this is the first
+      // safe moment to delete the files they used to be. Only the cover half
+      // is skipped if migration 008 was not there to store it: the old cover
+      // is still the live one then, not an orphan.
+      const before = JSON.parse(baseline);
+      cleanupReplacedMedia(before, coverSaved ? form : { ...form, cover_image: before.cover_image, cover_alt: before.cover_alt });
       navigate('/admin/blog');
     } catch (err) {
       const message = err?.code === '23505'
@@ -158,7 +169,7 @@ export default function AdminBlogEditor() {
     } finally {
       setSaving(false);
     }
-  }, [form, id, isNew, navigate, allowLeaving, publishedAt]);
+  }, [form, id, isNew, navigate, allowLeaving, publishedAt, baseline]);
 
   // ⌘S / Ctrl+S saves without publishing, matching every editor people already
   // use. Without it the browser's own "save page" dialog opens instead.
@@ -277,11 +288,14 @@ export default function AdminBlogEditor() {
             <ImageField
               url={form.cover_image}
               alt={form.cover_alt}
+              focal={form.cover_focal}
+              aspect="16 / 9"
+              minWidth={960}
               ready={imagesReady}
               canUpload={imagesReady !== false && !isDemo}
               onRecheck={recheckImages}
               checking={checkingImages}
-              onChange={({ url, alt }) => setForm((f) => ({ ...f, cover_image: url, cover_alt: alt }))}
+              onChange={({ url, alt, focal }) => setForm((f) => ({ ...f, cover_image: url, cover_alt: alt, cover_focal: focal ?? f.cover_focal }))}
             />
           </div>
 
