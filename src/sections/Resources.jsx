@@ -171,7 +171,7 @@ function ArticleReader({ article, onClose, labels }) {
           )}
           {article.published_at && <span className="text-[13px] text-ink-4">{formatDate(article.published_at, 'long')}</span>}
         </div>
-        <h2 className="mt-4 font-display text-[clamp(1.5rem,3vw,2.2rem)] leading-tight tracking-tight text-ink">{article.title}</h2>
+        <h2 className="t-article-title mt-4 font-display text-[clamp(1.5rem,3vw,2.2rem)] leading-tight tracking-tight text-ink">{article.title}</h2>
         {article.excerpt && <p className="mt-3 max-w-[60ch] text-[15px] leading-relaxed text-ink-3">{article.excerpt}</p>}
       </div>
       {article.cover_image && (
@@ -381,7 +381,7 @@ export default function Resources({ withHeading = true, videoLimit = 12, article
             <figure className="m-0">
               <img src={viewing.image_url} alt={viewing.image_alt || ''} className="max-h-[70dvh] w-full bg-peach-50 object-contain" />
               <figcaption className="p-6">
-                <h3 className="font-display text-[1.3rem] leading-snug tracking-tight text-ink">{viewing.title}</h3>
+                <h3 className="t-card-title font-display text-[1.3rem] leading-snug tracking-tight text-ink">{viewing.title}</h3>
                 {viewing.description && (
                   <p className="mt-2 text-[14.5px] leading-relaxed text-ink-3">{viewing.description}</p>
                 )}

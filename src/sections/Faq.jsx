@@ -48,7 +48,7 @@ export default function Faq({ withHeading = true }) {
           {faqs.map((f, i) => (
             <AccordionItem key={`${f.q}-${i}`} value={`faq-${i}`} className="border-b border-line">
               <AccordionTrigger className="py-6">
-                <span className="min-w-0 font-display text-[clamp(1.1rem,1.9vw,1.4rem)] leading-snug tracking-tight text-ink-2 transition-colors duration-300 group-hover:text-ink group-data-[state=open]:text-ink">
+                <span className="t-faq min-w-0 font-display text-[clamp(1.1rem,1.9vw,1.4rem)] leading-snug tracking-tight text-ink-2 transition-colors duration-300 group-hover:text-ink group-data-[state=open]:text-ink">
                   {f.q}
                 </span>
                 <span

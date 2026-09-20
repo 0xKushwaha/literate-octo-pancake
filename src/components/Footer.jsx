@@ -85,7 +85,7 @@ export default function Footer() {
               <span className="grid size-8 place-items-center rounded-full bg-brand-500">
                 <span className="size-3 rounded-full bg-amber-500" />
               </span>
-              <span className="font-display text-[25px] font-semibold leading-none tracking-tight">
+              <span className="t-brand font-display text-[25px] font-semibold leading-none tracking-tight">
                 {brand.name}
               </span>
             </Link>

@@ -77,7 +77,7 @@ export default function BlogPostPage() {
                 <span className="text-[13px] text-ink-4">{estimateReadTime(article.content)} {content.read_time_suffix}</span>
               </div>
 
-              <h1 className="mt-5 font-display text-4xl leading-[1.1] tracking-tight text-ink sm:text-5xl">
+              <h1 className="t-article-title mt-5 font-display text-4xl leading-[1.1] tracking-tight text-ink sm:text-5xl">
                 {article.title}
               </h1>
 
@@ -136,7 +136,7 @@ export default function BlogPostPage() {
           {related.length > 0 && (
             <div className="border-t border-line bg-surface-2">
               <Section className="py-16">
-                <h2 className="font-display text-2xl tracking-tight text-ink">{content.related_title}</h2>
+                <h2 className="t-section-title font-display text-2xl tracking-tight text-ink">{content.related_title}</h2>
                 <div className="mt-8 grid gap-5 sm:grid-cols-3">
                   {related.map((a) => (
                     <Link
@@ -157,7 +157,7 @@ export default function BlogPostPage() {
                       )}
                       <div className="p-5">
                         {a.category && <Pill tone="rose">{a.category}</Pill>}
-                        <h3 className="mt-3 font-display text-[17px] leading-snug tracking-tight text-ink group-hover:text-ink transition-colors">
+                        <h3 className="t-card-title mt-3 font-display text-[17px] leading-snug tracking-tight text-ink group-hover:text-ink transition-colors">
                           {a.title}
                         </h3>
                       </div>

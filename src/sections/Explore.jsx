@@ -169,12 +169,12 @@ function FloatCard({ card, index }) {
                 </Link>
               )}
             </div>
-            <h3 className="mt-4 line-clamp-2 font-display text-[1.22rem] leading-snug tracking-tight text-ink">
+            <h3 className="t-card-title mt-4 line-clamp-2 font-display text-[1.22rem] leading-snug tracking-tight text-ink">
               <Link to={card.to} className="after:absolute after:inset-0 focus-visible:outline-none">
                 {card.title}
               </Link>
             </h3>
-            {card.body && <p className="mt-2.5 line-clamp-3 text-[13.5px] leading-relaxed text-ink-3">{card.body}</p>}
+            {card.body && <p className="t-card-text mt-2.5 line-clamp-3 text-[13.5px] leading-relaxed text-ink-3">{card.body}</p>}
             {card.meta && <p className="mt-3 text-[12px] text-ink-4">{card.meta}</p>}
             <span className="mt-auto flex items-center gap-1.5 pt-5 text-[13.5px] font-semibold text-ink">
               {card.cta}

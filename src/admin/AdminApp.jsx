@@ -16,6 +16,7 @@ const AdminYouTube = lazy(() => import('./pages/AdminYouTube'));
 const AdminInfographics = lazy(() => import('./pages/AdminInfographics'));
 const AdminContent = lazy(() => import('./pages/AdminContent'));
 const AdminPalette = lazy(() => import('./pages/AdminPalette'));
+const AdminTypography = lazy(() => import('./pages/AdminTypography'));
 const AdminFaqs = lazy(() => import('./pages/AdminFaqs'));
 const AdminAccount = lazy(() => import('./pages/AdminAccount'));
 
@@ -28,7 +29,7 @@ const AdminAccount = lazy(() => import('./pages/AdminAccount'));
  */
 function AdminShell({ children }) {
   return (
-    <div className="flex min-h-screen bg-gray-50 font-sans text-gray-900">
+    <div className="flex h-dvh overflow-hidden bg-gray-50 font-sans text-gray-900">
       <Toaster
         position="bottom-right"
         toastOptions={{
@@ -39,7 +40,9 @@ function AdminShell({ children }) {
         }}
       />
       <AdminNav />
-      <main className="flex-1 overflow-y-auto">
+      {/* The main column is the scroller, not the window: the sidebar stays put,
+          and the sticky save bar on the Colour palette and Fonts pages sticks. */}
+      <main className="min-w-0 flex-1 overflow-y-auto">
         <div className="mx-auto max-w-6xl p-8">
           {isDemo && <DemoBanner />}
           <Suspense
@@ -78,6 +81,7 @@ export default function AdminApp() {
                 <Route path="infographics" element={<AdminInfographics />} />
                 <Route path="content" element={<AdminContent />} />
                 <Route path="colours" element={<AdminPalette />} />
+                <Route path="fonts" element={<AdminTypography />} />
                 <Route path="faqs" element={<AdminFaqs />} />
                 <Route path="account" element={<AdminAccount />} />
               </Routes>

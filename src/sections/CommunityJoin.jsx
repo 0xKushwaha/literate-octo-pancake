@@ -121,7 +121,7 @@ export default function CommunityJoin({ inviteUrl, content, tone = 'light' }) {
           autoComplete="email"
           required
           disabled={state === 'sending'}
-          className={`h-[3.4rem] min-w-0 flex-1 rounded-full px-6 text-[15.5px] text-ink outline-none transition placeholder:text-ink-4 disabled:opacity-60 ${
+          className={`t-field h-[3.4rem] min-w-0 flex-1 rounded-full px-6 text-[15.5px] text-ink outline-none transition placeholder:text-ink-4 disabled:opacity-60 ${
             deep
               ? 'border border-on-deep/25 bg-surface/95 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/50'
               : 'border border-line-2 bg-surface focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30'

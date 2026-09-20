@@ -81,7 +81,7 @@ function Dropdown({ item, open, setOpen, badge }) {
         aria-haspopup="menu"
         onClick={() => setOpen(isOpen ? null : item.id)}
         onKeyDown={(e) => { if (e.key === 'ArrowDown') { e.preventDefault(); setOpen(item.id); ref.current?.querySelector('a')?.focus(); } }}
-        className={`flex items-center gap-1.5 rounded-full px-3.5 py-2 text-[14px] font-medium transition-colors duration-200 ${
+        className={`t-nav flex items-center gap-1.5 rounded-full px-3.5 py-2 text-[14px] font-medium transition-colors duration-200 ${
           isOpen || item.active ? 'bg-surface-3 text-ink' : 'text-ink-2 hover:bg-surface-2 hover:text-ink'
         }`}
       >
@@ -101,7 +101,7 @@ function Dropdown({ item, open, setOpen, badge }) {
                 if (e.key === 'ArrowDown') { e.preventDefault(); e.currentTarget.nextElementSibling?.focus(); }
                 if (e.key === 'ArrowUp') { e.preventDefault(); (e.currentTarget.previousElementSibling ?? ref.current?.querySelector('button'))?.focus(); }
               }}
-              className={`block rounded-2xl px-4 py-2.5 text-center text-[14.5px] transition-colors hover:bg-surface-2 hover:text-ink ${
+              className={`t-nav block rounded-2xl px-4 py-2.5 text-center text-[14.5px] transition-colors hover:bg-surface-2 hover:text-ink ${
                 sub.all ? 'mt-1 border-t border-line pt-3 font-medium text-ink' : 'text-ink-2'
               }`}
             >
@@ -177,7 +177,7 @@ export default function Nav() {
                   {badgeItem === item.id && badgeText && <Badge text={badgeText} />}
                   <NavLink
                     to={item.to}
-                    className={`block rounded-full px-3.5 py-2 text-[14px] font-medium transition-colors duration-200 ${
+                    className={`t-nav block rounded-full px-3.5 py-2 text-[14px] font-medium transition-colors duration-200 ${
                       item.active ? 'bg-surface-3 text-ink' : 'text-ink-2 hover:bg-surface-2 hover:text-ink'
                     }`}
                   >
@@ -217,7 +217,7 @@ export default function Nav() {
           <div className="absolute inset-0 bg-ink/25 backdrop-blur-sm" onClick={() => setDrawer(false)} />
           <div className="zone-popup absolute inset-x-3 top-3 max-h-[calc(100svh-1.5rem)] overflow-y-auto rounded-4xl border border-line bg-surface p-5 shadow-[var(--shadow-float)] animate-in fade-in slide-in-from-top-4 duration-200">
             <div className="flex items-center justify-between">
-              <span className="font-display text-[22px] font-semibold tracking-tight">{brand.name}</span>
+              <span className="t-brand font-display text-[22px] font-semibold tracking-tight">{brand.name}</span>
               <button onClick={() => setDrawer(false)} className="grid size-10 place-items-center rounded-full text-ink-2 hover:bg-ink/[0.06] hover:text-ink" aria-label="Close menu">
                 <Icon name="close" size={19} />
               </button>
@@ -226,7 +226,7 @@ export default function Nav() {
             <div className="mt-4 flex flex-col gap-1">
               {menu.map((item) => (
                 <div key={item.id} className="border-b border-line py-2 last:border-0">
-                  <Link to={item.to} className="flex items-center justify-between py-2 font-display text-[22px] font-medium tracking-tight text-ink">
+                  <Link to={item.to} className="t-nav flex items-center justify-between py-2 font-display text-[22px] font-medium tracking-tight text-ink">
                     {item.label}
                     <Icon name="arrowUpRight" size={17} className="text-ink-4" />
                   </Link>

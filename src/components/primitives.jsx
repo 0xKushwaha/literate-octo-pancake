@@ -137,7 +137,7 @@ export const Button = forwardRef(function Button(
   return (
     <Tag
       ref={ref}
-      className={`group relative inline-flex items-center justify-center gap-2 rounded-full font-semibold tracking-tight
+      className={`t-button group relative inline-flex items-center justify-center gap-2 rounded-full font-semibold tracking-tight
         transition-[transform,box-shadow,background-color,border-color,filter] duration-200 ease-[var(--ease-out-expo)]
         active:translate-y-0 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40
         ${variants[variant]} ${sizes[size]} ${className}`}
@@ -185,9 +185,9 @@ export function SectionHeading({ eyebrow, title, lead, align = 'left', className
           <Eyebrow>{eyebrow}</Eyebrow>
         </div>
       )}
-      <h2 className={`mt-4 font-display leading-[1.05] tracking-[-0.02em] text-ink ${titleSize}`}>{title}</h2>
+      <h2 className={`t-section-title mt-4 font-display leading-[1.05] tracking-[-0.02em] text-ink ${titleSize}`}>{title}</h2>
       {lead && (
-        <p className={`mt-5 text-[16.5px] leading-relaxed text-ink-3 ${centered ? 'mx-auto max-w-xl' : 'max-w-xl'}`}>
+        <p className={`t-section-lead mt-5 text-[16.5px] leading-relaxed text-ink-3 ${centered ? 'mx-auto max-w-xl' : 'max-w-xl'}`}>
           {lead}
         </p>
       )}
@@ -230,7 +230,7 @@ export function Pill({ children, className = '', tone = 'default' }) {
   };
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium ${tones[tone] ?? tones.default} ${className}`}
+      className={`t-pill inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium ${tones[tone] ?? tones.default} ${className}`}
     >
       {children}
     </span>
@@ -312,8 +312,8 @@ export function PageHeader({ eyebrow, title, lead, image, imageAlt = '', childre
       <Section className="grid items-center gap-10 py-12 sm:py-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-14">
         <div>
           {eyebrow && <Eyebrow>{eyebrow}</Eyebrow>}
-          <h1 className="mt-4 font-display text-[clamp(2.1rem,4.2vw,3.4rem)] leading-[1.06] tracking-[-0.02em] text-ink">{title}</h1>
-          {lead && <p className="mt-5 max-w-[52ch] text-[16.5px] leading-relaxed text-ink-2">{lead}</p>}
+          <h1 className="t-page-title mt-4 font-display text-[clamp(2.1rem,4.2vw,3.4rem)] leading-[1.06] tracking-[-0.02em] text-ink">{title}</h1>
+          {lead && <p className="t-page-lead mt-5 max-w-[52ch] text-[16.5px] leading-relaxed text-ink-2">{lead}</p>}
           {children && <div className="mt-7 flex flex-wrap items-center gap-3">{children}</div>}
         </div>
         <Photo src={image} alt={imageAlt} ratio="4 / 3" priority framed />

@@ -88,10 +88,10 @@ export default function BreathePrompt() {
       <Section id="breathe" className="grid items-center gap-12 py-20 sm:py-24 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:gap-16">
         <Reveal>
           {c.eyebrow && <Eyebrow>{c.eyebrow}</Eyebrow>}
-          <h2 className="mt-4 font-display text-[clamp(1.9rem,3.6vw,2.9rem)] leading-[1.05] tracking-[-0.02em] text-ink">
+          <h2 className="t-section-title mt-4 font-display text-[clamp(1.9rem,3.6vw,2.9rem)] leading-[1.05] tracking-[-0.02em] text-ink">
             {c.headline}
           </h2>
-          {c.lead && <p className="mt-5 max-w-[46ch] text-[16.5px] leading-relaxed text-ink-3">{c.lead}</p>}
+          {c.lead && <p className="t-section-lead mt-5 max-w-[46ch] text-[16.5px] leading-relaxed text-ink-3">{c.lead}</p>}
 
           <div className="mt-8 flex flex-wrap items-center gap-6">
             <Button as={Link} to="/breathe" size="lg" icon="arrow">{c.cta}</Button>
@@ -110,9 +110,9 @@ export default function BreathePrompt() {
                   <Icon name="wave" size={18} />
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block font-display text-[1.1rem] leading-snug tracking-tight text-ink">{e.name}</span>
+                  <span className="t-card-title block font-display text-[1.1rem] leading-snug tracking-tight text-ink">{e.name}</span>
                   {e.description && (
-                    <span className="mt-1 line-clamp-2 block text-[13.5px] leading-relaxed text-ink-3">{e.description}</span>
+                    <span className="t-card-text mt-1 line-clamp-2 block text-[13.5px] leading-relaxed text-ink-3">{e.description}</span>
                   )}
                   <span className="mt-2 block text-[12px] text-ink-4">
                     {fill(c.meta, { n: e.cycles, technique: e.technique, difficulty: e.difficulty })}

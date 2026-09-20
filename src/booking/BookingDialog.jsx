@@ -121,7 +121,7 @@ function Field({ label, hint, error, htmlFor, children }) {
 function StepHeader({ title, lead }) {
   return (
     <div>
-      <h3 className="font-display text-[clamp(1.6rem,3.4vw,2.25rem)] leading-tight tracking-tight text-ink">
+      <h3 className="t-dialog-title font-display text-[clamp(1.6rem,3.4vw,2.25rem)] leading-tight tracking-tight text-ink">
         {title}
       </h3>
       {lead && <p className="mt-3 max-w-[52ch] text-[15px] leading-relaxed text-ink-3">{lead}</p>}
@@ -605,7 +605,7 @@ function SuccessStep({ reference, form, therapist, onClose }) {
         </span>
       </motion.div>
 
-      <h3 className="mt-8 font-display text-[clamp(1.9rem,4vw,2.6rem)] leading-tight tracking-tight text-ink">
+      <h3 className="t-dialog-title mt-8 font-display text-[clamp(1.9rem,4vw,2.6rem)] leading-tight tracking-tight text-ink">
         {copy.success_title}
       </h3>
       <p className="mt-4 max-w-[44ch] text-[15.5px] leading-relaxed text-ink-3">

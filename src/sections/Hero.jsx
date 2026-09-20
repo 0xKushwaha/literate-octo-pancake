@@ -30,7 +30,7 @@ function RotatingWord({ words }) {
         <span
           key={`${word}-${n}`}
           aria-hidden={n === i ? undefined : true}
-          className={`mark col-start-1 row-start-1 justify-self-start text-aurora italic ${
+          className={`t-hero-word mark col-start-1 row-start-1 justify-self-start text-aurora italic ${
             n === i ? 'word-swap' : 'invisible'
           }`}
         >
@@ -92,12 +92,12 @@ export default function Hero() {
             <span className="text-[13px] text-ink-4">{content.location_note}</span>
           </div>
 
-          <h1 className="mt-5 font-display text-[clamp(2.6rem,5.6vw,4rem)] leading-[1.04] tracking-[-0.02em] text-ink">
+          <h1 className="t-hero-title mt-5 font-display text-[clamp(2.6rem,5.6vw,4rem)] leading-[1.04] tracking-[-0.02em] text-ink">
             <span className="block">{content.headline}</span>
             <RotatingWord words={words} />
           </h1>
 
-          <p className="mt-6 max-w-[46ch] text-[16.5px] leading-relaxed text-ink-2 sm:text-[17.5px]">{content.subheadline}</p>
+          <p className="t-hero-text mt-6 max-w-[46ch] text-[16.5px] leading-relaxed text-ink-2 sm:text-[17.5px]">{content.subheadline}</p>
 
           {/* No buttons here on purpose. The hero states what the practice
               is; the ask lives in the header and in the closing band, and the
@@ -140,7 +140,7 @@ export default function Hero() {
                   } ${i > 1 ? 'border-t border-line lg:border-t-0' : ''}`}
                 >
                   <dt className="mt-2 text-[12.5px] leading-snug text-ink-3">{s.label}</dt>
-                  <dd className="font-display text-[clamp(1.9rem,3.1vw,2.6rem)] font-medium leading-none tracking-tight text-accent-strong">
+                  <dd className="t-stat font-display text-[clamp(1.9rem,3.1vw,2.6rem)] font-medium leading-none tracking-tight text-accent-strong">
                     <Counter value={Number(s.value) || 0} decimals={s.decimals ?? 0} suffix={s.suffix ?? ''} />
                   </dd>
                 </div>

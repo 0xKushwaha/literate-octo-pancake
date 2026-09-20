@@ -93,8 +93,8 @@ export default function Services({ onBook, limit, teaser = false, withHeading = 
                   )}
                 </div>
 
-                <h3 className="mt-6 font-display text-[23px] leading-tight tracking-tight text-ink">{s.name}</h3>
-                <p className="mt-2.5 flex-1 text-[14.5px] leading-relaxed text-ink-3">{s.blurb}</p>
+                <h3 className="t-card-title mt-6 font-display text-[23px] leading-tight tracking-tight text-ink">{s.name}</h3>
+                <p className="t-card-text mt-2.5 flex-1 text-[14.5px] leading-relaxed text-ink-3">{s.blurb}</p>
 
                 <div className="mt-6 flex flex-wrap gap-1.5">
                   {s.modalities.map((m) => (

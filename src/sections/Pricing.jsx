@@ -48,7 +48,7 @@ export default function Pricing({ onBook, withHeading = true }) {
                 </div>
               )}
 
-              <h3 className="relative font-display text-[24px] leading-tight tracking-tight text-ink">
+              <h3 className="t-card-title relative font-display text-[24px] leading-tight tracking-tight text-ink">
                 {p.name}
               </h3>
               <p className="relative mt-2 text-[14.5px] text-ink-3">{p.blurb}</p>

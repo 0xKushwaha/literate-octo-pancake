@@ -27,7 +27,7 @@ export default function LegalPage({ kind }) {
     <div className="backdrop-soft">
       <Section className="py-14 sm:py-20">
         <article className="mx-auto max-w-[70ch] rounded-3xl border border-line bg-surface px-6 py-10 sm:px-12 sm:py-14">
-          <h1 className="font-display text-[clamp(2rem,4vw,3rem)] leading-tight tracking-tight text-ink">{title}</h1>
+          <h1 className="t-page-title font-display text-[clamp(2rem,4vw,3rem)] leading-tight tracking-tight text-ink">{title}</h1>
           {values.updated && (
             <p className="mt-3 text-[13px] text-ink-4">
               {legal.updated_prefix} {values.updated}
