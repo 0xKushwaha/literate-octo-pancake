@@ -184,12 +184,10 @@ export const CONTENT_SCHEMA = [
   f('nav.badge_item', 'Which menu item gets the badge', 'resources', 'text', 'One of: services, therapists, approach, resources, pricing. Leave blank for none.'),
 
   // ── Hero ──────────────────────────────────────────────────────────────────
-  f('hero.status_pill', 'Status pill', 'Accepting new clients'),
   f('hero.headline', 'Headline (before the rotating word)', 'Therapy for'),
   f('hero.rotating_words', 'Rotating words', HERO_WORDS, LIST, 'The headline cycles through these. The line is sized to the longest one.', strings('Word or phrase')),
   f('hero.subheadline', 'Subheadline', 'Licensed clinicians, matched to you by a human in under a day. Video, phone or in person, and a first session this week, not next quarter.', 'richtext'),
   f('hero.primary_cta', 'Primary button', 'Book your first session'),
-  f('hero.secondary_cta', 'Secondary button', 'See how it works'),
   f('hero.location_note', 'Location note', 'Based in India · Sessions online'),
   f('hero.image_url', 'Hero photo (URL)', IMAGES.hero, 'text', 'Paste any https image URL. Landscape works best.'),
   f('hero.image_alt', 'Hero photo description (for screen readers)', 'Two people talking on a couch in a bright room'),

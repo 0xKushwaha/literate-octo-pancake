@@ -84,6 +84,9 @@ export default function AdminApp() {
                 <Route path="fonts" element={<AdminTypography />} />
                 <Route path="faqs" element={<AdminFaqs />} />
                 <Route path="account" element={<AdminAccount />} />
+                {/* Unknown admin URLs (including the removed /admin/community and
+                    /admin/bookings screens) land on the dashboard, not a blank page. */}
+                <Route path="*" element={<Navigate to="dashboard" replace />} />
               </Routes>
             </AdminShell>
           </AdminGuard>
