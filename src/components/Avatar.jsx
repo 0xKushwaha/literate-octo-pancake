@@ -1,3 +1,4 @@
+import { useState } from 'react';
 /**
  * Deterministic portrait stand-in, built from the site palette.
  *
@@ -17,7 +18,9 @@ const SWATCHES = [
   'bg-sand-50',
 ];
 
-export default function Avatar({ name, hue = [172, 268], size = 'md', className = '' }) {
+export default function Avatar({ name, hue = [172, 268], photo = '', size = 'md', className = '' }) {
+  // Which photo failed, so a new one gets its own chance to load.
+  const [failed, setFailed] = useState('');
   const initials = String(name ?? '')
     .replace(/^(Dr|Mr|Ms|Mx)\.?\s+/i, '')
     .split(' ')
@@ -38,12 +41,26 @@ export default function Avatar({ name, hue = [172, 268], size = 'md', className 
     xl: 'size-28 text-2xl',
   };
 
+  // A photo uploaded in the admin (Therapists → Photo) takes the initials'
+  // place. The swatch stays behind it, so a slow or broken picture still
+  // leaves a coloured circle rather than a hole.
   return (
     <div
-      className={`relative grid shrink-0 place-items-center overflow-hidden rounded-full font-medium tracking-tight text-ink ring-1 ring-inset ring-black/10 ${swatch} ${sizes[size]} ${className}`}
+      className={`relative grid shrink-0 place-items-center overflow-hidden rounded-full font-medium tracking-tight text-ink ring-1 ring-inset ring-ink/10 ${swatch} ${sizes[size]} ${className}`}
       aria-hidden="true"
     >
-      {initials}
+      {photo && failed !== photo ? (
+        <img
+          src={photo}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          className="absolute inset-0 h-full w-full object-cover"
+          onError={() => setFailed(photo)}
+        />
+      ) : (
+        initials
+      )}
     </div>
   );
 }

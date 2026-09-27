@@ -40,12 +40,21 @@ export function sectionOf(key) {
  *     headline; deliberately empty text is not something this site needs, and
  *     an unrecoverable blank is much worse than a stale default.
  */
+/** Keys where the stored word "none" means "show nothing" rather than text. */
+export const NONE_ALLOWED = /(^|_)(image|logo)_url$/;
+
 export function mergeContent(defaults = {}, remote = {}) {
   const merged = { ...defaults };
   for (const [shortKey, entry] of Object.entries(remote ?? {})) {
     const isRow = entry && typeof entry === 'object' && !Array.isArray(entry);
     const value = isRow ? entry.value : entry;
     if (value == null || value === '') continue;
+    // An empty value means "use the default", so a picture someone removed on
+    // purpose is stored as the word "none" and reaches the page as no picture.
+    if (value === 'none' && NONE_ALLOWED.test(shortKey)) {
+      merged[shortKey] = '';
+      continue;
+    }
 
     // Structured fields (lists of services, therapists, …) are stored as JSON
     // text. A row typed `json` — or a default that is itself an array/object —

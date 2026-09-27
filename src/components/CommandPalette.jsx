@@ -111,7 +111,7 @@ export default function CommandPalette({ onBook, initialOpen = false }) {
                 >
                   <Icon name={s.icon} size={16} />
                   <span>{s.name}</span>
-                  <CommandShortcut>${s.price}</CommandShortcut>
+                  <CommandShortcut>{brand.currency}{s.price}</CommandShortcut>
                 </CommandItem>
               ))}
             </CommandGroup>
@@ -125,7 +125,7 @@ export default function CommandPalette({ onBook, initialOpen = false }) {
               >
                 <Icon name="message" size={16} />
                 <span>{community.palette_label}</span>
-                <CommandShortcut>Discord</CommandShortcut>
+                {community.palette_hint && <CommandShortcut>{community.palette_hint}</CommandShortcut>}
               </CommandItem>
             </CommandGroup>
           )}
@@ -140,7 +140,7 @@ export default function CommandPalette({ onBook, initialOpen = false }) {
                 value={`${t.name} ${t.credentials} ${(t.focus ?? []).join(' ')}`}
                 onSelect={() => run(() => onBook({ therapist: t.id }))}
               >
-                <Avatar name={t.name} hue={t.hue} size="sm" className="!size-6 !text-[9px]" />
+                <Avatar name={t.name} hue={t.hue} photo={t.photo} size="sm" className="!size-6 !text-[9px]" />
                 <span>{t.name}</span>
                 <CommandShortcut>{t.focus?.[0]}</CommandShortcut>
               </CommandItem>

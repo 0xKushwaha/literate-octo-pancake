@@ -26,6 +26,7 @@ export default function BlogPostPage() {
   const [related, setRelated] = useState([]);
   const [loading, setLoading] = useState(true);
   const brand = useBrand();
+  const seo = useSiteContent('seo');
 
   // The article's own title and summary in the tab and for search engines.
   // (Link previews get the same text server-side: api/blog-page.js.)
@@ -33,9 +34,9 @@ export default function BlogPostPage() {
     if (!article) return;
     setPageMeta({
       title: `${article.title} · ${brand.name}`,
-      description: article.excerpt?.trim() || summarize(article.content) || baseMeta.description,
+      description: article.excerpt?.trim() || summarize(article.content) || seo.description || baseMeta.description,
     });
-  }, [article, brand.name]);
+  }, [article, brand.name, seo.description]);
 
   useEffect(() => {
     setLoading(true);

@@ -216,6 +216,7 @@ export const GROUPS = [
       t('photo-frame', '--color-photo-frame', 'var(--color-brand-200)', 'Panel behind page photos'),
       t('field-line', '--color-field-line', 'var(--color-line-2)', 'Form field border', '', { alpha: true }),
       t('scrollbar', '--color-scrollbar', 'var(--color-line-2)', 'Scrollbar', '', { alpha: true }),
+      t('shadow', '--color-shadow', '#0B1F24', 'Shadows', 'The soft shadow under cards, photos and pop-ups. It is always used faint, so keep it dark.'),
     ],
   },
   {

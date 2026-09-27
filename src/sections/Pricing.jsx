@@ -1,10 +1,11 @@
 import { Button, Pill, Reveal, Section, SectionHeading, sectionPad } from '../components/primitives';
 import Icon from '../components/Icon';
 import { usePrimaryCta } from '../lib/features';
-import { useSiteContent } from '../lib/queries/siteContent';
+import { useBrand, useSiteContent } from '../lib/queries/siteContent';
 
 export default function Pricing({ onBook, withHeading = true }) {
   const content = useSiteContent('pricing');
+  const { currency } = useBrand();
   // Each plan keeps its own button label while booking is on. With booking
   // off the plans are still worth reading — that is the point of a pricing
   // page — so the cards stay and only the button changes.
@@ -55,7 +56,7 @@ export default function Pricing({ onBook, withHeading = true }) {
 
               <div className="relative mt-8 flex items-baseline gap-2">
                 <span className={`font-display text-[3rem] font-medium leading-none tracking-tight ${p.featured ? 'text-accent-strong' : 'text-ink'}`}>
-                  ${p.price}
+                  {currency}{p.price}
                 </span>
               </div>
               <p className="relative mt-2 text-[12px] font-medium uppercase tracking-[0.1em] text-ink-4">

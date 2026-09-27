@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { deleteContent, getAllContent, upsertContent } from '../../lib/queries/siteContent';
-import { parseJsonValue, stringifyContentValue } from '../../lib/contentMerge';
+import { NONE_ALLOWED, parseJsonValue, shortKeyOf, stringifyContentValue } from '../../lib/contentMerge';
 import {
   CONTENT_SCHEMA, PAGE_BLURBS, PAGE_FEATURE, PAGE_ORDER, PAGE_PATHS, PAGE_TITLES,
   SCHEMA_BY_KEY, SECTION_ORDER, SECTION_PAGE, SECTION_TITLES,
 } from '../../data/contentSchema';
 import { isFeatureOn } from '../../lib/featureFlag';
-import { cleanupReplacedMedia, uploadAudio } from '../../lib/queries/media';
+import { ACCEPTED_IMAGE_TYPES, cleanupReplacedMedia, uploadAudio, uploadImage } from '../../lib/queries/media';
+import { prepareImageForUpload } from '../../lib/imageResize';
 import { iconNames } from '../../components/Icon';
 import { useSearch } from '../hooks';
 import { CORE_KEYS } from '../../lib/palette';
@@ -117,6 +118,83 @@ function AudioField({ value, onChange, hint }) {
   );
 }
 
+/**
+ * A picture field: upload a file, see it, replace or remove it.
+ *
+ * Same reasoning as AudioField — no paste-a-link box, because the links people
+ * reach for are pages that show a picture rather than the picture itself. The
+ * built-in defaults are still links (the stock photos the site shipped with,
+ * or a file in /public), and they show here like any other picture.
+ */
+function ImageUpload({ value, onChange, hint, folder = 'site', compact = false, allowNone = false }) {
+  const empty = !value || value === 'none';
+  const [busy, setBusy] = useState(false);
+  const [broken, setBroken] = useState(false);
+  const fileRef = useRef(null);
+
+  const pick = async (file) => {
+    if (!file) return;
+    setBusy(true);
+    try {
+      const prepared = await prepareImageForUpload(file);
+      onChange(await uploadImage(prepared, folder));
+      setBroken(false);
+      toast.success('Image uploaded. Press Save to use it.');
+    } catch (err) {
+      toast.error(err?.message || 'Could not upload that image');
+    } finally {
+      setBusy(false);
+      if (fileRef.current) fileRef.current.value = '';
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      {!empty ? (
+        broken ? (
+          <p className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-[11.5px] text-amber-800">
+            This picture is not loading. Upload it again.
+          </p>
+        ) : (
+          <img
+            src={value}
+            alt=""
+            onError={() => setBroken(true)}
+            className={`${compact ? 'h-20' : 'h-32'} w-auto max-w-full rounded-lg border border-gray-200 bg-gray-50 object-contain`}
+          />
+        )
+      ) : (
+        <p className="text-[11px] text-gray-400">{value === 'none' ? 'No picture: this spot is left empty.' : 'No picture.'}</p>
+      )}
+      <div className="flex flex-wrap items-center gap-2">
+        <input
+          ref={fileRef}
+          type="file"
+          accept={ACCEPTED_IMAGE_TYPES.join(',')}
+          disabled={busy}
+          onChange={(e) => pick(e.target.files?.[0])}
+          className="hidden"
+        />
+        <button
+          type="button"
+          onClick={() => fileRef.current?.click()}
+          disabled={busy}
+          className="rounded-lg bg-gray-900 px-3 py-1.5 text-[11.5px] font-medium text-white transition hover:bg-gray-700 disabled:opacity-40"
+        >
+          {busy ? 'Uploading…' : !empty ? 'Replace picture' : 'Upload picture'}
+        </button>
+        {!empty && !busy && (
+          <button type="button" onClick={() => { setBroken(false); onChange(allowNone ? 'none' : ''); }} className="text-[11px] text-red-500 hover:underline">
+            Remove
+          </button>
+        )}
+        <span className="text-[10.5px] text-gray-400">JPG, PNG, WebP or GIF · up to 10 MB</span>
+      </div>
+      {hint && <p className="text-[10.5px] text-gray-400">{hint}</p>}
+    </div>
+  );
+}
+
 function ItemField({ field, value, onChange }) {
   // A stable id per input: a fresh random one on every render would relabel the
   // field mid-keystroke.
@@ -143,6 +221,14 @@ function ItemField({ field, value, onChange }) {
         />
       ) : field.type === 'audio' ? (
         <AudioField value={value ?? ''} onChange={onChange} hint={field.hint} />
+      ) : field.type === 'image' ? (
+        <ImageUpload value={value ?? ''} onChange={onChange} hint={field.hint} folder={field.folder} compact />
+      ) : field.type === 'select' ? (
+        <select {...common} value={value ?? ''} onChange={(e) => onChange(e.target.value)}>
+          {(field.options ?? []).map((o) => (
+            <option key={o.value} value={o.value}>{o.label}</option>
+          ))}
+        </select>
       ) : field.type === 'icon' ? (
         <select {...common} value={value ?? ''} onChange={(e) => onChange(e.target.value)}>
           <option value="">None</option>
@@ -153,7 +239,7 @@ function ItemField({ field, value, onChange }) {
       ) : (
         <input {...common} type="text" value={value ?? ''} onChange={(e) => onChange(e.target.value)} />
       )}
-      {field.hint && field.type !== 'audio' && (
+      {field.hint && field.type !== 'audio' && field.type !== 'image' && (
         <span className="mt-1 block text-[10.5px] text-gray-400">{field.hint}</span>
       )}
     </label>
@@ -209,7 +295,9 @@ function ListEditor({ spec, items, onChange, expandAll = false }) {
   return (
     <div className="flex flex-col gap-2">
       {items.map((item, i) => {
-        const isOpen = expandAll || open.has(i);
+        // A fixed list (the homepage order) is short, and its one field is the
+        // point of it, so every row stays open.
+        const isOpen = expandAll || spec.fixedItems || open.has(i);
         return (
           <div key={i} className="rounded-xl border border-gray-200 bg-gray-50/60">
             <div className="flex items-center gap-2 px-3 py-2">
@@ -225,11 +313,11 @@ function ListEditor({ spec, items, onChange, expandAll = false }) {
                 </span>
                 <span className="truncate text-[12.5px] text-gray-700">{itemSummary(item, spec)}</span>
               </button>
-              <RowButtons i={i} count={items.length} onMove={move} onRemove={remove} />
+              <RowButtons i={i} count={items.length} onMove={move} onRemove={spec.fixedItems ? null : remove} />
             </div>
             {isOpen && (
               <div className="grid gap-3 border-t border-gray-200 px-3 py-3 sm:grid-cols-2">
-                {(spec.fields ?? []).map((field) => (
+                {(spec.fields ?? []).filter((field) => !field.hidden).map((field) => (
                   <div key={field.key} className={field.type === 'richtext' ? 'sm:col-span-2' : ''}>
                     <ItemField
                       field={field}
@@ -243,7 +331,7 @@ function ListEditor({ spec, items, onChange, expandAll = false }) {
           </div>
         );
       })}
-      <AddButton onClick={add} label={spec.itemLabel ?? 'item'} />
+      {!spec.fixedItems && <AddButton onClick={add} label={spec.itemLabel ?? 'item'} />}
     </div>
   );
 }
@@ -254,14 +342,16 @@ function RowButtons({ i, count, onMove, onRemove }) {
     <div className="flex shrink-0 items-center gap-0.5">
       <button type="button" className={btn} onClick={() => onMove(i, -1)} disabled={i === 0} title="Move up">↑</button>
       <button type="button" className={btn} onClick={() => onMove(i, 1)} disabled={i === count - 1} title="Move down">↓</button>
-      <button
-        type="button"
-        className={`${btn} hover:bg-red-50 hover:text-red-600`}
-        onClick={() => { if (window.confirm('Remove this entry?')) onRemove(i); }}
-        title="Remove"
-      >
-        ×
-      </button>
+      {onRemove && (
+        <button
+          type="button"
+          className={`${btn} hover:bg-red-50 hover:text-red-600`}
+          onClick={() => { if (window.confirm('Remove this entry?')) onRemove(i); }}
+          title="Remove"
+        >
+          ×
+        </button>
+      )}
     </div>
   );
 }
@@ -410,6 +500,8 @@ function ContentRow({ item, onSave, onReset, expandAll = false }) {
         />
       ) : item.type === 'richtext' ? (
         <textarea value={value} onChange={(e) => setValue(e.target.value)} rows={3} className={`${inputClass} resize-y`} />
+      ) : item.type === 'image' ? (
+        <ImageUpload value={value} onChange={setValue} folder={item.folder} allowNone={NONE_ALLOWED.test(shortKeyOf(item.key))} />
       ) : item.type === 'toggle' ? (
         <button
           type="button"
@@ -488,6 +580,9 @@ function buildItems(remote = []) {
       fields: d.fields,
       itemType: d.itemType,
       itemLabel: d.itemLabel,
+      summaryKey: d.summaryKey,
+      fixedItems: d.fixedItems,
+      folder: d.folder,
       defaultValue: d.value,
       stored: Boolean(r),
     };

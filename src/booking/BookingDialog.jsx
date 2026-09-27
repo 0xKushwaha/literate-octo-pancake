@@ -25,11 +25,12 @@ import { buildIcs, downloadIcs } from './calendar';
 import { clearDraft, loadDraft, saveDraft } from './draft';
 import { LIMITS, isEmail, isPhone, looksAutomated, normalise } from './validate';
 import { submitBooking } from '../lib/queries/bookings';
-import { concerns, services, therapists } from '../data/site';
+import { concerns } from '../data/site';
 import {
   BOOKING_CADENCE, BOOKING_FORMATS, BOOKING_STEPS, BOOKING_WHO, INSURERS as INSURERS_DEFAULT,
 } from '../data/contentSchema';
-import { useSiteContent } from '../lib/queries/siteContent';
+import { useBrand, useSiteContent } from '../lib/queries/siteContent';
+import { fillTemplate } from '../lib/format';
 import {
   dayKey,
   formatDay,
@@ -49,8 +50,31 @@ import {
  */
 function useBookingOptions() {
   const c = useSiteContent('booking');
+  const servicesContent = useSiteContent('services');
+  const therapistsContent = useSiteContent('therapists');
+  const brand = useBrand();
   const list = (value, fallback) => (Array.isArray(value) && value.length ? value : fallback);
+  // The same lists the Services and Therapists pages show, so a therapist
+  // added, edited or removed in the admin is the one the form offers.
+  const SERVICES = useMemo(
+    () => (Array.isArray(servicesContent.items) ? servicesContent.items : []),
+    [servicesContent.items],
+  );
+  const THERAPISTS = useMemo(
+    () => (Array.isArray(therapistsContent.items) ? therapistsContent.items : []).map((t) => ({
+      ...t,
+      focus: Array.isArray(t.focus) ? t.focus : [],
+      services: Array.isArray(t.services) ? t.services : [],
+      hue: Array.isArray(t.hue) && t.hue.length ? t.hue : [357, 45],
+    })),
+    [therapistsContent.items],
+  );
   return {
+    SERVICES,
+    THERAPISTS,
+    brand,
+    currency: brand.currency ?? '$',
+    availability: therapistsContent,
     copy: c,
     STEPS: list(c.steps, BOOKING_STEPS),
     FORMATS: list(c.formats, BOOKING_FORMATS),
@@ -90,7 +114,7 @@ const emptyForm = {
 // Every label here is a CMS field, so a long one has to wrap inside the chip
 // rather than run out of it.
 const chipCls =
-  'h-auto min-w-0 max-w-full whitespace-normal break-words rounded-full border border-line bg-surface px-4 py-2.5 text-[14px] text-ink-2 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-line-2 hover:bg-surface hover:text-ink active:scale-[0.97] data-[state=on]:border-brand-500 data-[state=on]:bg-brand-100 data-[state=on]:text-ink data-[state=on]:shadow-[0_4px_14px_-6px_rgba(255,191,0,0.45)]';
+  'h-auto min-w-0 max-w-full whitespace-normal break-words rounded-full border border-line bg-surface px-4 py-2.5 text-[14px] text-ink-2 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-line-2 hover:bg-surface hover:text-ink active:scale-[0.97] data-[state=on]:border-brand-500 data-[state=on]:bg-brand-100 data-[state=on]:text-ink data-[state=on]:shadow-[0_4px_14px_-6px_color-mix(in_srgb,var(--color-amber-500)_45%,transparent)]';
 
 // Same fix as chipCls: without `whitespace-normal` the note under "Video call"
 // sets itself on one line and prints straight through the card's edge.
@@ -229,7 +253,7 @@ function FormatStep({ form, set }) {
 }
 
 function TherapistStep({ form, set, matches }) {
-  const { copy, STEPS } = useBookingOptions();
+  const { copy, STEPS, availability } = useBookingOptions();
   const step = STEPS[2] ?? {};
   return (
     <div className="flex flex-col gap-8">
@@ -256,7 +280,7 @@ function TherapistStep({ form, set, matches }) {
           <span>
             <span className="block text-[15px] text-ink">{copy.match_me}</span>
             <span className="mt-1 block text-[13px] text-ink-3">
-              A clinician reads your intake and picks. Usually the fastest route to a session.
+              {copy.match_note}
             </span>
           </span>
         </ToggleGroupItem>
@@ -265,12 +289,14 @@ function TherapistStep({ form, set, matches }) {
           {matches.map((t) => (
             <ToggleGroupItem key={t.id} value={t.id} className={`${cardCls} w-full gap-4`}>
               <span className="flex w-full items-start gap-3.5">
-                <Avatar name={t.name} hue={t.hue} size="md" />
+                <Avatar name={t.name} hue={t.hue} photo={t.photo} size="md" />
                 <span className="min-w-0">
                   <span className="block truncate text-[15px] text-ink">{t.name}</span>
                   <span className="mt-0.5 block text-[12.5px] text-ink-3">{t.credentials}</span>
                   <span className="mt-1.5 block text-[12px] text-ink">
-                    {t.nextAvailable <= 1 ? 'Free tomorrow' : `Free in ${t.nextAvailable} days`}
+                    {t.nextAvailable <= 1
+                      ? availability.available_tomorrow
+                      : fillTemplate(availability.available_days, { days: t.nextAvailable })}
                   </span>
                 </span>
               </span>
@@ -288,7 +314,7 @@ function TherapistStep({ form, set, matches }) {
 }
 
 function TimeStep({ form, set }) {
-  const { STEPS } = useBookingOptions();
+  const { STEPS, copy } = useBookingOptions();
   const step = STEPS[3] ?? {};
   const days = useMemo(() => upcomingDays(12), []);
   const selectedDate = form.date ? parseDayKey(form.date) : null;
@@ -306,7 +332,7 @@ function TimeStep({ form, set }) {
       />
 
       <div>
-        <p className="text-[13px] text-ink-2">Day</p>
+        <p className="text-[13px] text-ink-2">{copy.day_label}</p>
         <ToggleGroup
           spacing={2}
           type="single"
@@ -338,7 +364,7 @@ function TimeStep({ form, set }) {
                   {f.day}
                 </span>
                 <span className="text-[10.5px] text-ink-4">
-                  {count > 0 ? `${count} open` : 'full'}
+                  {count > 0 ? fillTemplate(copy.slots_open, { count }) : copy.slots_full}
                 </span>
               </ToggleGroupItem>
             );
@@ -410,7 +436,7 @@ function DetailsStep({ form, set, errors }) {
             value={form.name}
             autoComplete="name"
             maxLength={LIMITS.name}
-            placeholder="Alex Rivera"
+            placeholder={copy.placeholder_name}
             aria-invalid={!!errors.name}
             onChange={(e) => set({ name: e.target.value })}
           />
@@ -423,7 +449,7 @@ function DetailsStep({ form, set, errors }) {
             value={form.email}
             autoComplete="email"
             maxLength={LIMITS.email}
-            placeholder="alex@example.com"
+            placeholder={copy.placeholder_email}
             aria-invalid={!!errors.email}
             onChange={(e) => set({ email: e.target.value })}
           />
@@ -436,7 +462,7 @@ function DetailsStep({ form, set, errors }) {
             value={form.phone}
             autoComplete="tel"
             maxLength={LIMITS.phone}
-            placeholder="(415) 555-0142"
+            placeholder={copy.placeholder_phone}
             onChange={(e) => set({ phone: e.target.value })}
           />
         </Field>
@@ -447,7 +473,7 @@ function DetailsStep({ form, set, errors }) {
               className={`${fieldCls} justify-between [&>svg]:size-[18px] [&>svg]:opacity-60`}
               aria-invalid={!!errors.insurer}
             >
-              <SelectValue placeholder="Select one" />
+              <SelectValue placeholder={copy.placeholder_insurer} />
             </SelectTrigger>
             <SelectContent
               position="popper"
@@ -474,7 +500,7 @@ function DetailsStep({ form, set, errors }) {
           value={form.notes}
           maxLength={LIMITS.notes}
           autoComplete="off"
-          placeholder="Only if you feel like it."
+          placeholder={copy.placeholder_note}
           onChange={(e) => set({ notes: e.target.value })}
         />
       </Field>
@@ -506,8 +532,7 @@ function DetailsStep({ form, set, errors }) {
           className="block text-[13.5px] font-normal leading-relaxed text-ink-3"
         >
           <span>
-            I consent to telehealth care and agree to the privacy practices. I understand this
-            booking can be cancelled free of charge up to 24 hours beforehand.
+            {copy.consent_text}
             {errors.consent && <span className="mt-1 block text-ink">{errors.consent}</span>}
           </span>
         </Label>
@@ -517,27 +542,28 @@ function DetailsStep({ form, set, errors }) {
 }
 
 function ReviewStep({ form, therapist }) {
-  const { FORMATS, CADENCE, copy, STEPS } = useBookingOptions();
+  const { FORMATS, CADENCE, SERVICES, copy, STEPS, currency } = useBookingOptions();
   const step = STEPS[5] ?? {};
   const date = form.date ? parseDayKey(form.date) : null;
-  const service = services.find((s) => s.id === form.who);
+  const service = SERVICES.find((s) => s.id === form.who);
   const rows = [
-    { label: 'Care', value: service ? service.name : 'Individual therapy' },
-    { label: 'Format', value: FORMATS.find((f) => f.id === form.format)?.label ?? '—' },
-    { label: 'Therapist', value: therapist ? therapist.name : 'Matched for you' },
+    { key: 'care', label: copy.review_care, value: service ? service.name : copy.review_care_default },
+    { key: 'format', label: copy.review_format, value: FORMATS.find((f) => f.id === form.format)?.label ?? '—' },
+    { key: 'therapist', label: copy.review_therapist, value: therapist ? therapist.name : copy.review_matched },
     {
-      label: 'When',
-      value: date ? `${formatDay(date).full} at ${formatTime(form.time)}` : '—',
+      key: 'when',
+      label: copy.review_when,
+      value: date ? `${formatDay(date).full} ${copy.review_at} ${formatTime(form.time)}` : '—',
     },
-    { label: 'Cadence', value: CADENCE.find((c) => c.id === form.cadence)?.label ?? '—' },
-    { label: 'Name', value: form.name },
-    { label: 'Email', value: form.email },
-    { label: 'Insurance', value: form.insurer },
+    { key: 'cadence', label: copy.review_cadence, value: CADENCE.find((c) => c.id === form.cadence)?.label ?? '—' },
+    { key: 'name', label: copy.review_name, value: form.name },
+    { key: 'email', label: copy.review_email, value: form.email },
+    { key: 'insurance', label: copy.review_insurance, value: form.insurer },
   ];
 
-  const price = service?.price ?? 165;
+  const price = service?.price ?? SERVICES[0]?.price ?? 0;
   const covered = form.insurer && form.insurer !== 'Self-pay' && form.insurer !== 'Other / not sure';
-  const due = covered ? 35 : price;
+  const due = covered ? Number(copy.copay) || 0 : price;
 
   return (
     <div className="flex flex-col gap-8">
@@ -546,7 +572,7 @@ function ReviewStep({ form, therapist }) {
       <dl className="overflow-hidden rounded-3xl border border-line">
         {rows.map((r, i) => (
           <div
-            key={r.label}
+            key={r.key}
             className={`flex items-start justify-between gap-6 px-5 py-4 ${
               i % 2 ? 'bg-surface-2' : ''
             }`}
@@ -573,12 +599,10 @@ function ReviewStep({ form, therapist }) {
       <div className="rounded-3xl border border-brand-300 bg-brand-100 p-5">
         <div className="flex items-baseline justify-between">
           <span className="text-[14px] text-ink-2">{copy.estimate_label}</span>
-          <span className="font-display text-3xl leading-none tracking-tight text-ink">${due}</span>
+          <span className="font-display text-3xl leading-none tracking-tight text-ink">{currency}{due}</span>
         </div>
         <p className="mt-3 text-[13px] leading-relaxed text-ink-3">
-          {covered
-            ? `Estimated copay with ${form.insurer}. We verify benefits before your session and will tell you if this changes — never after the fact.`
-            : 'Self-pay rate. Sliding-scale places are available; mention it on your intro call.'}
+          {covered ? fillTemplate(copy.estimate_insured, { insurer: form.insurer }) : copy.estimate_selfpay}
         </p>
       </div>
     </div>
@@ -586,7 +610,7 @@ function ReviewStep({ form, therapist }) {
 }
 
 function SuccessStep({ reference, form, therapist, onClose }) {
-  const { copy: bookingCopy } = useBookingOptions();
+  const { copy: bookingCopy, SERVICES, brand } = useBookingOptions();
   const ui = useSiteContent('ui');
   const copy = { ...bookingCopy, close_label: ui.close };
   const date = form.date ? parseDayKey(form.date) : null;
@@ -610,10 +634,10 @@ function SuccessStep({ reference, form, therapist, onClose }) {
       </h3>
       <p className="mt-4 max-w-[44ch] text-[15.5px] leading-relaxed text-ink-3">
         {date
-          ? `${formatDay(date).full} at ${formatTime(form.time)}`
-          : 'We will confirm your time shortly'}
-        {therapist ? ` with ${therapist.name}.` : '.'} A confirmation is on its way to{' '}
-        <span className="text-ink-2">{form.email}</span>.
+          ? `${formatDay(date).full} ${copy.review_at} ${formatTime(form.time)}`
+          : copy.success_pending}
+        {therapist ? ` ${fillTemplate(copy.success_with, { therapist: therapist.name })}.` : '.'}{' '}
+        {fillTemplate(copy.success_email, { email: form.email })}
       </p>
 
       <div className="mt-8 rounded-2xl border border-line bg-surface-2 px-6 py-4">
@@ -637,11 +661,11 @@ function SuccessStep({ reference, form, therapist, onClose }) {
                   reference,
                   dateKey: form.date,
                   time: form.time,
-                  durationMin: services.find((s) => s.id === form.who)?.duration
-                    ? parseInt(services.find((s) => s.id === form.who).duration, 10)
-                    : 50,
+                  durationMin: parseInt(SERVICES.find((s) => s.id === form.who)?.duration, 10) || 50,
                   therapistName: therapist?.name,
                   format: form.format,
+                  brand,
+                  copy,
                 }),
                 reference,
               )
@@ -661,7 +685,7 @@ function SuccessStep({ reference, form, therapist, onClose }) {
 /* ------------------------------------------------------------------ shell */
 
 export default function BookingDialog({ open, onClose, prefill, openerRef }) {
-  const { copy, STEPS } = useBookingOptions();
+  const { copy, STEPS, WHO, THERAPISTS: therapists } = useBookingOptions();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState(() => ({ ...emptyForm, ...(loadDraft() ?? {}) }));
   const [errors, setErrors] = useState({});
@@ -686,17 +710,19 @@ export default function BookingDialog({ open, onClose, prefill, openerRef }) {
     if (!open || !prefill) return;
     const patch = {};
     if (prefill.service) {
-      patch.who = ['individual', 'couples', 'teen', 'psychiatry'].includes(prefill.service)
+      patch.who = WHO.some((w) => w.id === prefill.service)
         ? prefill.service
-        : 'individual';
+        : WHO[0]?.id ?? '';
     }
     if (prefill.therapist) {
       patch.therapist = prefill.therapist;
       const t = therapists.find((x) => x.id === prefill.therapist);
-      if (t && !patch.who) patch.who = t.services[0] === 'psychiatry' ? 'psychiatry' : 'individual';
+      if (t && !patch.who) {
+        patch.who = WHO.some((w) => w.id === t.services[0]) ? t.services[0] : WHO[0]?.id ?? '';
+      }
     }
     if (Object.keys(patch).length) setForm((f) => ({ ...f, ...patch }));
-  }, [open, prefill]);
+  }, [open, prefill, WHO, therapists]);
 
   // Only the non-sensitive selections are written down; see ./draft.js.
   useEffect(() => {
@@ -708,36 +734,36 @@ export default function BookingDialog({ open, onClose, prefill, openerRef }) {
     if (!form.who) return therapists;
     const filtered = therapists.filter((t) => t.services.includes(form.who));
     return filtered.length ? filtered : therapists;
-  }, [form.who]);
+  }, [form.who, therapists]);
 
   const therapist = useMemo(
     () => therapists.find((t) => t.id === form.therapist) ?? null,
-    [form.therapist],
+    [form.therapist, therapists],
   );
 
   const validate = useCallback(
     (i) => {
       const e = {};
       if (i === 0) {
-        if (form.concerns.length === 0) e.concerns = 'Pick at least one';
-        if (!form.who) e.who = 'Choose one';
+        if (form.concerns.length === 0) e.concerns = copy.error_pick;
+        if (!form.who) e.who = copy.error_choose;
       }
-      if (i === 1 && !form.format) e.format = 'Choose a format';
-      if (i === 2 && !form.therapist) e.therapist = 'Choose a therapist, or ask to be matched';
+      if (i === 1 && !form.format) e.format = copy.error_format;
+      if (i === 2 && !form.therapist) e.therapist = copy.error_therapist;
       if (i === 3) {
-        if (!form.date) e.date = 'Pick a day';
-        else if (!form.time) e.time = 'Pick a time';
+        if (!form.date) e.date = copy.error_day;
+        else if (!form.time) e.time = copy.error_time;
       }
       if (i === 4) {
-        if (normalise(form.name, { maxLength: LIMITS.name }).length < 2) e.name = 'Required';
-        if (!isEmail(form.email)) e.email = 'Enter a valid email';
-        if (!isPhone(form.phone)) e.phone = 'Check this number';
-        if (!form.insurer) e.insurer = 'Select one';
-        if (!form.consent) e.consent = 'Please confirm to continue.';
+        if (normalise(form.name, { maxLength: LIMITS.name }).length < 2) e.name = copy.error_required;
+        if (!isEmail(form.email)) e.email = copy.error_email;
+        if (!isPhone(form.phone)) e.phone = copy.error_phone;
+        if (!form.insurer) e.insurer = copy.error_select;
+        if (!form.consent) e.consent = copy.error_consent;
       }
       return e;
     },
-    [form],
+    [form, copy],
   );
 
   const stepError = useMemo(() => Object.values(errors)[0] ?? null, [errors]);
@@ -747,7 +773,7 @@ export default function BookingDialog({ open, onClose, prefill, openerRef }) {
     // It exists to keep stored values predictable and to shed drive-by bots.
     const bot = looksAutomated({ honeypot: form.company, openedAt: openedAt.current });
     if (bot) {
-      setErrors({ submit: 'Something looks off with this submission. Please try again.' });
+      setErrors({ submit: copy.error_bot });
       return;
     }
 
@@ -774,7 +800,7 @@ export default function BookingDialog({ open, onClose, prefill, openerRef }) {
         // rest surfaces as one message above the button.
         setErrors({
           ...(err?.fields ?? {}),
-          submit: err?.message ?? 'Something went wrong. Please try again or call us directly.',
+          submit: err?.message ?? copy.error_generic,
         });
       })
       .finally(() => setSubmitting(false));
@@ -841,7 +867,9 @@ export default function BookingDialog({ open, onClose, prefill, openerRef }) {
         {/* header */}
         <div className="relative shrink-0 border-b border-line px-6 pb-5 pt-6 sm:px-9">
           <DialogDescription className="font-mono text-[10.5px] uppercase tracking-[0.22em] text-ink-4">
-            {reference ? 'Confirmed' : `Step ${step + 1} of ${STEPS.length} — ${STEPS[step].label}`}
+            {reference
+              ? copy.confirmed_label
+              : `${fillTemplate(copy.step_counter, { n: step + 1, total: STEPS.length })} — ${STEPS[step].label}`}
           </DialogDescription>
           <DialogTitle className="mt-1.5 font-display text-xl font-normal tracking-tight text-ink">
             {copy.dialog_title}
@@ -925,10 +953,10 @@ export default function BookingDialog({ open, onClose, prefill, openerRef }) {
                     {step === 0
                       ? copy.step_note
                       : step === 3
-                        ? 'All times Pacific.'
+                        ? copy.time_note
                         : step === 5
-                          ? 'Nothing is charged today.'
-                          : 'You can change any of this later.'}
+                          ? copy.review_note
+                          : copy.other_note}
                   </p>
                 )}
               </div>
@@ -947,7 +975,7 @@ export default function BookingDialog({ open, onClose, prefill, openerRef }) {
                   disabled={submitting}
                 >
                   {submitting
-                    ? 'Confirming…'
+                    ? copy.confirming
                     : step === STEPS.length - 1
                       ? copy.submit
                       : copy.continue}

@@ -54,6 +54,22 @@ export function applyPalette(overrides, root = document.documentElement) {
   for (const name of appliedVars) if (!(name in vars)) root.style.removeProperty(name);
   for (const [name, value] of Object.entries(vars)) root.style.setProperty(name, value);
   appliedVars = new Set(Object.keys(vars));
+  if (root === document.documentElement) syncThemeColor(vars);
+}
+
+/**
+ * The phone browser's address-bar colour (<meta name="theme-color">) follows
+ * the header background, or the page background when the header has none of
+ * its own. Only hex is ever stored, so no colour conversion is needed; with
+ * nothing overridden, the value index.html shipped with stays.
+ */
+let shippedThemeColor = null;
+function syncThemeColor(vars) {
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (!meta) return;
+  if (shippedThemeColor === null) shippedThemeColor = meta.getAttribute('content') ?? '';
+  const colour = vars['--header-bg'] || vars['--color-bg'] || shippedThemeColor;
+  if (colour) meta.setAttribute('content', colour);
 }
 
 /** Writes (or removes) the fonts stylesheet. */

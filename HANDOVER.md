@@ -147,7 +147,9 @@ Open the live site and check each item:
 
 Admin → Site content:
 
-- **Everywhere → Brand & contact:** name, phone, email.
+- **Everywhere → Brand & contact:** name, phone, email, logo, browser-tab icon and the currency symbol shown before prices (₹ or $).
+- **Everywhere → Search & sharing:** the home page title and description Google shows, the picture a shared link previews with, and each page's name in the browser tab.
+- **Everywhere → Booking:** if booking is switched on, set the time zone (e.g. `Asia/Kolkata`) and the note that says which zone the times are in.
 - **Everywhere → Footer:** the legal links.
 - **Home page → Community:** the Discord invite link.
 - **Legal pages:** have a lawyer review the privacy policy and terms (they are starting drafts written for India's DPDP Act).
@@ -223,7 +225,8 @@ The password was right, but the permission is missing. Run `database/admin/diagn
 | FAQs | Questions and answers |
 | Community | Everyone who joined via the website; search, remove, export to CSV |
 | Bookings | Session requests (only used while booking is switched on) |
-| Site Content | Every piece of text on the site, grouped by page, plus **Show & hide** switches for whole sections |
+| Site Content | Every piece of text and every page photo on the site, grouped by page, plus **Show & hide**: switches for whole sections and the order of the homepage |
+| Colours / Fonts & text | Every colour and font on the public site |
 | Your account | Change your password |
 
 Changes to text and content appear on the site straight away; no redeploy needed.

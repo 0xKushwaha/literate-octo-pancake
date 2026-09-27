@@ -1,3 +1,4 @@
+import { Fragment } from 'react';
 import Hero from '../sections/Hero';
 import HeardYou from '../sections/HeardYou';
 import Services from '../sections/Services';
@@ -9,42 +10,45 @@ import BreathePrompt from '../sections/BreathePrompt';
 import CtaBand from '../sections/CtaBand';
 import { useBooking } from '../lib/booking';
 import { useFeatures } from '../lib/features';
+import { useSiteContent } from '../lib/queries/siteContent';
+import { homeSectionOrder } from '../lib/homeSections';
 
 /**
  * The homepage is a table of contents, not the whole site. Each block shows a
  * few items and links to the page that holds the rest — every service, the
  * resource library and the FAQ all live on their own pages.
  *
- * The order is deliberate, and it is not the order the money is in. The
- * reasons people put this off come first: a visitor who has been meaning to
- * do this for two years should meet their own sentence before they meet
- * anyone else's, because recognition is what earns the next scroll and praise
- * from strangers is not. The reviews follow, answering the doubt the quotes
- * just named. Then a minute of breathing they can have right now for nothing,
- * and only then what we do and how.
+ * The order of the middle of the page is the admin's (Show & hide → Homepage
+ * sections); HOME_SECTIONS in contentSchema.js is the default. It opens with
+ * the free, useful things — the explore cards, then a minute of breathing —
+ * because they ask the visitor for nothing, then the reasons people put this
+ * off, the reviews, and only then what we do and how.
  *
- * The explore cards — articles and short videos — now sit directly under the
- * hero, where the community email capture used to be. The free, useful thing
- * is what earns the scroll, and it asks the visitor for nothing. The capture
- * itself is gone from this page; the community is offered in the header and
- * in the closing band, which is enough places to ask.
- *
- * The team, when it is switched back on (Site content → Show & hide), returns
- * near the foot of the page rather than in front of the cards.
+ * The hero is always first and the closing band always last. Reviews and the
+ * team also still answer to their own switches, so switching one off in
+ * "What the site shows" hides it here whatever this list says.
  */
 export default function HomePage() {
   const openBooking = useBooking();
   const features = useFeatures();
+  const { sections } = useSiteContent('homepage');
+
+  const render = {
+    explore: () => <Explore />,
+    breathe: () => <BreathePrompt />,
+    heard: () => <HeardYou limit={3} />,
+    testimonials: () => features.testimonials && <Testimonials limit={3} tinted={false} />,
+    services: () => <Services onBook={openBooking} limit={3} teaser />,
+    approach: () => <Approach teaser />,
+    therapists: () => features.therapists && <Therapists onBook={openBooking} limit={3} teaser />,
+  };
+
   return (
     <>
       <Hero />
-      <Explore />
-      <BreathePrompt />
-      <HeardYou limit={3} />
-      {features.testimonials && <Testimonials limit={3} tinted={false} />}
-      <Services onBook={openBooking} limit={3} teaser />
-      <Approach teaser />
-      {features.therapists && <Therapists onBook={openBooking} limit={3} teaser />}
+      {homeSectionOrder(sections).map((id) => (
+        <Fragment key={id}>{render[id]?.()}</Fragment>
+      ))}
       <CtaBand />
     </>
   );

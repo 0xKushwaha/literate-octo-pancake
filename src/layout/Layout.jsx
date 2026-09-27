@@ -7,7 +7,7 @@ import MobileBookBar from '../components/MobileBookBar';
 import { BookingProvider, useBooking } from '../lib/booking';
 import { useBrandTheme } from '../lib/theme';
 import { useBrand, useSiteContent } from '../lib/queries/siteContent';
-import { baseMeta, setPageMeta, titleForPath } from '../lib/pageMeta';
+import { setFavicon, setPageMeta, setShareImage, titleForPath } from '../lib/pageMeta';
 
 const CommandPalette = lazy(() => import('../components/CommandPalette'));
 
@@ -35,14 +35,19 @@ function Shell() {
   const ui = useSiteContent('ui');
   const { previewing, exitPreview } = useBrandTheme();
   const brand = useBrand();
+  const seo = useSiteContent('seo');
 
   // Each page its own tab title. Blog posts and the legal pages set theirs
   // from the content they load (titleForPath returns null for them), and
-  // every other route puts back the site-wide description.
+  // every other route puts back the site-wide description. All of the words
+  // are admin fields (Search & sharing).
   useEffect(() => {
-    const title = titleForPath(pathname, brand.name);
-    if (title) setPageMeta({ title, description: baseMeta.description });
-  }, [pathname, brand.name]);
+    const title = titleForPath(pathname, brand.name, seo.home_title, seo);
+    if (title) setPageMeta({ title, description: seo.description });
+  }, [pathname, brand.name, seo]);
+
+  useEffect(() => { setShareImage(seo.share_image_url); }, [seo.share_image_url]);
+  useEffect(() => { setFavicon(brand.favicon_url); }, [brand.favicon_url]);
 
   /**
    * Scroll handling for route changes.

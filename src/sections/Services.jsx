@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { MoreLink, Pill, Section, SectionHeading, Stagger, StaggerItem, sectionPad } from '../components/primitives';
 import Icon from '../components/Icon';
 import { useFeatures } from '../lib/features';
-import { useSiteContent } from '../lib/queries/siteContent';
+import { useBrand, useSiteContent } from '../lib/queries/siteContent';
 
 /**
  * The card colours.
@@ -31,6 +31,7 @@ const CARD_TONES = [
  */
 export default function Services({ onBook, limit, teaser = false, withHeading = true }) {
   const content = useSiteContent('services');
+  const { currency } = useBrand();
   const features = useFeatures();
   // The card list itself is editable ("services.items"); the older per-card
   // "<id>_blurb" keys are still honoured so nothing saved before this change
@@ -115,7 +116,7 @@ export default function Services({ onBook, limit, teaser = false, withHeading = 
                     <span className="text-[13px] font-medium text-accent-strong">{content.card_cta}</span>
                   ) : (
                     <span className="text-[14.5px] text-ink-2">
-                      <span className="text-ink-4">{content.price_prefix} </span>${s.price}
+                      <span className="text-ink-4">{content.price_prefix} </span>{currency}{s.price}
                     </span>
                   )}
                 </div>

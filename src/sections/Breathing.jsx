@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/compone
 import Icon from '../components/Icon';
 import { useReducedMotion } from '../lib/hooks';
 import { useSiteContent } from '../lib/queries/siteContent';
+import { fillTemplate } from '../lib/format';
 
 /**
  * One solid colour per phase, on the dark panel.
@@ -44,10 +45,10 @@ export function exerciseSeconds(ex) {
   );
 }
 
-function minutesLabel(seconds) {
-  if (seconds < 60) return `${seconds}s`;
-  const m = Math.round(seconds / 60);
-  return `${m} min`;
+/** "45s" or "3 min", in the admin's words (Breathing → Time in seconds/minutes). */
+function minutesLabel(seconds, content = {}) {
+  if (seconds < 60) return fillTemplate(content.seconds || '{s}s', { s: seconds });
+  return fillTemplate(content.minutes || '{m} min', { m: Math.round(seconds / 60) });
 }
 
 /**
@@ -144,11 +145,11 @@ function BreathingGuide({ exercise, onClose, content }) {
         <dl className="mt-8 grid w-full max-w-[17rem] grid-cols-2 gap-px overflow-hidden rounded-2xl border border-on-deep/15 bg-on-deep/15">
           <div className="bg-deep px-4 py-3">
             <dd className="font-display text-[20px] leading-none text-on-deep">{exercise.cycles}</dd>
-            <dt className="mt-1.5 text-[11px] uppercase tracking-[0.12em] text-on-deep/60">cycles</dt>
+            <dt className="mt-1.5 text-[11px] uppercase tracking-[0.12em] text-on-deep/60">{content.done_cycles}</dt>
           </div>
           <div className="bg-deep px-4 py-3">
-            <dd className="font-display text-[20px] leading-none text-on-deep">{minutesLabel(seconds)}</dd>
-            <dt className="mt-1.5 text-[11px] uppercase tracking-[0.12em] text-on-deep/60">breathing</dt>
+            <dd className="font-display text-[20px] leading-none text-on-deep">{minutesLabel(seconds, content)}</dd>
+            <dt className="mt-1.5 text-[11px] uppercase tracking-[0.12em] text-on-deep/60">{content.done_time}</dt>
           </div>
         </dl>
 
@@ -266,7 +267,7 @@ function BreathingGuide({ exercise, onClose, content }) {
   );
 }
 
-function ExerciseCard({ exercise, onStart }) {
+function ExerciseCard({ exercise, onStart, content }) {
   const seconds = exerciseSeconds(exercise);
   return (
     <StaggerItem className="h-full">
@@ -305,12 +306,14 @@ function ExerciseCard({ exercise, onStart }) {
           <RhythmStrip exercise={exercise} />
           <div className="mt-3 flex items-center justify-between text-[12px] font-medium text-ink-2">
             <span>
-              {exercise.inhale_sec}s in
-              {exercise.hold_in_sec > 0 ? ` · ${exercise.hold_in_sec}s hold` : ''}
-              {` · ${exercise.exhale_sec}s out`}
-              {exercise.hold_out_sec > 0 ? ` · ${exercise.hold_out_sec}s hold` : ''}
+              {[
+                fillTemplate(content.rhythm_in, { s: exercise.inhale_sec }),
+                exercise.hold_in_sec > 0 && fillTemplate(content.rhythm_hold, { s: exercise.hold_in_sec }),
+                fillTemplate(content.rhythm_out, { s: exercise.exhale_sec }),
+                exercise.hold_out_sec > 0 && fillTemplate(content.rhythm_hold, { s: exercise.hold_out_sec }),
+              ].filter(Boolean).join(' · ')}
             </span>
-            <span className="text-ink-4">{minutesLabel(seconds)}</span>
+            <span className="text-ink-4">{minutesLabel(seconds, content)}</span>
           </div>
         </div>
       </button>
@@ -354,7 +357,7 @@ export default function Breathing({ withHeading = true, tinted = true }) {
 
         <Stagger className={`grid gap-4 sm:grid-cols-2 lg:grid-cols-3 ${withHeading ? 'mt-12' : ''}`}>
           {exercises.map((ex) => (
-            <ExerciseCard key={ex.id ?? ex.slug} exercise={ex} onStart={setActive} />
+            <ExerciseCard key={ex.id ?? ex.slug} exercise={ex} onStart={setActive} content={content} />
           ))}
         </Stagger>
       </Section>
@@ -366,7 +369,7 @@ export default function Breathing({ withHeading = true, tinted = true }) {
           className="on-deep max-h-[90dvh] max-w-sm overflow-y-auto rounded-4xl border-on-deep/10 p-0"
         >
           <DialogTitle className="sr-only">
-            {active?.name ?? 'Breathing exercise'}
+            {active?.name || content.fallback_name}
           </DialogTitle>
           <DialogDescription className="sr-only">
             Guided breathing session. Follow the circle animation.

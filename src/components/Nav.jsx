@@ -162,10 +162,14 @@ export default function Nav() {
 
   return (
     <>
-      <header className={`zone-header sticky top-0 z-50 transition-[background-color,box-shadow,border-color] duration-300 ${scrolled ? 'border-b border-line bg-bg/90 shadow-[0_1px_0_rgba(0,0,0,0.02)] backdrop-blur-md' : 'border-b border-transparent bg-bg'}`}>
+      <header className={`zone-header sticky top-0 z-50 transition-[background-color,box-shadow,border-color] duration-300 ${scrolled ? 'border-b border-line bg-bg/90 shadow-[0_1px_0_color-mix(in_srgb,var(--color-shadow)_2%,transparent)] backdrop-blur-md' : 'border-b border-transparent bg-bg'}`}>
         <nav className="mx-auto flex h-[68px] max-w-[1280px] items-center justify-between gap-6 px-5 sm:px-8">
           <Link to="/" className="flex items-center gap-2.5" aria-label={`${brand.name} home`}>
-            <img src="/logo/logo.svg" alt={brand.name} className="h-12 w-auto mix-blend-multiply" />
+            {brand.logo_url ? (
+              <img src={brand.logo_url} alt={brand.name} className="h-12 w-auto max-w-[200px] object-contain mix-blend-multiply" />
+            ) : (
+              <span className="t-brand font-display text-[22px] font-semibold tracking-tight text-ink">{brand.name}</span>
+            )}
           </Link>
 
           <ul className="hidden items-center gap-1 lg:flex">

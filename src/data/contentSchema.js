@@ -138,6 +138,20 @@ const strings = (itemLabel) => ({ itemLabel, itemType: 'string' });
 
 const LIST = 'json';
 
+/**
+ * The middle of the homepage, in order. `id` is what HomePage.jsx renders; the
+ * hero (top) and the closing band (bottom) are fixed and not listed.
+ */
+export const HOME_SECTIONS = [
+  { id: 'explore', label: 'Something to take with you (articles, videos)', show: true },
+  { id: 'breathe', label: 'One minute of breathing', show: true },
+  { id: 'heard', label: 'We heard you (quotes)', show: true },
+  { id: 'testimonials', label: 'In their words (reviews)', show: true },
+  { id: 'services', label: 'What we treat (services)', show: true },
+  { id: 'approach', label: 'How it works (steps)', show: true },
+  { id: 'therapists', label: 'The team (therapists)', show: true },
+];
+
 export const CONTENT_SCHEMA = [
   // ── What the site shows ───────────────────────────────────────────────────
   // Four switches, and they are the reason nothing on this site has to be
@@ -149,6 +163,20 @@ export const CONTENT_SCHEMA = [
   f('features.pricing', 'Pricing page', 'off', 'toggle', 'Off takes the plans off the menu and the footer and sends /pricing back to the home page. The prices on the service cards are a separate thing and are not affected.'),
   f('features.testimonials', 'Client reviews', 'on', 'toggle', 'The "In their words" quotes on the homepage and the team page. The ones shipped with the site are samples — replace them with real quotes, used with the client\'s permission, before the site is promoted. Invented reviews on a health site are a legal problem, not just an awkward one.'),
   f('features.community', 'Community (Discord)', 'on', 'toggle', 'The "Join our community" button and the band at the foot of every page. The invite link itself lives under Community — with no link saved, every community button stays hidden rather than pointing nowhere.'),
+
+  // ── Homepage layout ──────────────────────────────────────────────────────
+  f('homepage.sections', 'Homepage sections, top to bottom', HOME_SECTIONS, LIST, 'Use the arrows to change the order and the tick to show or hide a part. The hero always comes first and the closing call to action always comes last. Reviews and the team also follow their switches above.', {
+    itemLabel: 'Section',
+    summaryKey: 'label',
+    fixedItems: true,
+    // `id` and `label` are carried, never edited: the id is what the page
+    // renders and the label is the row's name in this list.
+    fields: [
+      { key: 'show', label: 'Show on the homepage', type: 'boolean' },
+      { key: 'label', label: 'Section', type: 'text', hidden: true },
+      { key: 'id', label: 'Internal id', type: 'text', hidden: true, advanced: true },
+    ],
+  }),
 
   // ── Brand ─────────────────────────────────────────────────────────────────
   f('brand.name', 'Practice name', brand.name),
@@ -165,6 +193,10 @@ export const CONTENT_SCHEMA = [
   f('brand.brand_color', 'Brand colour (hex)', '#055F81', 'text', 'The one brand colour: buttons, links, focus rings, and every soft wash on the site is this mixed with white. Keep it dark enough for white text on top — anything that reads well as a button will work.'),
   f('brand.highlight_color', 'Highlight colour (hex)', '#FFBF00', 'text', 'The loud colour, used sparingly: the crisis banner, the button on the dark closing band, the exhale in the breathing player. It always carries black text, so keep it bright.'),
   f('brand.peach_color', 'Peach accent (hex)', '#FFCBA4', 'text', 'The warm third colour, and the only one used sparingly on purpose: the status pill in the hero, the small bar beside each section label, one of the quote cards and the community chips. It never carries type, so it can be as soft as you like.'),
+  // Pictures that belong to the practice rather than to a page.
+  f('brand.logo_url', 'Logo', '/logo/logo.svg', 'image', 'Shown at the top left of every page. A wide logo on a transparent or white background works best; the header blends it into its colour. Remove it to show the practice name as text instead.', { folder: 'brand' }),
+  f('brand.favicon_url', 'Browser tab icon', '/logo/fevicon.svg', 'image', 'The small icon in the browser tab and bookmarks. A square picture, at least 64 × 64.', { folder: 'brand' }),
+  f('brand.currency', 'Currency symbol', '$', 'text', 'Shown in front of every price: services, pricing, the booking total. For example ₹ or $.'),
 
   // ── Navigation ────────────────────────────────────────────────────────────
   f('nav.book_label', 'Book button label', 'Book a session'),
@@ -189,7 +221,7 @@ export const CONTENT_SCHEMA = [
   f('hero.subheadline', 'Subheadline', 'Licensed clinicians, matched to you by a human in under a day. Video, phone or in person, and a first session this week, not next quarter.', 'richtext'),
   f('hero.primary_cta', 'Primary button', 'Book your first session'),
   f('hero.location_note', 'Location note', 'Based in India · Sessions online'),
-  f('hero.image_url', 'Hero photo (URL)', IMAGES.hero, 'text', 'Paste any https image URL. Landscape works best.'),
+  f('hero.image_url', 'Hero photo', IMAGES.hero, 'image', 'Landscape works best.'),
   f('hero.image_alt', 'Hero photo description (for screen readers)', 'Two people talking on a couch in a bright room'),
   f('hero.match_badge', 'Badge on the card over the photo', 'Matched in 1 day'),
 
@@ -223,7 +255,7 @@ export const CONTENT_SCHEMA = [
   f('approach.eyebrow', 'Eyebrow', 'How it works'),
   f('approach.headline', 'Headline', 'Four steps. No waiting rooms.'),
   f('approach.lead', 'Lead paragraph', 'Most people give up on finding a therapist somewhere between the third voicemail and the second waitlist. We removed that part.', 'richtext'),
-  f('approach.image_url', 'How it works page photo (URL)', IMAGES.approach),
+  f('approach.image_url', 'How it works page photo', IMAGES.approach, 'image'),
   f('approach.image_alt', 'How it works page photo description (for screen readers)', 'A person smiling during a video call at home'),
   f('approach.home_cta', 'Homepage "learn more" link', 'How matching works'),
   f('approach.header_cta', 'Button in the page header', 'Start the intake'),
@@ -255,7 +287,7 @@ export const CONTENT_SCHEMA = [
   f('breathing.eyebrow', 'Eyebrow', 'Breathe'),
   f('breathing.headline', 'Headline', 'A moment, right now.'),
   f('breathing.lead', 'Lead paragraph', 'Guided breathing exercises from our clinical team. Each session takes under five minutes.', 'richtext'),
-  f('breathing.image_url', 'Breathe page photo (URL)', IMAGES.breathing),
+  f('breathing.image_url', 'Breathe page photo', IMAGES.breathing, 'image'),
   f('breathing.image_alt', 'Breathe page photo description (for screen readers)', 'A person with a hand on their chest, eyes closed'),
   f('breathing.inhale_label', 'Prompt: breathe in', 'Breathe in'),
   f('breathing.hold_label', 'Prompt: hold', 'Hold'),
@@ -265,11 +297,19 @@ export const CONTENT_SCHEMA = [
   f('breathing.again_label', 'Button to repeat a finished session', 'Go again'),
   f('breathing.done_title', 'Title when a session finishes', 'Session complete'),
   f('breathing.done_body', 'Body when a session finishes', 'Take a moment to notice how you feel.', 'richtext'),
+  f('breathing.rhythm_in', 'Rhythm line: breathe in', '{s}s in', 'text', 'Under each exercise, e.g. "4s in · 7s hold · 8s out". Use {s} for the seconds.'),
+  f('breathing.rhythm_hold', 'Rhythm line: hold', '{s}s hold', 'text', 'Use {s} for the seconds.'),
+  f('breathing.rhythm_out', 'Rhythm line: breathe out', '{s}s out', 'text', 'Use {s} for the seconds.'),
+  f('breathing.done_cycles', 'Finished screen: label under the cycles', 'cycles'),
+  f('breathing.done_time', 'Finished screen: label under the time', 'breathing'),
+  f('breathing.seconds', 'Time in seconds', '{s}s', 'text', 'Use {s} for the number.'),
+  f('breathing.minutes', 'Time in minutes', '{m} min', 'text', 'Use {m} for the number.'),
+  f('breathing.fallback_name', 'Name when an exercise has none', 'Breathing exercise'),
 
   // ── Services ──────────────────────────────────────────────────────────────
   f('services.eyebrow', 'Eyebrow', 'What we treat'),
   f('services.headline', 'Headline', 'Care built around the thing you actually came for.'),
-  f('services.image_url', 'Services page photo (URL)', IMAGES.services),
+  f('services.image_url', 'Services page photo', IMAGES.services, 'image'),
   f('services.image_alt', 'Services page photo description (for screen readers)', 'Two people sitting together, one comforting the other'),
   f('services.home_cta', 'Homepage "see all" link', 'See every service'),
   f('services.header_cta', 'Button in the page header', 'Book a session'),
@@ -294,7 +334,7 @@ export const CONTENT_SCHEMA = [
   f('therapists.eyebrow', 'Eyebrow', 'The practice'),
   f('therapists.headline', 'Headline', 'People, not profiles.'),
   f('therapists.lead', 'Lead paragraph', 'Read them properly before you choose. Every therapist here offers a free fifteen-minute intro call, because fit is not something you can tell from a headshot.', 'richtext'),
-  f('therapists.image_url', 'Therapists page photo (URL)', IMAGES.therapists),
+  f('therapists.image_url', 'Therapists page photo', IMAGES.therapists, 'image'),
   f('therapists.image_alt', 'Therapists page photo description (for screen readers)', 'A quiet therapy room with two armchairs and a plant'),
   f('therapists.home_cta', 'Homepage "meet everyone" link', 'Meet the whole team'),
   f('therapists.items', 'Therapist cards', therapists, LIST, null, {
@@ -302,6 +342,7 @@ export const CONTENT_SCHEMA = [
     summaryKey: 'name',
     fields: [
       { key: 'name', label: 'Name', type: 'text' },
+      { key: 'photo', label: 'Photo', type: 'image', folder: 'therapists', hint: 'A square head-and-shoulders photo. Without one, the card shows their initials.' },
       { key: 'credentials', label: 'Credentials', type: 'text', hint: 'e.g. PsyD, Clinical Psychologist' },
       { key: 'pronouns', label: 'Pronouns', type: 'text' },
       { key: 'years', label: 'Years of experience', type: 'number' },
@@ -359,7 +400,7 @@ export const CONTENT_SCHEMA = [
   f('resources.eyebrow', 'Eyebrow', 'Resources'),
   f('resources.headline', 'Headline', 'Worth your time between sessions.'),
   f('resources.lead', 'Lead paragraph', 'Videos and articles reviewed by our clinical team, on anxiety, sleep, relationships and more.', 'richtext'),
-  f('resources.image_url', 'Resources page photo (URL)', IMAGES.resources),
+  f('resources.image_url', 'Resources page photo', IMAGES.resources, 'image'),
   f('resources.image_alt', 'Resources page photo description (for screen readers)', 'A person holding a warm mug at a table'),
   f('resources.videos_title', 'Videos sub-heading', 'Watch'),
   f('resources.videos_empty', 'Shown when there are no active videos', 'No videos yet. Add one from the admin and it appears here.'),
@@ -418,7 +459,7 @@ export const CONTENT_SCHEMA = [
   f('pricing.eyebrow', 'Eyebrow', 'Cost'),
   f('pricing.headline', 'Headline', 'Priced plainly, before you book.'),
   f('pricing.lead', 'Lead paragraph', 'You see your exact out-of-pocket cost on the booking screen — insurance applied, nothing surfacing on a statement three weeks later.', 'richtext'),
-  f('pricing.image_url', 'Pricing page photo (URL)', IMAGES.pricing),
+  f('pricing.image_url', 'Pricing page photo', IMAGES.pricing, 'image'),
   f('pricing.image_alt', 'Pricing page photo description (for screen readers)', 'A person walking a stone labyrinth above the sea'),
   f('pricing.plans', 'Plans', plans, LIST, null, {
     itemLabel: 'Plan',
@@ -456,7 +497,6 @@ export const CONTENT_SCHEMA = [
   f('cta.body', 'Body', 'Two minutes now, a matched therapist by tomorrow, a first session this week. You can change your mind at any point in that sequence.', 'richtext'),
   f('cta.primary', 'Primary button', 'Book your first session'),
   f('cta.secondary', 'Secondary button', 'Or just call us'),
-  f('cta.image_url', 'Call-to-action photo (URL)', IMAGES.services, 'text', 'Leave blank for a plain card.'),
   f('cta.reassurances', 'Reassurance chips', ['Free 15-min intro call', 'Cancel any time', 'No card to browse'], LIST, null, strings('Chip')),
 
   // ── Community (Discord) ───────────────────────────────────────────────────
@@ -473,6 +513,7 @@ export const CONTENT_SCHEMA = [
   f('community.nav_label', 'Button in the header', 'Join our community'),
   f('community.mobile_label', 'Button on the mobile bar', 'Join our community'),
   f('community.palette_label', 'Entry in the Cmd-K palette', 'Join our Discord community'),
+  f('community.palette_hint', 'Small tag beside it in the Cmd-K palette', 'Discord'),
   f('community.email_placeholder', 'Email box placeholder', 'Enter your email ID'),
   f('community.email_label', 'Email box label (read aloud by screen readers)', 'Your email address'),
   f('community.privacy_note', 'Small print under the email box', 'We use it to send the invite again if the link ever changes. Nothing else, ever.', 'richtext'),
@@ -580,6 +621,58 @@ export const CONTENT_SCHEMA = [
   f('booking.reference_label', 'Label above the booking reference', 'Reference'),
   f('booking.add_to_calendar', 'Button on the confirmation', 'Add to calendar'),
   f('booking.success_privacy', 'Small print on the confirmation', "Your information is stored securely and only accessible to our clinical team. We'll be in touch within one business day.", 'richtext'),
+  f('booking.step_counter', 'Progress line at the top', 'Step {n} of {total}', 'text', 'Use {n} and {total} where the numbers go. The step name follows it.'),
+  f('booking.confirmed_label', 'Progress line once booked', 'Confirmed'),
+  f('booking.confirming', 'Submit button while sending', 'Confirming…'),
+  f('booking.match_note', 'Line under "Match me with someone"', 'A clinician reads your intake and picks. Usually the fastest route to a session.'),
+  f('booking.day_label', 'Label above the days', 'Day'),
+  f('booking.slots_open', 'Openings on a day', '{count} open', 'text', 'Use {count} for the number.'),
+  f('booking.slots_full', 'A day with no openings', 'full'),
+  f('booking.time_note', 'Note by the Continue button on the time step', 'All times Pacific.', 'text', 'Say which time zone the times are in.'),
+  f('booking.review_note', 'Note by the Confirm button', 'Nothing is charged today.'),
+  f('booking.other_note', 'Note by the Continue button on the other steps', 'You can change any of this later.'),
+  f('booking.placeholder_name', 'Example in the name box', 'Alex Rivera'),
+  f('booking.placeholder_email', 'Example in the email box', 'alex@example.com'),
+  f('booking.placeholder_phone', 'Example in the phone box', '(415) 555-0142'),
+  f('booking.placeholder_insurer', 'Text in the insurance box before a choice', 'Select one'),
+  f('booking.placeholder_note', 'Example in the note box', 'Only if you feel like it.'),
+  f('booking.consent_text', 'Consent checkbox text', 'I consent to telehealth care and agree to the privacy practices. I understand this booking can be cancelled free of charge up to 24 hours beforehand.', 'richtext'),
+  f('booking.review_care', 'Review: care row', 'Care'),
+  f('booking.review_care_default', 'Review: care when none chosen', 'Individual therapy'),
+  f('booking.review_format', 'Review: format row', 'Format'),
+  f('booking.review_therapist', 'Review: therapist row', 'Therapist'),
+  f('booking.review_matched', 'Review: when we choose the therapist', 'Matched for you'),
+  f('booking.review_when', 'Review: time row', 'When'),
+  f('booking.review_at', 'Word between the date and the time', 'at'),
+  f('booking.review_cadence', 'Review: cadence row', 'Cadence'),
+  f('booking.review_name', 'Review: name row', 'Name'),
+  f('booking.review_email', 'Review: email row', 'Email'),
+  f('booking.review_insurance', 'Review: insurance row', 'Insurance'),
+  f('booking.copay', 'Estimated copay with insurance', 35, 'number', 'The amount shown when someone picks an insurer.'),
+  f('booking.estimate_insured', 'Note under the estimate, with insurance', 'Estimated copay with {insurer}. We verify benefits before your session and will tell you if this changes — never after the fact.', 'richtext', 'Use {insurer} for the insurer they picked.'),
+  f('booking.estimate_selfpay', 'Note under the estimate, self-pay', 'Self-pay rate. Sliding-scale places are available; mention it on your intro call.', 'richtext'),
+  f('booking.success_pending', 'Confirmation when no time was picked', 'We will confirm your time shortly'),
+  f('booking.success_with', 'Confirmation: the therapist part', 'with {therapist}', 'text', 'Use {therapist} for the name.'),
+  f('booking.success_email', 'Confirmation: the email part', 'A confirmation is on its way to {email}.', 'text', 'Use {email} for their address.'),
+  f('booking.calendar_video', 'Calendar invite: place for video and phone sessions', 'Secure video link — sent by email'),
+  f('booking.calendar_matched', 'Calendar invite: when we choose the therapist', 'with your matched therapist'),
+  f('booking.calendar_title', 'Calendar invite: event name', 'Therapy session {who}', 'text', 'Use {who} for "with <therapist>".'),
+  f('booking.calendar_body', 'Calendar invite: details', 'Your {brand} session {who}.\nReference {reference}.\nReschedule or cancel free of charge up to 24 hours beforehand: {phone}', 'richtext', 'Use {brand}, {who}, {reference} and {phone}.'),
+  f('booking.calendar_reminder', 'Calendar invite: reminder an hour before', '{brand} session in one hour', 'text', 'Use {brand} for the practice name.'),
+  f('booking.timezone', 'Time zone of the times offered', 'America/Los_Angeles', 'text', 'Used by the calendar invite. The standard name, e.g. Asia/Kolkata for India. Keep "Note by the Continue button on the time step" saying the same.'),
+  f('booking.error_pick', 'Error: no chip picked', 'Pick at least one'),
+  f('booking.error_choose', 'Error: nothing chosen', 'Choose one'),
+  f('booking.error_format', 'Error: no format', 'Choose a format'),
+  f('booking.error_therapist', 'Error: no therapist', 'Choose a therapist, or ask to be matched'),
+  f('booking.error_day', 'Error: no day', 'Pick a day'),
+  f('booking.error_time', 'Error: no time', 'Pick a time'),
+  f('booking.error_required', 'Error: name missing', 'Required'),
+  f('booking.error_email', 'Error: bad email', 'Enter a valid email'),
+  f('booking.error_phone', 'Error: bad phone number', 'Check this number'),
+  f('booking.error_select', 'Error: no insurance chosen', 'Select one'),
+  f('booking.error_consent', 'Error: consent not ticked', 'Please confirm to continue.'),
+  f('booking.error_bot', 'Error: submission looked automated', 'Something looks off with this submission. Please try again.'),
+  f('booking.error_generic', 'Error: sending failed', 'Something went wrong. Please try again or call us directly.'),
 
   // ── Buttons and labels used in more than one place ────────────────────────
   f('ui.skip_link', 'Skip-to-content link', 'Skip to content'),
@@ -617,6 +710,22 @@ export const CONTENT_SCHEMA = [
   f('ui.palette_page_faq', 'Cmd-K: questions entry', 'Questions'),
   f('ui.palette_page_therapists', 'Cmd-K: therapists entry', 'Our therapists'),
   f('ui.palette_page_pricing', 'Cmd-K: pricing entry', 'Pricing & insurance'),
+
+  // ── Search & sharing ─────────────────────────────────────────────────────
+  // What Google shows, what a shared link previews as, and the name of each
+  // page in the browser tab. Link previews (WhatsApp, LinkedIn…) read these
+  // through api/page.js, so they change without a new deploy too.
+  f('seo.home_title', 'Home page title', `${brand.name} — Therapy that meets you where you are`, 'text', 'The title in the browser tab and in Google for the home page. Around 60 characters.'),
+  f('seo.description', 'Site description', `${brand.name} is a therapy practice in India. Talk to a therapist, try free guided breathing exercises and articles, and join a supportive community.`, 'richtext', 'The line under the title in Google results and in link previews. Around 150 characters. Blog posts use their own summary instead.'),
+  f('seo.share_image_url', 'Link preview picture', '/og.png', 'image', 'The picture shown when someone shares a link to the site on WhatsApp, LinkedIn and so on. Landscape, ideally 1200 × 630.', { folder: 'brand' }),
+  f('seo.page_services', 'Tab name: services page', 'Services', 'text', 'Each page shows as "<this> · <practice name>" in the browser tab.'),
+  f('seo.page_how', 'Tab name: how it works page', 'How it works'),
+  f('seo.page_therapists', 'Tab name: therapists page', 'Our therapists'),
+  f('seo.page_pricing', 'Tab name: pricing page', 'Pricing'),
+  f('seo.page_resources', 'Tab name: resources page', 'Resources'),
+  f('seo.page_breathe', 'Tab name: breathe page', 'Breathing exercises'),
+  f('seo.page_blog', 'Tab name: blog page', 'Blog'),
+  f('seo.page_notfound', 'Tab name: page not found', 'Page not found'),
 ];
 
 /** Defaults for one section as the shortKey → value map components consume. */
@@ -634,8 +743,8 @@ export const SCHEMA_BY_KEY = Object.fromEntries(CONTENT_SCHEMA.map((x) => [x.key
 
 /** Section display order in the admin, matching the page from top to bottom. */
 export const SECTION_ORDER = [
-  'features',
-  'brand', 'nav', 'footer', 'booking', 'ui',
+  'features', 'homepage',
+  'brand', 'seo', 'nav', 'footer', 'booking', 'ui',
   'hero', 'trust', 'heard', 'testimonials', 'explore', 'breathe_home', 'cta', 'community',
   'services', 'approach', 'why', 'faq', 'therapists', 'pricing', 'resources', 'blog', 'breathing',
   'legal',
@@ -648,7 +757,9 @@ export const SECTION_ORDER = [
  */
 export const SECTION_PAGE = {
   features: 'visibility',
+  homepage: 'visibility',
   brand: 'everywhere',
+  seo: 'everywhere',
   nav: 'everywhere',
   footer: 'everywhere',
   booking: 'everywhere',
@@ -727,6 +838,8 @@ export const PAGE_BLURBS = {
 
 export const SECTION_TITLES = {
   features: 'What the site shows',
+  homepage: 'Homepage layout',
+  seo: 'Search & sharing',
   community: 'Community (Discord)',
   ui: 'Shared buttons & error screens',
   brand: 'Brand & contact',

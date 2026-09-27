@@ -81,7 +81,7 @@ export default function Therapists({ onBook, limit, teaser = false, withHeading 
             className="flex flex-col rounded-3xl border border-line bg-surface p-6 shadow-[var(--shadow-card)] transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-lift)]"
           >
             <div className="flex items-start gap-4">
-              <Avatar name={t.name} hue={t.hue} size="lg" />
+              <Avatar name={t.name} hue={t.hue} photo={t.photo} size="lg" />
               <div className="min-w-0 pt-1">
                 <h3 className="t-card-title truncate font-display text-[21px] leading-tight tracking-tight text-ink">{t.name}</h3>
                 <p className="mt-1 text-[13px] text-ink-3">{t.credentials}</p>

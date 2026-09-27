@@ -1,4 +1,4 @@
-import { brand } from '../data/site';
+import { brand as defaultBrand } from '../data/site';
 import { parseDayKey } from './slots';
 
 /**
@@ -42,7 +42,29 @@ function esc(text) {
     .replace(/\n/g, '\\n');
 }
 
-export function buildIcs({ reference, dateKey, time, durationMin = 50, therapistName, format }) {
+/** Fills {name} placeholders; unknown names are left as they are. */
+const fill = (text, vars) => String(text ?? '').replace(/\{(\w+)\}/g, (m, k) => (vars[k] ?? m));
+
+/** The wording the invite uses when the admin copy has not loaded. */
+const DEFAULT_COPY = {
+  calendar_video: 'Secure video link — sent by email',
+  calendar_matched: 'with your matched therapist',
+  success_with: 'with {therapist}',
+  calendar_title: 'Therapy session {who}',
+  calendar_body: 'Your {brand} session {who}.\nReference {reference}.\nReschedule or cancel free of charge up to 24 hours beforehand: {phone}',
+  calendar_reminder: '{brand} session in one hour',
+  timezone: 'America/Los_Angeles',
+};
+
+/**
+ * `brand` and `copy` are the admin's (Brand & contact, Booking); both fall
+ * back to the built-in wording so a calendar file can always be made.
+ */
+export function buildIcs({
+  reference, dateKey, time, durationMin = 50, therapistName, format, brand = defaultBrand, copy = {},
+}) {
+  const c = { ...DEFAULT_COPY, ...Object.fromEntries(Object.entries(copy).filter(([, v]) => v !== '' && v != null)) };
+  const tz = /^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$/.test(c.timezone) ? c.timezone : DEFAULT_COPY.timezone;
   const start = parseDayKey(dateKey);
   const startStamp = stamp(start, time);
 
@@ -51,8 +73,10 @@ export function buildIcs({ reference, dateKey, time, durationMin = 50, therapist
   end.setHours(h, m + durationMin, 0, 0);
   const endStamp = stamp(end, `${end.getHours()}:${end.getMinutes()}`);
 
-  const where = format === 'inperson' ? brand.address : 'Secure video link — sent by email';
-  const who = therapistName ? `with ${therapistName}` : 'with your matched therapist';
+  const where = format === 'inperson' ? brand.address : c.calendar_video;
+  const who = therapistName ? fill(c.success_with, { therapist: therapistName }) : c.calendar_matched;
+  const vars = { brand: brand.name, who, reference, phone: brand.phone || brand.email || '' };
+  const host = typeof window !== 'undefined' ? window.location.host : 'booking';
 
   const lines = [
     'BEGIN:VCALENDAR',
@@ -61,19 +85,19 @@ export function buildIcs({ reference, dateKey, time, durationMin = 50, therapist
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
     'BEGIN:VEVENT',
-    `UID:${reference}@lumentherapy.com`,
+    `UID:${reference}@${host}`,
     `DTSTAMP:${utcStamp()}`,
-    `DTSTART;TZID=America/Los_Angeles:${startStamp}`,
-    `DTEND;TZID=America/Los_Angeles:${endStamp}`,
-    `SUMMARY:${esc(`Therapy session ${who}`)}`,
-    `DESCRIPTION:${esc(`Your ${brand.name} session ${who}.\nReference ${reference}.\nReschedule or cancel free of charge up to 24 hours beforehand: ${brand.phone}`)}`,
+    `DTSTART;TZID=${tz}:${startStamp}`,
+    `DTEND;TZID=${tz}:${endStamp}`,
+    `SUMMARY:${esc(fill(c.calendar_title, vars))}`,
+    `DESCRIPTION:${esc(fill(c.calendar_body, vars).replace(/\\n/g, '\n'))}`,
     `LOCATION:${esc(where)}`,
     'STATUS:CONFIRMED',
     'TRANSP:OPAQUE',
     'BEGIN:VALARM',
     'TRIGGER:-PT1H',
     'ACTION:DISPLAY',
-    `DESCRIPTION:${esc(`${brand.name} session in one hour`)}`,
+    `DESCRIPTION:${esc(fill(c.calendar_reminder, vars))}`,
     'END:VALARM',
     'END:VEVENT',
     'END:VCALENDAR',
@@ -87,7 +111,7 @@ export function downloadIcs(ics, reference) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `lumen-${reference}.ics`;
+  a.download = `booking-${reference}.ics`;
   document.body.appendChild(a);
   a.click();
   a.remove();

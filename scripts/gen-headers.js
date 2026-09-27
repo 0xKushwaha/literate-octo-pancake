@@ -1,7 +1,7 @@
 /** Regenerates vercel.json and deploy/nginx.conf from security.config.js. */
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { cacheHeaders, noIndexHeaders, securityHeaders } from '../security.config.js';
-import { APP_ROUTES, CRAWLER_UA } from '../seo.config.js';
+import { APP_ROUTES, CRAWLER_PAGES, CRAWLER_UA } from '../seo.config.js';
 
 // The SPA fallback, for the app's own routes only.
 //
@@ -25,6 +25,15 @@ const rewrites = [
     has: [{ type: 'header', key: 'user-agent', value: CRAWLER_UA }],
     destination: '/api/blog-page?slug=:slug',
   },
+  // Every other public page gets the same treatment from api/page.js, which
+  // writes the admin's Search & sharing fields into the tags. The home page
+  // cannot be rewritten here (index.html exists on disk and wins), so
+  // middleware.js does it for "/".
+  ...CRAWLER_PAGES.filter((r) => r !== '/').map((source) => ({
+    source,
+    has: [{ type: 'header', key: 'user-agent', value: CRAWLER_UA }],
+    destination: `/api/page?path=${encodeURIComponent(source)}`,
+  })),
   ...APP_ROUTES.filter((r) => r !== '/').map((source) => ({
     source,
     destination: '/index.html',

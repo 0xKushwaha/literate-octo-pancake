@@ -31,6 +31,105 @@
     },
     {
       "source": "/services",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(bot|Bot|BOT|crawler|Crawler|spider|Spider|facebookexternalhit|facebookcatalog|WhatsApp|Slack|Discord|Telegram|Pinterest|Embedly|Iframely|Skype|LinkedIn|Twitter|redditbot|Applebot|Google-InspectionTool|Bytespider|Preview|preview).*"
+        }
+      ],
+      "destination": "/api/page?path=%2Fservices"
+    },
+    {
+      "source": "/how-it-works",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(bot|Bot|BOT|crawler|Crawler|spider|Spider|facebookexternalhit|facebookcatalog|WhatsApp|Slack|Discord|Telegram|Pinterest|Embedly|Iframely|Skype|LinkedIn|Twitter|redditbot|Applebot|Google-InspectionTool|Bytespider|Preview|preview).*"
+        }
+      ],
+      "destination": "/api/page?path=%2Fhow-it-works"
+    },
+    {
+      "source": "/therapists",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(bot|Bot|BOT|crawler|Crawler|spider|Spider|facebookexternalhit|facebookcatalog|WhatsApp|Slack|Discord|Telegram|Pinterest|Embedly|Iframely|Skype|LinkedIn|Twitter|redditbot|Applebot|Google-InspectionTool|Bytespider|Preview|preview).*"
+        }
+      ],
+      "destination": "/api/page?path=%2Ftherapists"
+    },
+    {
+      "source": "/pricing",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(bot|Bot|BOT|crawler|Crawler|spider|Spider|facebookexternalhit|facebookcatalog|WhatsApp|Slack|Discord|Telegram|Pinterest|Embedly|Iframely|Skype|LinkedIn|Twitter|redditbot|Applebot|Google-InspectionTool|Bytespider|Preview|preview).*"
+        }
+      ],
+      "destination": "/api/page?path=%2Fpricing"
+    },
+    {
+      "source": "/resources",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(bot|Bot|BOT|crawler|Crawler|spider|Spider|facebookexternalhit|facebookcatalog|WhatsApp|Slack|Discord|Telegram|Pinterest|Embedly|Iframely|Skype|LinkedIn|Twitter|redditbot|Applebot|Google-InspectionTool|Bytespider|Preview|preview).*"
+        }
+      ],
+      "destination": "/api/page?path=%2Fresources"
+    },
+    {
+      "source": "/breathe",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(bot|Bot|BOT|crawler|Crawler|spider|Spider|facebookexternalhit|facebookcatalog|WhatsApp|Slack|Discord|Telegram|Pinterest|Embedly|Iframely|Skype|LinkedIn|Twitter|redditbot|Applebot|Google-InspectionTool|Bytespider|Preview|preview).*"
+        }
+      ],
+      "destination": "/api/page?path=%2Fbreathe"
+    },
+    {
+      "source": "/blog",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(bot|Bot|BOT|crawler|Crawler|spider|Spider|facebookexternalhit|facebookcatalog|WhatsApp|Slack|Discord|Telegram|Pinterest|Embedly|Iframely|Skype|LinkedIn|Twitter|redditbot|Applebot|Google-InspectionTool|Bytespider|Preview|preview).*"
+        }
+      ],
+      "destination": "/api/page?path=%2Fblog"
+    },
+    {
+      "source": "/privacy",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(bot|Bot|BOT|crawler|Crawler|spider|Spider|facebookexternalhit|facebookcatalog|WhatsApp|Slack|Discord|Telegram|Pinterest|Embedly|Iframely|Skype|LinkedIn|Twitter|redditbot|Applebot|Google-InspectionTool|Bytespider|Preview|preview).*"
+        }
+      ],
+      "destination": "/api/page?path=%2Fprivacy"
+    },
+    {
+      "source": "/terms",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(bot|Bot|BOT|crawler|Crawler|spider|Spider|facebookexternalhit|facebookcatalog|WhatsApp|Slack|Discord|Telegram|Pinterest|Embedly|Iframely|Skype|LinkedIn|Twitter|redditbot|Applebot|Google-InspectionTool|Bytespider|Preview|preview).*"
+        }
+      ],
+      "destination": "/api/page?path=%2Fterms"
+    },
+    {
+      "source": "/services",
       "destination": "/index.html"
     },
     {

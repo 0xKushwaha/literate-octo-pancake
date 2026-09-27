@@ -696,9 +696,12 @@
 
   /* elevation — depth comes from shadow here, not from translucent fills.
      Tinted with the ink hue so shadows sit in the same world as the paper. */
-  --shadow-card: 0 1px 3px rgba(11, 31, 36, 0.04), 0 12px 32px -16px rgba(11, 31, 36, 0.12);
-  --shadow-lift: 0 2px 6px rgba(11, 31, 36, 0.06), 0 24px 56px -20px rgba(11, 31, 36, 0.18);
-  --shadow-float: 0 10px 24px rgba(11, 31, 36, 0.08), 0 40px 80px -30px rgba(11, 31, 36, 0.24);
+  /* One shadow colour (Admin → Colours → Shadows), used faint. Mixing into
+     transparent in srgb gives exactly the rgba() these replaced. */
+  --color-shadow: #0B1F24;
+  --shadow-card: 0 1px 3px color-mix(in srgb, var(--color-shadow) 4%, transparent), 0 12px 32px -16px color-mix(in srgb, var(--color-shadow) 12%, transparent);
+  --shadow-lift: 0 2px 6px color-mix(in srgb, var(--color-shadow) 6%, transparent), 0 24px 56px -20px color-mix(in srgb, var(--color-shadow) 18%, transparent);
+  --shadow-float: 0 10px 24px color-mix(in srgb, var(--color-shadow) 8%, transparent), 0 40px 80px -30px color-mix(in srgb, var(--color-shadow) 24%, transparent);
 }
 
 /* ============================================================
@@ -720,7 +723,7 @@
   --color-popover-foreground: var(--color-ink);
 
   --color-primary: var(--button);
-  --color-primary-foreground: #ffffff;
+  --color-primary-foreground: var(--color-on-brand);
   --color-secondary: var(--color-surface-3);
   --color-secondary-foreground: var(--color-ink);
 
