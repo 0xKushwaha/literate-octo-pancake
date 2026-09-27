@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { getAllContent, upsertContent } from '../../lib/queries/siteContent';
@@ -585,28 +586,68 @@ function Slider({ prop, value, onChange }) {
 const CATEGORY_LABEL = { sans: 'Sans-serif', serif: 'Serif', display: 'Display', mono: 'Monospace' };
 const CATEGORY_ORDER = ['sans', 'serif', 'display', 'mono'];
 
+/**
+ * Where the font menu goes, in viewport pixels: below the button, or above it
+ * when there is more room there, never taller than the room it has (so the
+ * whole list can always be scrolled into reach), right edge on the button's,
+ * clamped so it never leaves the window on a narrow screen.
+ */
+function menuPlacement(button) {
+  const rect = button?.getBoundingClientRect();
+  if (!rect) return null;
+  const gap = 6;
+  const margin = 8;
+  const width = Math.min(288, window.innerWidth - margin * 2);
+  const below = window.innerHeight - rect.bottom - gap - margin;
+  const above = rect.top - gap - margin;
+  const up = below < 340 && above > below;
+  const left = Math.max(margin, Math.min(rect.right - width, window.innerWidth - width - margin));
+  return {
+    left,
+    width,
+    maxHeight: Math.max(160, Math.min(420, up ? above : below)),
+    ...(up ? { bottom: window.innerHeight - rect.top + gap } : { top: rect.bottom + gap }),
+  };
+}
+
 function FontPicker({ value, autoFont, onChange }) {
   const [open, setOpen] = useState(false);
-  const [openUp, setOpenUp] = useState(false);
+  // Where the menu sits, in viewport pixels. The menu is portalled to <body>
+  // and positioned `fixed`, because the card it lives in (Panel) is
+  // overflow-hidden: an absolutely positioned menu was cut off at the card's
+  // edge, so the bottom blocks showed a sliver of the list and nothing more.
+  const [place, setPlace] = useState(null);
   const [filter, setFilter] = useState('');
   const box = useRef(null);
+  const menu = useRef(null);
   const btn = useRef(null);
   const search = useRef(null);
   const current = value ? FONT_BY_ID[value] : null;
 
   useEffect(() => {
     if (!open) return undefined;
-    const onDown = (e) => { if (box.current && !box.current.contains(e.target)) setOpen(false); };
+    const onDown = (e) => {
+      if (box.current?.contains(e.target) || menu.current?.contains(e.target)) return;
+      setOpen(false);
+    };
+    // Follow the button while the page (the admin's <main>) scrolls or the
+    // window resizes; capture catches scrolls on any ancestor.
+    const follow = () => setPlace(menuPlacement(btn.current));
+    window.addEventListener('scroll', follow, true);
+    window.addEventListener('resize', follow);
     const onKey = (e) => { if (e.key === 'Escape') setOpen(false); };
     document.addEventListener('pointerdown', onDown);
     document.addEventListener('keydown', onKey);
-    return () => { document.removeEventListener('pointerdown', onDown); document.removeEventListener('keydown', onKey); };
+    return () => {
+      document.removeEventListener('pointerdown', onDown);
+      document.removeEventListener('keydown', onKey);
+      window.removeEventListener('scroll', follow, true);
+      window.removeEventListener('resize', follow);
+    };
   }, [open]);
 
   const openMenu = () => {
-    const rect = btn.current?.getBoundingClientRect();
-    const roomBelow = rect ? window.innerHeight - rect.bottom : Infinity;
-    setOpenUp(roomBelow < 340 && (rect?.top ?? 0) > roomBelow);
+    setPlace(menuPlacement(btn.current));
     setFilter('');
     setOpen(true);
     requestAnimationFrame(() => search.current?.focus());
@@ -639,10 +680,12 @@ function FontPicker({ value, autoFont, onChange }) {
         </span>
         <span className="text-gray-400">▾</span>
       </button>
-      {open && (
+      {open && place && createPortal(
         <div
+          ref={menu}
           role="listbox"
-          className={`absolute right-0 z-40 flex w-72 flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl ring-1 ring-black/5 ${openUp ? 'bottom-full mb-1.5' : 'top-full mt-1.5'}`}
+          style={{ position: 'fixed', ...place }}
+          className="z-[100] flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl ring-1 ring-black/5"
         >
           <div className="shrink-0 border-b border-gray-100 p-1.5">
             <input
@@ -654,7 +697,7 @@ function FontPicker({ value, autoFont, onChange }) {
               className="w-full rounded-md border border-gray-200 bg-gray-50 px-2 py-1 text-sm text-gray-900 outline-none focus:border-gray-400 focus:bg-white"
             />
           </div>
-          <div className="max-h-72 overflow-y-auto p-1">
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-1">
             {showAuto && (
               <button
                 type="button"
@@ -688,7 +731,8 @@ function FontPicker({ value, autoFont, onChange }) {
             ))}
             {empty && <p className="px-2.5 py-4 text-center text-sm text-gray-400">No fonts match "{filter}"</p>}
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   );
